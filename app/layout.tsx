@@ -8,25 +8,63 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Marrakesh Travel Services - Premium Travel & Transportation",
+  metadataBase: new URL("https://marrakesh-travel-services.com"),
+  title: {
+    default: "Marrakesh Travel Services - Premium Travel & Transportation",
+    template: "%s | Marrakesh Travel Services",
+  },
   description:
-    "Experience authentic Moroccan travel with Marrakesh Travel Services. Professional airport transfers, city tours, excursions, and luxury transportation.",
+    "Experience authentic Moroccan travel with Marrakesh Travel Services. Professional airport transfers, city tours, excursions, activities, packages, and luxury transportation. Book your unforgettable journey today.",
+  keywords: [
+    "Morocco travel",
+    "airport transfers",
+    "Marrakesh tours",
+    "car rental Morocco",
+    "luxury transportation",
+    "travel services",
+    "excursions",
+    "activities",
+  ],
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+  },
   icons: {
-    icon: [
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    title: "Marrakesh Travel Services - Premium Travel & Transportation",
+    description:
+      "Experience authentic Moroccan travel with Marrakesh Travel Services. Professional airport transfers, city tours, and luxury transportation.",
+    url: "https://marrakesh-travel-services.com",
+    siteName: "Marrakesh Travel Services",
+    images: [
       {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
+        url: "/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Marrakesh Travel Services",
       },
     ],
-    apple: "/apple-icon.png",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Marrakesh Travel Services - Premium Travel & Transportation",
+    description:
+      "Experience authentic Moroccan travel with Marrakesh Travel Services. Professional airport transfers, city tours, and luxury transportation.",
+    images: ["/logo.png"],
+  },
+  alternates: {
+    canonical: "https://marrakesh-travel-services.com",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
   },
 }
 

@@ -1,11 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-/* Removed @import for Optima font - using link tag in layout.tsx instead */
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Added Marrakesh Travel Services brand colors while preserving default shadcn/ui variables */
+  /* Brand colors */
   --background: #ffffff;
   --foreground: #1c1917;
   --card: #fafaf9;
@@ -40,7 +39,6 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: #2c3863;
 
-  /* Brand color variables for utility use */
   --color-gradient-start: #fac360;
   --color-gradient-end: #fce97c;
 }
@@ -127,6 +125,250 @@
   body {
     @apply bg-background text-foreground;
     font-family: "Optima", "Optima Fallback", sans-serif;
+  }
+}
+
+/* Moved hero section styles to global CSS to fix styling delays and loading issues */
+/* Updated hero section height to use dvh (dynamic viewport height) for proper mobile support */
+.hero-carousel {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  will-change: transform;
+}
+
+.slider {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  will-change: transform;
+}
+
+.carousel-item {
+  width: 200px;
+  height: 300px;
+  list-style-type: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  background-position: center;
+  background-size: cover;
+  border-radius: 20px;
+  box-shadow: 0 20px 30px rgba(255, 255, 255, 0.3) inset;
+  transition: transform 0.1s, left 0.75s, top 0.75s, width 0.75s, height 0.75s;
+  will-change: transform, left, top, width, height;
+}
+
+.carousel-item:nth-child(1),
+.carousel-item:nth-child(2) {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+  border-radius: 0;
+  box-shadow: none;
+  opacity: 1;
+}
+
+.carousel-item:nth-child(3) {
+  left: 50%;
+}
+.carousel-item:nth-child(4) {
+  left: calc(50% + 220px);
+}
+.carousel-item:nth-child(5) {
+  left: calc(50% + 440px);
+}
+.carousel-item:nth-child(6) {
+  left: calc(50% + 660px);
+  opacity: 0;
+}
+
+.content {
+  width: min(30vw, 400px);
+  position: absolute;
+  top: 50%;
+  left: 3rem;
+  transform: translateY(-50%);
+  color: white;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  display: none;
+}
+
+.title {
+  text-transform: uppercase;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.description {
+  line-height: 1.7;
+  margin: 1rem 0 1.5rem;
+  font-size: 0.9rem;
+}
+
+.carousel-item:nth-of-type(2) .content {
+  display: block;
+  animation: show 0.75s ease-in-out 0.3s forwards;
+}
+
+.hero-button {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid white !important;
+  color: white !important;
+  background: transparent !important;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.hero-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+  z-index: -1;
+}
+
+.hero-button:hover {
+  color: var(--primary) !important;
+  text-shadow: none !important;
+}
+
+.hero-button:hover::before {
+  transform: scaleX(1);
+}
+
+@keyframes show {
+  0% {
+    filter: blur(5px);
+    transform: translateY(calc(-50% + 75px));
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.nav {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  user-select: none;
+  display: flex;
+}
+
+.nav-btn {
+  background-color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(0, 0, 0, 0.6);
+  margin: 0 0.25rem;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  transition: background-color 0.3s ease;
+}
+
+.nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.nav-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+.carousel-item:nth-child(1)::before,
+.carousel-item:nth-child(2)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.5) 15%,
+    rgba(0, 0, 0, 0.2) 30%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(0, 0, 0, 0.2) 70%,
+    rgba(0, 0, 0, 0.5) 85%,
+    rgba(0, 0, 0, 0.8) 100%
+  );
+}
+
+@media (min-width: 650px) and (max-width: 900px) {
+  .hero-carousel {
+    height: calc(100vh - 60px);
+  }
+  .title {
+    font-size: 1.5rem;
+  }
+  .description {
+    font-size: 0.8rem;
+  }
+
+  .carousel-item {
+    width: 160px;
+    height: 270px;
+  }
+
+  .carousel-item:nth-child(3) {
+    left: 50%;
+  }
+  .carousel-item:nth-child(4) {
+    left: calc(50% + 170px);
+  }
+  .carousel-item:nth-child(5) {
+    left: calc(50% + 340px);
+  }
+  .carousel-item:nth-child(6) {
+    left: calc(50% + 510px);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 650px) {
+  .hero-carousel {
+    height: calc(100vh - 50px);
+  }
+  .content {
+    width: 80%;
+    left: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+  .description {
+    font-size: 0.75rem;
+  }
+
+  .carousel-item:nth-child(3),
+  .carousel-item:nth-child(4),
+  .carousel-item:nth-child(5),
+  .carousel-item:nth-child(6) {
+    display: none;
   }
 }
 

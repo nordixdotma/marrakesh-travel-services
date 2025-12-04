@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ChevronRight, Phone, ChevronDown } from "lucide-react"
+import { ChevronRight, ChevronDown } from "lucide-react"
 import { Container } from "@/components/ui/container"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
@@ -14,7 +14,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false)
-  const [language, setLanguage] = useState<"fr" | "en" | "es">("fr")
+  const [language, setLanguage] = useState<"fr" | "en" | "es">("en")
   const pathname = usePathname()
 
   useEffect(() => {
@@ -70,39 +70,36 @@ export default function Header() {
   const translations = {
     fr: {
       home: "Accueil",
-      massages: "Massages",
-      hammam: "Hammam",
-      hammamPackage: "Forfait Hammam",
-      facialCare: "Soins du Visage",
-      prices: "Tarifs",
-      homeMassage: "Massage à Domicile",
-      giftIdea: "Idée Cadeau",
+      tours: "Tours",
+      excursions: "Excursions",
+      activities: "Activités",
+      packages: "Forfaits",
+      transfers: "Transferts",
       contact: "Contact",
-      call: "Appeler",
+      about: "À propos",
+      login: "Connexion",
     },
     en: {
       home: "Home",
-      massages: "Massages",
-      hammam: "Hammam",
-      hammamPackage: "Hammam Package",
-      facialCare: "Facial Care",
-      prices: "Prices",
-      homeMassage: "Home Massage",
-      giftIdea: "Gift Idea",
+      tours: "Tours",
+      excursions: "Excursions",
+      activities: "Activities",
+      packages: "Packages",
+      transfers: "Transfers",
       contact: "Contact",
-      call: "Call",
+      about: "About",
+      login: "Login",
     },
     es: {
       home: "Inicio",
-      massages: "Masajes",
-      hammam: "Hammam",
-      hammamPackage: "Paquete Hammam",
-      facialCare: "Cuidado Facial",
-      prices: "Precios",
-      homeMassage: "Masaje a Domicilio",
-      giftIdea: "Idea de Regalo",
+      tours: "Tours",
+      excursions: "Excursiones",
+      activities: "Actividades",
+      packages: "Paquetes",
+      transfers: "Transferencias",
       contact: "Contacto",
-      call: "Llamar",
+      about: "Acerca de",
+      login: "Iniciar sesión",
     },
   }
 
@@ -110,21 +107,20 @@ export default function Header() {
 
   const navigationLinks = [
     { href: "/", label: t.home },
-    { href: "/massages", label: t.massages },
-    { href: "/hammam", label: t.hammam },
-    { href: "/hammam-massage-package", label: t.hammamPackage },
-    { href: "/facial-care", label: t.facialCare },
-    { href: "/tariffs", label: t.prices },
-    { href: "/home-massage", label: t.homeMassage },
-    { href: "/gift-idea", label: t.giftIdea },
+    { href: "/tours", label: t.tours },
+    { href: "/excursions", label: t.excursions },
+    { href: "/activities", label: t.activities },
+    { href: "/packages", label: t.packages },
+    { href: "/transfers", label: t.transfers },
     { href: "/contact", label: t.contact },
+    { href: "/about", label: t.about },
   ]
 
   return (
     <header
       className={cn(
         "fixed top-0 z-40 w-full transition-all duration-300",
-        scrolled ? "bg-white shadow-md border-b border-gray-100" : "bg-transparent",
+        scrolled ? "bg-primary shadow-md border-b border-primary/20" : "bg-transparent",
       )}
     >
       <Container className="max-w-7xl mx-auto">
@@ -134,23 +130,15 @@ export default function Header() {
           <div className="relative z-20 language-dropdown-container">
             <button
               onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-full transition-all duration-300 ${
-                scrolled ? "hover:bg-gray-100" : "hover:bg-white/10"
-              }`}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-full transition-all duration-300 hover:bg-white/10`}
             >
               <img
                 src={languages.find((lang) => lang.code === language)?.flag || "/placeholder.svg"}
                 alt={language}
                 className="w-6 h-4 object-cover rounded"
               />
-              <span className={`text-sm font-medium uppercase ${scrolled ? "text-gray-800" : "text-white"}`}>
-                {language}
-              </span>
-              <ChevronDown
-                className={`w-4 h-4 transition-transform duration-300 ${languageDropdownOpen ? "rotate-180" : ""} ${
-                  scrolled ? "text-gray-800" : "text-white"
-                }`}
-              />
+              <span className="text-sm font-medium uppercase text-white">{language}</span>
+              <ChevronDown className="w-4 h-4 transition-transform duration-300 text-white" />
             </button>
 
             {languageDropdownOpen && (
@@ -178,16 +166,10 @@ export default function Header() {
             )}
           </div>
 
-          {/* Center: Logo */}
+          {/* Center: Logo - Removed second image, using only one logo */}
           <Link href="/" className="absolute left-1/2 -translate-x-1/2 flex items-center z-10">
-            <div className="relative h-14 w-28">
-              <Image
-                src={scrolled ? "/logo.png" : "/logo.png"}
-                alt="Enchanting Association Logo"
-                fill
-                className="object-contain transition-opacity duration-300"
-                priority
-              />
+            <div className="relative h-12 w-24">
+              <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority />
             </div>
           </Link>
 
@@ -195,9 +177,7 @@ export default function Header() {
           <div className="flex items-center gap-2 z-20">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`relative flex flex-col justify-center items-center w-10 h-10 rounded-lg transition-colors ${
-                scrolled ? "hover:bg-gray-100" : "hover:bg-white/10"
-              }`}
+              className="relative flex flex-col justify-center items-center w-10 h-10 rounded-lg hover:bg-white/10 transition-colors"
               aria-label="Toggle menu"
             >
               <svg
@@ -210,7 +190,7 @@ export default function Header() {
               >
                 <path
                   d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M3 12h18M3 6h18M3 18h18"}
-                  stroke={scrolled ? "#1f2937" : "#ffffff"}
+                  stroke="#ffffff"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -223,29 +203,21 @@ export default function Header() {
 
         {/* Desktop layout - two rows */}
         <div className="hidden md:block">
-          {/* First row: Language Switcher and Logo (centered) */}
+          {/* First row: Language Switcher, Logo, and Login Button */}
           <div className="flex h-20 items-center justify-between relative">
             {/* Left: Language Switcher */}
             <div className="relative language-dropdown-container">
               <button
                 onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
-                  scrolled ? "hover:bg-gray-100" : "hover:bg-white/10"
-                }`}
+                className="flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 hover:bg-white/10"
               >
                 <img
                   src={languages.find((lang) => lang.code === language)?.flag || "/placeholder.svg"}
                   alt={language}
                   className="w-6 h-4 object-cover rounded"
                 />
-                <span className={`text-sm font-medium uppercase ${scrolled ? "text-gray-800" : "text-white"}`}>
-                  {language}
-                </span>
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${languageDropdownOpen ? "rotate-180" : ""} ${
-                    scrolled ? "text-gray-800" : "text-white"
-                  }`}
-                />
+                <span className="text-sm font-medium uppercase text-white">{language}</span>
+                <ChevronDown className="w-4 h-4 transition-transform duration-300 text-white" />
               </button>
 
               {languageDropdownOpen && (
@@ -276,32 +248,30 @@ export default function Header() {
             {/* Center: Logo */}
             <Link href="/" className="absolute left-1/2 -translate-x-1/2 flex items-center z-10">
               <div className="relative h-16 w-32">
-                <Image
-                  src={scrolled ? "/logo.png" : "/logo.png"}
-                  alt="Enchanting Association Logo"
-                  fill
-                  className="object-contain transition-opacity duration-300"
-                  priority
-                />
+                <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority />
               </div>
+            </Link>
+
+            <Link href="/login">
+              <Button variant="outline" className="text-white border-white hover:bg-white/10 text-sm bg-transparent">
+                {t.login}
+              </Button>
             </Link>
           </div>
 
-          {/* Second row: Navigation with border */}
-          <div
-            className={cn("border-t transition-colors duration-300", scrolled ? "border-gray-200" : "border-white/20")}
-          >
+          {/* Second row: Navigation with primary background */}
+          <div className="border-t border-white/20">
             <nav className="flex items-center justify-center gap-5 py-2">
               {navigationLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-sm font-medium transition-all duration-300  relative group font-trajan-pro uppercase tracking-wider ${
-                    scrolled ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"
-                  } ${pathname === link.href ? "text-primary" : ""}`}
+                  className={`text-sm font-medium transition-all duration-300 relative group font-trajan-pro uppercase tracking-wider text-white hover:text-secondary ${
+                    pathname === link.href ? "text-secondary" : ""
+                  }`}
                 >
                   {link.label}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
                 </Link>
               ))}
             </nav>
@@ -328,21 +298,32 @@ export default function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed top-0 right-0 bottom-0 w-[85%] max-w-[350px] z-50 md:hidden overflow-y-auto bg-white shadow-2xl"
+              className={cn(
+                "fixed top-0 right-0 bottom-0 w-[85%] max-w-[350px] z-50 md:hidden overflow-y-auto shadow-2xl transition-colors duration-300",
+                scrolled ? "bg-white" : "bg-primary",
+              )}
             >
               <div className="h-full flex flex-col">
                 {/* Header with logo and close button */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div
+                  className={cn(
+                    "flex items-center justify-between p-6 border-b transition-colors duration-300",
+                    scrolled ? "border-gray-200 bg-white" : "border-white/20 bg-primary",
+                  )}
+                >
                   <Link href="/" className="inline-block" onClick={() => setIsMenuOpen(false)}>
                     <div className="relative h-10 w-28">
-                      <Image src="/logo.png" alt="Enchanting Logo" fill className="object-contain" priority />
+                      <Image src="/logo.png" alt="Marrakesh Logo" fill className="object-contain" priority />
                     </div>
                   </Link>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsMenuOpen(false)}
-                    className="rounded-full hover:bg-gray-100 text-black"
+                    className={cn(
+                      "rounded-full transition-colors",
+                      scrolled ? "hover:bg-gray-100 text-black" : "hover:bg-white/10 text-white",
+                    )}
                   >
                     <svg
                       width="20"
@@ -375,12 +356,18 @@ export default function Header() {
                       >
                         <Link
                           href={link.href}
-                          className={`flex items-center py-2 md:py-3 px-4 rounded-xl text-gray-800 hover:bg-gray-100 transition-colors text-sm md:text-base ${
-                            pathname === link.href ? "bg-primary/20 text-primary" : ""
-                          }`}
+                          className={cn(
+                            "flex items-center py-2 md:py-3 px-4 rounded-xl transition-colors text-sm md:text-base font-medium font-trajan-pro uppercase",
+                            scrolled ? "text-gray-800 hover:bg-gray-100" : "text-white hover:bg-white/10",
+                            pathname === link.href
+                              ? scrolled
+                                ? "bg-primary/20 text-primary"
+                                : "bg-white/20 text-white"
+                              : "",
+                          )}
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          <span className="font-medium font-trajan-pro uppercase">{link.label}</span>
+                          <span>{link.label}</span>
                           <ChevronRight className="h-4 w-4 ml-auto" />
                         </Link>
                       </motion.div>
@@ -388,20 +375,28 @@ export default function Header() {
                   </nav>
                 </div>
 
-                <div className="p-6 border-t border-gray-200 space-y-3">
-                  {/* Contact Button */}
+                <div
+                  className={cn(
+                    "p-6 border-t space-y-3 transition-colors duration-300",
+                    scrolled ? "border-gray-200 bg-white" : "border-white/20 bg-primary",
+                  )}
+                >
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.45 }}
                   >
                     <Link
-                      href="/contact"
-                      className="flex items-center justify-center py-3 px-6 bg-gray-200 text-gray-800 font-medium text-base font-trajan-pro uppercase transition-all duration-300 hover:bg-gray-300 rounded-lg"
+                      href="/login"
+                      className={cn(
+                        "flex items-center justify-center py-3 px-6 font-medium text-base font-trajan-pro uppercase rounded-lg transition-all duration-300",
+                        scrolled
+                          ? "bg-primary text-white hover:bg-primary/90"
+                          : "bg-white text-primary hover:bg-white/90",
+                      )}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <Phone className="h-5 w-5 mr-3" />
-                      {t.call}
+                      {t.login}
                     </Link>
                   </motion.div>
                 </div>

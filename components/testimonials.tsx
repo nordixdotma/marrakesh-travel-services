@@ -1,6 +1,7 @@
 "use client"
 
 import { Star } from "lucide-react"
+import { useEffect, useRef } from "react"
 
 const testimonials = [
   {
@@ -24,9 +25,52 @@ const testimonials = [
     rating: 5,
     image: "/profile-woman-2.jpg",
   },
+  {
+    name: "David Martinez",
+    role: "Corporate Travel Manager",
+    text: "Exceptional service for our team retreat. The drivers were knowledgeable and courteous throughout.",
+    rating: 5,
+    image: "/profile-man.jpg",
+  },
+  {
+    name: "Lisa Anderson",
+    role: "Travel Blogger",
+    text: "An incredible experience! From airport to destination, everything was seamlessly organized.",
+    rating: 5,
+    image: "/profile-woman-2.jpg",
+  },
+  {
+    name: "James Thompson",
+    role: "Hotel Concierge",
+    text: "We recommend Marrakesh Travel Services to all our guests. They never disappoint!",
+    rating: 5,
+    image: "/profile-man.jpg",
+  },
 ]
 
 export default function Testimonials() {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Auto-play carousel functionality
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const autoScroll = () => {
+      const scrollAmount = container.scrollLeft + container.clientWidth * 0.35
+      const maxScroll = container.scrollWidth - container.clientWidth
+
+      if (scrollAmount >= maxScroll) {
+        container.scrollLeft = 0
+      } else {
+        container.scrollLeft = scrollAmount
+      }
+    }
+
+    const interval = setInterval(autoScroll, 4000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <section id="testimonials" className="w-full py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -37,11 +81,22 @@ export default function Testimonials() {
           <p className="text-lg opacity-70">Trusted by thousands of satisfied travelers</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div
+          ref={containerRef}
+          className="flex gap-6 overflow-x-auto scroll-smooth pb-4"
+          style={{ scrollBehavior: "smooth", scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {/* Hide scrollbar */}
+          <style>{`
+            div::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="rounded-lg p-8 transition-all hover:shadow-lg"
+              className="flex-shrink-0 w-full md:w-1/3 rounded-lg p-8 transition-all hover:shadow-lg"
               style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)" }}
             >
               <div className="flex items-center gap-4 mb-6">

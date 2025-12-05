@@ -2,7 +2,7 @@
 
 import Header from "@/components/header"
 import Hero from "@/components/hero"
-import EmptySectionA from "@/components/empty-section-a"
+import TravelThemes from "@/components/travel-themes"
 import EmptySectionB from "@/components/empty-section-b"
 import Testimonials from "@/components/testimonials"
 import Footer from "@/components/footer"
@@ -13,7 +13,7 @@ export default function HomePage() {
     <main className="w-full">
       <Header />
       <Hero />
-      <EmptySectionA />
+      <TravelThemes />
       <EmptySectionB />
       <Testimonials />
       <Footer />

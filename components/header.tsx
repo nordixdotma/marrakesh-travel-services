@@ -201,27 +201,24 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Desktop layout - two rows */}
+        {/* Desktop layout - single row */}
         <div className="hidden md:block">
-          {/* First row: Language Switcher, Logo, and Login Button */}
-          <div className="flex h-20 items-center justify-between relative">
+          <div className="flex h-20 items-center justify-between gap-6">
             {/* Left: Language Switcher */}
-            <div className="relative language-dropdown-container">
+            <div className="relative language-dropdown-container shrink-0">
               <button
                 onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                className="flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 hover:bg-white/10"
+                className="w-10 h-10 rounded-full transition-all duration-300 hover:bg-white/10 flex items-center justify-center cursor-pointer"
               >
                 <img
                   src={languages.find((lang) => lang.code === language)?.flag || "/placeholder.svg"}
                   alt={language}
-                  className="w-6 h-4 object-cover rounded"
+                  className="w-8 h-8 object-cover rounded-full"
                 />
-                <span className="text-sm font-medium uppercase text-white">{language}</span>
-                <ChevronDown className="w-4 h-4 transition-transform duration-300 text-white" />
               </button>
 
               {languageDropdownOpen && (
-                <div className="absolute left-0 top-14 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 py-2 min-w-[160px] z-50 overflow-hidden">
+                <div className="absolute left-0 top-14 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 py-2 min-w-40 z-50 overflow-hidden">
                   {languages.map((lang) => (
                     <button
                       key={lang.code}
@@ -229,7 +226,7 @@ export default function Header() {
                         setLanguage(lang.code as "en" | "fr" | "es")
                         setLanguageDropdownOpen(false)
                       }}
-                      className={`flex items-center space-x-3 w-full px-4 py-2.5 text-left hover:bg-primary/20 transition-colors ${
+                      className={`flex items-center space-x-3 w-full px-4 py-2.5 text-left hover:bg-primary/20 transition-colors cursor-pointer ${
                         lang.code === language ? "bg-primary/10" : ""
                       }`}
                     >
@@ -245,24 +242,9 @@ export default function Header() {
               )}
             </div>
 
-            {/* Center: Logo */}
-            <Link href="/" className="absolute left-1/2 -translate-x-1/2 flex items-center z-10">
-              <div className="relative h-16 w-32">
-                <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority />
-              </div>
-            </Link>
-
-            <Link href="/login">
-              <Button variant="outline" className="text-white border-white hover:bg-white/10 text-sm bg-transparent">
-                {t.login}
-              </Button>
-            </Link>
-          </div>
-
-          {/* Second row: Navigation with primary background */}
-          <div className="border-t border-white/20">
-            <nav className="flex items-center justify-center gap-5 py-2">
-              {navigationLinks.map((link) => (
+            {/* Left Nav Links (4 links) */}
+            <nav className="flex items-center gap-5">
+              {navigationLinks.slice(0, 4).map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -275,6 +257,43 @@ export default function Header() {
                 </Link>
               ))}
             </nav>
+
+            {/* Center: Logo */}
+            <Link href="/" className="flex items-center shrink-0">
+              <div className="relative h-16 w-32">
+                <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority />
+              </div>
+            </Link>
+
+            {/* Right Nav Links (4 links) */}
+            <nav className="flex items-center gap-5">
+              {navigationLinks.slice(4, 8).map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm font-medium transition-all duration-300 relative group font-trajan-pro uppercase tracking-wider text-white hover:text-secondary ${
+                    pathname === link.href ? "text-secondary" : ""
+                  }`}
+                >
+                  {link.label}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
+                </Link>
+              ))}
+            </nav>
+
+            {/* Right: Login Button */}
+            <Link href="/login" className="shrink-0">
+              <Button 
+                className={cn(
+                  "text-sm font-medium rounded-full px-6 transition-all duration-300",
+                  scrolled 
+                    ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary hover:opacity-90" 
+                    : "bg-primary text-white hover:bg-primary/90"
+                )}
+              >
+                {t.login}
+              </Button>
+            </Link>
           </div>
         </div>
       </Container>

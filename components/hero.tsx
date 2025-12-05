@@ -92,7 +92,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <main className="hero-carousel">
+    <main className="hero-carousel" style={{ height: '100dvh', minHeight: '100dvh' }}>
       <ul className="slider" ref={sliderRef}>
         {services.map((service, index) => (
           <li key={index} className="carousel-item" style={{ backgroundImage: `url(${service.image})` }}>

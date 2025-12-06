@@ -84,7 +84,7 @@ export default function Testimonials() {
     <section id="testimonials" className="py-16 sm:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-6">
-          <h2 className="text-3xl font-bold sm:text-4xl md:text-5xl text-primary">
+          <h2 className="text-3xl font-bold md:text-4xl text-primary">
             What Our <span className="text-secondary">Clients Say</span>
           </h2>
 

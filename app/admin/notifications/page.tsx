@@ -1,48 +1,69 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
+import { Bell, Mail, Smartphone, Send, Users, Calendar, CheckCircle, Clock, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Bell, Mail, MessageSquare, Smartphone, Send, Users, Calendar, CheckCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+const stats = [
+  { label: "Emails Today", value: "1,234", icon: Mail, color: "text-blue-600", bg: "bg-blue-50" },
+  { label: "SMS Today", value: "156", icon: Smartphone, color: "text-emerald-600", bg: "bg-emerald-50" },
+  { label: "Push Sent", value: "892", icon: Bell, color: "text-violet-600", bg: "bg-violet-50" },
+  { label: "Delivery Rate", value: "98.5%", icon: CheckCircle, color: "text-amber-600", bg: "bg-amber-50" },
+]
+
+const recentNotifications = [
+  { id: 1, type: "email", subject: "Booking Confirmation", recipients: 156, sent: "10:30", status: "delivered" },
+  { id: 2, type: "sms", subject: "Reminder: Tour Tomorrow", recipients: 23, sent: "09:00", status: "delivered" },
+  { id: 3, type: "push", subject: "Special Offer!", recipients: 892, sent: "Yesterday", status: "delivered" },
+  { id: 4, type: "email", subject: "Welcome Email", recipients: 45, sent: "Yesterday", status: "delivered" },
+]
 
 export default function NotificationsPage() {
-  const [notificationType, setNotificationType] = useState<"email" | "sms" | "push">("email")
-  const [recipient, setRecipient] = useState<"all" | "segment" | "individual">("all")
-
-  const recentNotifications = [
-    { id: 1, type: "email", subject: "Booking Confirmation", recipients: 156, sent: "2024-01-15 10:30", status: "delivered" },
-    { id: 2, type: "sms", subject: "Reminder: Tour Tomorrow", recipients: 23, sent: "2024-01-15 09:00", status: "delivered" },
-    { id: 3, type: "push", subject: "Special Offer!", recipients: 892, sent: "2024-01-14 14:00", status: "delivered" },
-    { id: 4, type: "email", subject: "Welcome Email", recipients: 45, sent: "2024-01-14 11:20", status: "delivered" },
-  ]
-
-  const stats = [
-    { label: "Emails Sent Today", value: "1,234", icon: Mail, color: "text-blue-500" },
-    { label: "SMS Sent Today", value: "156", icon: Smartphone, color: "text-green-500" },
-    { label: "Push Notifications", value: "892", icon: Bell, color: "text-purple-500" },
-    { label: "Delivery Rate", value: "98.5%", icon: CheckCircle, color: "text-emerald-500" },
-  ]
+  const [notificationType, setNotificationType] = useState("email")
+  const [recipient, setRecipient] = useState("all")
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Notifications</h1>
-          <p className="text-muted-foreground">Send notifications to customers via email, SMS, or push</p>
+          <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
+          <p className="text-sm text-muted-foreground">Send messages via email, SMS, or push</p>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/admin/notifications/reminders">
+            <Button variant="outline" size="sm">
+              <Clock className="h-4 w-4 mr-2" />
+              Reminders
+            </Button>
+          </Link>
+          <Link href="/admin/notifications/meeting-points">
+            <Button variant="outline" size="sm">Meeting Points</Button>
+          </Link>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <Card key={index}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-full bg-muted ${stat.color}`}>
-                  <stat.icon className="h-6 w-6" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat) => (
+          <Card key={stat.label} className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-2.5 rounded-lg ${stat.bg}`}>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stat.value}</p>
@@ -54,135 +75,118 @@ export default function NotificationsPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Compose Notification */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Send className="h-5 w-5" />
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Send className="h-4 w-4" />
               Compose Notification
             </CardTitle>
-            <CardDescription>Create and send a new notification</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Notification Type */}
             <div className="space-y-2">
-              <Label>Notification Type</Label>
+              <Label className="text-sm">Type</Label>
               <div className="flex gap-2">
-                <Button 
-                  variant={notificationType === "email" ? "default" : "outline"}
-                  onClick={() => setNotificationType("email")}
-                  className="flex-1"
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email
-                </Button>
-                <Button 
-                  variant={notificationType === "sms" ? "default" : "outline"}
-                  onClick={() => setNotificationType("sms")}
-                  className="flex-1"
-                >
-                  <Smartphone className="h-4 w-4 mr-2" />
-                  SMS
-                </Button>
-                <Button 
-                  variant={notificationType === "push" ? "default" : "outline"}
-                  onClick={() => setNotificationType("push")}
-                  className="flex-1"
-                >
-                  <Bell className="h-4 w-4 mr-2" />
-                  Push
-                </Button>
+                {[
+                  { value: "email", label: "Email", icon: Mail },
+                  { value: "sms", label: "SMS", icon: Smartphone },
+                  { value: "push", label: "Push", icon: Bell },
+                ].map((type) => (
+                  <Button
+                    key={type.value}
+                    variant={notificationType === type.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setNotificationType(type.value)}
+                    className="flex-1"
+                  >
+                    <type.icon className="h-4 w-4 mr-1.5" />
+                    {type.label}
+                  </Button>
+                ))}
               </div>
             </div>
 
             {/* Recipients */}
             <div className="space-y-2">
-              <Label>Recipients</Label>
+              <Label className="text-sm">Recipients</Label>
               <div className="flex gap-2">
-                <Button 
-                  variant={recipient === "all" ? "default" : "outline"}
-                  onClick={() => setRecipient("all")}
-                  size="sm"
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  All Users
-                </Button>
-                <Button 
-                  variant={recipient === "segment" ? "default" : "outline"}
-                  onClick={() => setRecipient("segment")}
-                  size="sm"
-                >
-                  Segment
-                </Button>
-                <Button 
-                  variant={recipient === "individual" ? "default" : "outline"}
-                  onClick={() => setRecipient("individual")}
-                  size="sm"
-                >
-                  Individual
-                </Button>
+                {[
+                  { value: "all", label: "All Users", icon: Users },
+                  { value: "segment", label: "Segment" },
+                  { value: "individual", label: "Individual" },
+                ].map((r) => (
+                  <Button
+                    key={r.value}
+                    variant={recipient === r.value ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setRecipient(r.value)}
+                  >
+                    {r.icon && <r.icon className="h-3.5 w-3.5 mr-1.5" />}
+                    {r.label}
+                  </Button>
+                ))}
               </div>
             </div>
 
             {recipient === "individual" && (
               <div className="space-y-2">
-                <Label htmlFor="recipientEmail">Recipient Email/Phone</Label>
-                <Input id="recipientEmail" placeholder="Enter email or phone number" />
+                <Label htmlFor="recipientEmail" className="text-sm">Email/Phone</Label>
+                <Input id="recipientEmail" placeholder="Enter email or phone" className="h-9" />
               </div>
             )}
 
             {recipient === "segment" && (
               <div className="space-y-2">
-                <Label htmlFor="segment">Select Segment</Label>
-                <select 
-                  id="segment"
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                >
-                  <option value="">Choose a segment...</option>
-                  <option value="new-users">New Users (Last 30 days)</option>
-                  <option value="active-bookers">Active Bookers</option>
-                  <option value="inactive">Inactive Users (90+ days)</option>
-                  <option value="vip">VIP Customers</option>
-                </select>
+                <Label className="text-sm">Segment</Label>
+                <Select>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Choose segment..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">New Users (30 days)</SelectItem>
+                    <SelectItem value="active">Active Bookers</SelectItem>
+                    <SelectItem value="inactive">Inactive (90+ days)</SelectItem>
+                    <SelectItem value="vip">VIP Customers</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="subject">Subject</Label>
-              <Input id="subject" placeholder="Enter notification subject" />
+              <Label htmlFor="subject" className="text-sm">Subject</Label>
+              <Input id="subject" placeholder="Notification subject" className="h-9" />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="message">Message</Label>
-              <Textarea 
-                id="message" 
-                placeholder="Enter your message..."
-                rows={5}
-              />
+              <Label htmlFor="message" className="text-sm">Message</Label>
+              <Textarea id="message" placeholder="Write your message..." rows={4} />
             </div>
 
             {notificationType === "email" && (
               <div className="space-y-2">
-                <Label htmlFor="template">Email Template</Label>
-                <select 
-                  id="template"
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                >
-                  <option value="">No template (plain text)</option>
-                  <option value="marketing">Marketing Template</option>
-                  <option value="transactional">Transactional Template</option>
-                  <option value="newsletter">Newsletter Template</option>
-                </select>
+                <Label className="text-sm">Template</Label>
+                <Select>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="No template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No template</SelectItem>
+                    <SelectItem value="marketing">Marketing</SelectItem>
+                    <SelectItem value="transactional">Transactional</SelectItem>
+                    <SelectItem value="newsletter">Newsletter</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
-            <div className="flex gap-2">
-              <Button className="flex-1">
+            <div className="flex gap-2 pt-2">
+              <Button className="flex-1" size="sm">
                 <Send className="h-4 w-4 mr-2" />
                 Send Now
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" size="sm">
                 <Calendar className="h-4 w-4 mr-2" />
                 Schedule
               </Button>
@@ -191,40 +195,41 @@ export default function NotificationsPage() {
         </Card>
 
         {/* Recent Notifications */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
               Recent Notifications
             </CardTitle>
-            <CardDescription>History of sent notifications</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentNotifications.map((notification) => (
-                <div 
-                  key={notification.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-full bg-muted ${
-                      notification.type === "email" ? "text-blue-500" :
-                      notification.type === "sms" ? "text-green-500" : "text-purple-500"
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {recentNotifications.map((notif) => (
+                <div key={notif.id} className="flex items-center justify-between px-6 py-3 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${
+                      notif.type === "email" ? "bg-blue-50" :
+                      notif.type === "sms" ? "bg-emerald-50" : "bg-violet-50"
                     }`}>
-                      {notification.type === "email" ? <Mail className="h-4 w-4" /> :
-                       notification.type === "sms" ? <Smartphone className="h-4 w-4" /> :
-                       <Bell className="h-4 w-4" />}
+                      {notif.type === "email" ? (
+                        <Mail className="h-4 w-4 text-blue-600" />
+                      ) : notif.type === "sms" ? (
+                        <Smartphone className="h-4 w-4 text-emerald-600" />
+                      ) : (
+                        <Bell className="h-4 w-4 text-violet-600" />
+                      )}
                     </div>
                     <div>
-                      <p className="font-medium">{notification.subject}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {notification.recipients} recipients • {notification.sent}
-                      </p>
+                      <p className="text-sm font-medium">{notif.subject}</p>
+                      <p className="text-xs text-muted-foreground">{notif.recipients} recipients</p>
                     </div>
                   </div>
-                  <span className="text-sm text-green-600 font-medium capitalize">
-                    {notification.status}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground">{notif.sent}</span>
+                    <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+                      {notif.status}
+                    </Badge>
+                  </div>
                 </div>
               ))}
             </div>

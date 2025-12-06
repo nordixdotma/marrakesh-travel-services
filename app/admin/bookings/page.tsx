@@ -2,17 +2,25 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Search, Filter, Eye, MoreHorizontal, Calendar, Clock, User } from "lucide-react"
+import { Search, Filter, MoreHorizontal, Calendar, Download, Eye, Mail, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const bookings = [
   {
@@ -26,7 +34,7 @@ const bookings = [
     guests: 2,
     amount: "$900",
     status: "confirmed",
-    paymentStatus: "paid",
+    payment: "paid",
   },
   {
     id: "BK002",
@@ -39,7 +47,7 @@ const bookings = [
     guests: 4,
     amount: "$340",
     status: "pending",
-    paymentStatus: "pending",
+    payment: "pending",
   },
   {
     id: "BK003",
@@ -52,7 +60,7 @@ const bookings = [
     guests: 3,
     amount: "$45",
     status: "confirmed",
-    paymentStatus: "paid",
+    payment: "paid",
   },
   {
     id: "BK004",
@@ -65,7 +73,7 @@ const bookings = [
     guests: 2,
     amount: "$360",
     status: "canceled",
-    paymentStatus: "refunded",
+    payment: "refunded",
   },
   {
     id: "BK005",
@@ -78,174 +86,168 @@ const bookings = [
     guests: 5,
     amount: "$600",
     status: "confirmed",
-    paymentStatus: "paid",
+    payment: "paid",
   },
 ]
 
 const stats = [
-  { label: "Total Bookings", value: "1,234", change: "+12%" },
-  { label: "Confirmed", value: "987", change: "+8%" },
-  { label: "Pending", value: "156", change: "-5%" },
-  { label: "Canceled", value: "91", change: "-2%" },
+  { label: "All", value: 1234, color: "text-foreground" },
+  { label: "Confirmed", value: 987, color: "text-emerald-600" },
+  { label: "Pending", value: 156, color: "text-amber-600" },
+  { label: "Canceled", value: 91, color: "text-red-600" },
 ]
 
 export default function BookingsPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
 
-  const filteredBookings = bookings.filter(
-    (booking) =>
+  const filteredBookings = bookings.filter((booking) => {
+    const matchesSearch = 
       booking.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
       booking.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       booking.service.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+    const matchesStatus = statusFilter === "all" || booking.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Bookings</h1>
-          <p className="text-muted-foreground">Manage all reservations and bookings</p>
+          <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
+          <p className="text-sm text-muted-foreground">Manage all reservations</p>
         </div>
         <div className="flex gap-2">
-          <Link href="/admin/bookings/pending">
-            <Button variant="outline">Pending ({stats[2].value})</Button>
-          </Link>
           <Link href="/admin/bookings/refunds">
-            <Button variant="outline">Refunds</Button>
+            <Button variant="outline" size="sm">Refunds</Button>
           </Link>
+          <Button size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Tabs */}
+      <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
         {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                </div>
-                <span
-                  className={`text-sm font-medium ${
-                    stat.change.startsWith("+") ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {stat.change}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+          <button
+            key={stat.label}
+            onClick={() => setStatusFilter(stat.label.toLowerCase())}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              statusFilter === stat.label.toLowerCase()
+                ? "bg-background shadow-sm"
+                : "hover:bg-background/50"
+            }`}
+          >
+            <span className={stat.color}>{stat.value}</span>
+            <span className="ml-1.5 text-muted-foreground">{stat.label}</span>
+          </button>
         ))}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by ID, customer, or service..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Search & Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by ID, customer, or service..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9"
+          />
+        </div>
+        <Select defaultValue="all">
+          <SelectTrigger className="w-[140px] h-9">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="tour">Tours</SelectItem>
+            <SelectItem value="excursion">Excursions</SelectItem>
+            <SelectItem value="transfer">Transfers</SelectItem>
+            <SelectItem value="activity">Activities</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="outline" size="sm" className="h-9">
+          <Filter className="h-4 w-4 mr-2" />
+          More Filters
+        </Button>
+      </div>
 
       {/* Bookings Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Bookings</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Booking ID</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Customer</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Service</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Date & Time</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Amount</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Actions</th>
+                <tr className="border-b border-border bg-muted/30">
+                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Booking</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Customer</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Service</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Schedule</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                  <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border">
                 {filteredBookings.map((booking) => (
-                  <tr key={booking.id} className="border-b border-border last:border-0 hover:bg-muted/50">
+                  <tr key={booking.id} className="hover:bg-muted/30 transition-colors">
                     <td className="py-3 px-4">
                       <span className="font-mono text-sm font-medium">{booking.id}</span>
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <User className="h-4 w-4 text-primary" />
+                          <span className="text-xs font-medium text-primary">
+                            {booking.customer.split(" ").map(n => n[0]).join("")}
+                          </span>
                         </div>
                         <div>
-                          <p className="font-medium text-sm">{booking.customer}</p>
+                          <p className="text-sm font-medium">{booking.customer}</p>
                           <p className="text-xs text-muted-foreground">{booking.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="py-3 px-4">
                       <div>
-                        <Badge variant="outline" className="mb-1">{booking.type}</Badge>
                         <p className="text-sm">{booking.service}</p>
-                        <p className="text-xs text-muted-foreground">{booking.guests} guests</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge variant="outline" className="text-xs px-1.5 py-0">{booking.type}</Badge>
+                          <span className="text-xs text-muted-foreground">{booking.guests} guests</span>
+                        </div>
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        {booking.date}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {booking.time}
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span>{booking.date}</span>
+                        <span className="text-muted-foreground">at {booking.time}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-medium text-sm">{booking.amount}</td>
                     <td className="py-3 px-4">
-                      <div className="space-y-1">
-                        <Badge
-                          variant={
-                            booking.status === "confirmed"
-                              ? "default"
-                              : booking.status === "pending"
-                              ? "secondary"
-                              : "destructive"
-                          }
-                        >
-                          {booking.status}
-                        </Badge>
-                        <Badge
-                          variant="outline"
-                          className={`block w-fit ${
-                            booking.paymentStatus === "paid"
-                              ? "text-green-600"
-                              : booking.paymentStatus === "refunded"
-                              ? "text-blue-600"
-                              : "text-yellow-600"
-                          }`}
-                        >
-                          {booking.paymentStatus}
-                        </Badge>
-                      </div>
+                      <span className="text-sm font-medium">{booking.amount}</span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Badge 
+                        variant="secondary"
+                        className={
+                          booking.status === "confirmed" 
+                            ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-50" 
+                            : booking.status === "pending"
+                            ? "bg-amber-50 text-amber-700 hover:bg-amber-50"
+                            : "bg-red-50 text-red-700 hover:bg-red-50"
+                        }
+                      >
+                        {booking.status}
+                      </Badge>
                     </td>
                     <td className="py-3 px-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -254,9 +256,13 @@ export default function BookingsPage() {
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Edit Booking</DropdownMenuItem>
-                          <DropdownMenuItem>Send Reminder</DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Mail className="h-4 w-4 mr-2" />
+                            Send Email
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive">
+                            <XCircle className="h-4 w-4 mr-2" />
                             Cancel Booking
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -266,6 +272,17 @@ export default function BookingsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredBookings.length} of {bookings.length} bookings
+            </p>
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" disabled>Previous</Button>
+              <Button variant="outline" size="sm">Next</Button>
+            </div>
           </div>
         </CardContent>
       </Card>

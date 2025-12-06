@@ -215,32 +215,6 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Privacy */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-primary" />
-            Privacy
-          </CardTitle>
-          <CardDescription>Control your privacy preferences</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="show-profile">Public Profile</Label>
-              <p className="text-sm text-muted-foreground">
-                Allow others to see your profile information
-              </p>
-            </div>
-            <Switch
-              id="show-profile"
-              checked={showProfile}
-              onCheckedChange={setShowProfile}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Danger Zone */}
       <Card className="border-destructive/50">
         <CardHeader>

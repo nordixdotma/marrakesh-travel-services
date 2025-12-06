@@ -143,8 +143,8 @@ const navItems: NavItem[] = [
       { title: "General", href: "/admin/settings" },
       { title: "Payment Settings", href: "/admin/settings/payments" },
       { title: "Agency Info", href: "/admin/settings/agency" },
-      { title: "Email Templates", href: "/admin/settings/emails" },
-      { title: "Phone Verification", href: "/admin/settings/phone" },
+      { title: "Email Templates", href: "/admin/settings/templates" },
+      { title: "Phone Verification", href: "/admin/settings/verification" },
       { title: "Languages", href: "/admin/settings/languages" },
       { title: "Security", href: "/admin/settings/security" },
     ],
@@ -154,7 +154,6 @@ const navItems: NavItem[] = [
     icon: BarChart3,
     children: [
       { title: "Overview", href: "/admin/analytics" },
-      { title: "Sales Reports", href: "/admin/analytics/sales" },
       { title: "Top Tours", href: "/admin/analytics/top-tours" },
       { title: "Performance", href: "/admin/analytics/performance" },
       { title: "Conversions", href: "/admin/analytics/conversions" },

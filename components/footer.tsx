@@ -1,32 +1,39 @@
 import { Phone, Mail, MapPin } from "lucide-react"
 
 export default function Footer() {
+  const quickLinks = [
+    { href: "/", label: "Home" },
+    { href: "/tours", label: "Tours" },
+    { href: "/excursions", label: "Excursions" },
+    { href: "/activities", label: "Activities" },
+    { href: "/packages", label: "Packages" },
+    { href: "/transfers", label: "Transfers" },
+  ]
+
   return (
-    <footer className="w-full bg-primary text-white pt-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-          {/* Logo and description - KEEPING ORIGINAL */}
-          <div>
-            <a href="/" className="inline-block mb-2">
-              <div className="h-16 w-24">
-                <img src="/logo.png" alt="Marrakesh Travel Services" className="h-full w-full object-contain" />
-              </div>
+    <footer className="w-full bg-primary text-white">
+      {/* Main Footer */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
+          {/* Brand Section */}
+          <div className="space-y-4">
+            <a href="/" className="inline-block">
+              <img src="/logo.png" alt="Marrakesh Travel Services" className="h-14 w-auto object-contain" />
             </a>
-            <p className="text-sm text-white/90 mb-4">
-              Marrakesh Travel Services - Your trusted partner for authentic Moroccan travel experiences and luxury
-              transportation.
+            <p className="text-sm text-white/80 leading-relaxed">
+              Marrakesh Travel Services - Your trusted partner for authentic Moroccan travel experiences and luxury transportation.
             </p>
-            <div className="flex gap-4">
+            <div className="flex items-center gap-4 pt-1">
               <a
                 href="https://www.facebook.com/marrakeshtravelservices/"
-                className="text-white/90 hover:text-white transition"
+                className="text-white/80 hover:text-amber-400 transition-colors duration-200"
                 aria-label="Facebook"
               >
                 Facebook
               </a>
               <a
                 href="https://www.instagram.com/marrakeshtravelservice/"
-                className="text-white/90 hover:text-white transition"
+                className="text-white/80 hover:text-amber-400 transition-colors duration-200"
                 aria-label="Instagram"
               >
                 Instagram
@@ -34,24 +41,15 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links - REDESIGNED */}
+          {/* Quick Links */}
           <div>
-            <h4 className="font-bold mb-6 text-amber-400">
-              Quick Links
-            </h4>
-            <nav className="space-y-3">
-              {[
-                { href: "/", label: "Home" },
-                { href: "/tours", label: "Tours" },
-                { href: "/excursions", label: "Excursions" },
-                { href: "/activities", label: "Activities" },
-                { href: "/packages", label: "Packages" },
-                { href: "/transfers", label: "Transfers" }
-              ].map((link) => (
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-amber-400 mb-5">Explore</h4>
+            <nav className="space-y-2.5">
+              {quickLinks.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
-                  className="block text-sm text-white/70 hover:text-white hover:translate-x-1 transition-all duration-200"
+                  className="block text-sm text-white/70 hover:text-white transition-colors duration-200"
                 >
                   {link.label}
                 </a>
@@ -59,14 +57,12 @@ export default function Footer() {
             </nav>
           </div>
 
-          {/* Contact - REDESIGNED */}
+          {/* Contact Info */}
           <div>
-            <h4 className="font-bold mb-6 text-amber-400">
-              Contact
-            </h4>
-            <div className="space-y-5">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-amber-400 mb-5">Contact</h4>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-amber-400" />
                   <span className="text-sm font-medium text-white">Phone</span>
                 </div>
@@ -79,22 +75,19 @@ export default function Footer() {
                   </a>
                 </div>
               </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-2">
+              
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-amber-400" />
                   <span className="text-sm font-medium text-white">Email</span>
                 </div>
-                <a
-                  href="mailto:marrakeshtravelservices@gmail.com"
-                  className="pl-6 block text-sm text-white/70 hover:text-white transition-colors break-all"
-                >
-                  marrakeshtravelservices@gmail.com
+                <a href="mailto:contact@marrakeshtravelservices.com" className="pl-6 block text-sm text-white/70 hover:text-white transition-colors break-all">
+                  contact@marrakeshtravelservices.com
                 </a>
               </div>
 
-              <div>
-                <div className="flex items-center gap-2 mb-2">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-amber-400" />
                   <span className="text-sm font-medium text-white">Address</span>
                 </div>
@@ -107,38 +100,42 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Payment - REDESIGNED */}
+          {/* Payment & Security */}
           <div>
-            <h4 className="font-bold mb-6 text-amber-400">
-              Pay Safely With Us
-            </h4>
-            <p className="text-sm text-white/70 leading-relaxed mb-6">
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-amber-400 mb-5">Pay Safely With Us</h4>
+            <p className="text-sm text-white/70 leading-relaxed mb-5">
               The payment is encrypted and transmitted securely with an SSL protocol.
             </p>
             <div className="relative h-12 w-full">
-                <img
-                  src="/payment.png"
-                  alt="Secure Payment"
-                  className="object-cover object-left rounded-xs"
-                />
-              </div>
+              <img src="/payment.png" alt="Secure Payment" className="object-cover object-left rounded-xs" />
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Divider */}
-        <div className="border-t border-white/10" />
-
-        {/* Bottom - REDESIGNED */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 py-6">
-          <p className="text-sm text-white/60">
-            © 2025 Marrakesh Travel Services. All rights reserved.
-          </p>
-          <a 
-            href="/terms" 
-            className="text-sm text-white/80 hover:text-white transition-colors"
-          >
-            Terms and Conditions
-          </a>
+      {/* Bottom Bar */}
+      <div className="border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-white/60">
+            <p>© 2025 Marrakesh Travel Services. All rights reserved.</p>
+            <div className="flex items-center gap-4">
+              <a href="/terms" className="hover:text-white transition-colors">
+                Terms & Conditions
+              </a>
+              <span className="text-white/30">|</span>
+              <span>
+                Made by{" "}
+                <a
+                  href="https://la360.ma/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-400 hover:text-amber-300 font-medium transition-colors"
+                >
+                  LA360
+                </a>
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

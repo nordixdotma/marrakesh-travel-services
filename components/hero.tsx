@@ -4,20 +4,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 
 const services = [
   {
-    title: "Home",
-    description:
-      "Welcome to Marrakesh Travel Services, your premier destination for authentic Moroccan travel experiences and luxury transportation solutions.",
-    image:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    buttonText: "Explore",
-    buttonLink: "#contact",
-  },
-  {
     title: "Tours",
     description:
       "Discover the beauty of Morocco through our expertly curated tours. From desert adventures to cultural experiences, explore iconic landmarks with knowledgeable local guides.",
     image:
-      "https://images.unsplash.com/photo-1664346288114-ee72907d2c52?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1749317899983-a81668bda6b8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     buttonText: "View Tours",
     buttonLink: "#contact",
   },
@@ -26,7 +17,7 @@ const services = [
     description:
       "Experience thrilling day excursions to Morocco's most scenic destinations. Our excursions offer the perfect blend of adventure, culture, and natural beauty.",
     image:
-      "https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1749317899983-a81668bda6b8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     buttonText: "Book Excursion",
     buttonLink: "#contact",
   },
@@ -35,7 +26,7 @@ const services = [
     description:
       "Engage in unforgettable activities tailored to your interests. From cultural workshops to outdoor adventures, find the perfect activity for your Moroccan getaway.",
     image:
-      "https://images.unsplash.com/photo-1603982449700-534948b9e408?q=80&w=2060&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1749317899983-a81668bda6b8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     buttonText: "Discover Activities",
     buttonLink: "#contact",
   },
@@ -43,7 +34,7 @@ const services = [
     title: "Packages",
     description:
       "Explore our comprehensive travel packages designed for every budget and preference. All-inclusive packages with accommodations, transportation, and curated experiences.",
-    image: "https://images.unsplash.com/photo-1585089858717-f4378c2031d8?q=80&w=2069&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1749317899983-a81668bda6b8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     buttonText: "View Packages",
     buttonLink: "#contact",
   },
@@ -52,7 +43,7 @@ const services = [
     description:
       "Reliable and professional transportation services throughout Morocco. From airport pickups to intercity transfers, we ensure comfortable and timely service.",
     image:
-      "https://images.unsplash.com/photo-1612727979818-5b7ad4b2f492?q=80&w=2043&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1749317899983-a81668bda6b8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     buttonText: "Book Transfer",
     buttonLink: "#contact",
   },
@@ -92,7 +83,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <main className="hero-carousel" style={{ height: '100dvh', minHeight: '100dvh' }}>
+    <main className="hero-carousel" style={{ height: "100dvh", minHeight: "100dvh" }}>
       <ul className="slider" ref={sliderRef}>
         {services.map((service, index) => (
           <li key={index} className="carousel-item" style={{ backgroundImage: `url(${service.image})` }}>
@@ -115,6 +106,20 @@ export default function Hero() {
           </li>
         ))}
       </ul>
+
+      <a
+        href="https://www.tripadvisor.com/Attraction_Review-g293734-d8514036-Reviews-Marrakesh_Travel_Services-Marrakech_Marrakech_Safi.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute bottom-4 left-4 z-10 hover:scale-110 transition-transform duration-300"
+        aria-label="Visit our TripAdvisor page"
+      >
+        <img
+          src="https://morthai.vercel.app/certif.png"
+          alt="TripAdvisor"
+          className="w-10 h-10 md:w-14 md:h-14 rounded-sm"
+        />
+      </a>
 
       <nav className="nav">
         <button className="nav-btn prev-btn" aria-label="Previous slide">

@@ -8,7 +8,7 @@ interface PageHeroProps {
 export default function PageHero({ title, backgroundImage }: PageHeroProps) {
   return (
     <section
-      className="relative h-[40dvh] w-full flex items-end"
+      className="relative h-[50dvh] w-full flex items-end"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: "cover",
@@ -20,7 +20,7 @@ export default function PageHero({ title, backgroundImage }: PageHeroProps) {
 
       {/* Content */}
       <Container className="relative z-10 max-w-7xl mx-auto pb-8">
-        <h1 className="text-4xl md:text-5xl font-bold text-white font-trajan-pro uppercase tracking-wider">{title}</h1>
+        <h1 className="text-2xl md:text-4xl font-bold text-white font-trajan-pro uppercase tracking-wider">{title}</h1>
       </Container>
     </section>
   )

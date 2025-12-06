@@ -3,6 +3,26 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Hide browser's native password reveal button */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none !important;
+}
+
+/* Ensure password input text/dots are visible - force black color */
+input[type="password"] {
+  color: #1c1917 !important;
+  -webkit-text-fill-color: #1c1917 !important;
+  caret-color: #1c1917 !important;
+}
+
+.dark input[type="password"] {
+  color: #fafaf9 !important;
+  -webkit-text-fill-color: #fafaf9 !important;
+  caret-color: #fafaf9 !important;
+}
+
 :root {
   /* Brand colors */
   --background: #ffffff;

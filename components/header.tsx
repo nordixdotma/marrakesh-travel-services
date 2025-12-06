@@ -4,18 +4,23 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ChevronRight, ChevronDown } from "lucide-react"
+import { ChevronRight, ChevronDown, User } from "lucide-react"
 import { Container } from "@/components/ui/container"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import { usePathname } from "next/navigation"
+import { useAuth } from "@/components/login-modal"
 
-export default function Header() {
+export default function Header({ isStatic = false }: { isStatic?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false)
   const [language, setLanguage] = useState<"fr" | "en" | "es">("en")
   const pathname = usePathname()
+  const { isLoggedIn, openLoginModal } = useAuth()
+  
+  // Check if we're in the users section
+  const isUsersSection = pathname?.startsWith("/users") || isStatic
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,8 +80,8 @@ export default function Header() {
       activities: "Activités",
       packages: "Forfaits",
       transfers: "Transferts",
-      contact: "Contact",
       about: "À propos",
+      contact: "Contact",
       login: "Connexion",
     },
     en: {
@@ -86,8 +91,8 @@ export default function Header() {
       activities: "Activities",
       packages: "Packages",
       transfers: "Transfers",
-      contact: "Contact",
       about: "About",
+      contact: "Contact",
       login: "Login",
     },
     es: {
@@ -97,8 +102,8 @@ export default function Header() {
       activities: "Actividades",
       packages: "Paquetes",
       transfers: "Transferencias",
-      contact: "Contacto",
       about: "Acerca de",
+      contact: "Contacto",
       login: "Iniciar sesión",
     },
   }
@@ -112,61 +117,56 @@ export default function Header() {
     { href: "/activities", label: t.activities },
     { href: "/packages", label: t.packages },
     { href: "/transfers", label: t.transfers },
-    { href: "/contact", label: t.contact },
     { href: "/about", label: t.about },
+    { href: "/contact", label: t.contact },
   ]
 
   return (
     <header
       className={cn(
-        "fixed top-0 z-40 w-full transition-all duration-300",
-        scrolled ? "bg-primary shadow-md border-b border-primary/20" : "bg-transparent",
+        "top-0 z-40 w-full transition-all duration-300",
+        isUsersSection 
+          ? "relative bg-primary shadow-md border-b border-primary/20" 
+          : cn(
+              "fixed",
+              scrolled ? "bg-primary shadow-md border-b border-primary/20" : "bg-transparent"
+            ),
       )}
     >
       <Container className="max-w-7xl mx-auto">
         {/* Mobile layout - three columns */}
         <div className="md:hidden flex h-16 items-center justify-between">
-          {/* Left: Language Switcher */}
-          <div className="relative z-20 language-dropdown-container">
-            <button
-              onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-full transition-all duration-300 hover:bg-white/10`}
+          {/* Left: Login Button */}
+          {isLoggedIn ? (
+            <Link href="/users/profile" className="z-20">
+              <Button 
+                size="sm"
+                className={cn(
+                  "rounded-full p-2 transition-all duration-300 border cursor-pointer",
+                  (scrolled || isUsersSection)
+                    ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90" 
+                    : "bg-primary text-white border-white/30 hover:bg-primary/90"
+                )}
+              >
+                <User className="h-4 w-4" />
+              </Button>
+            </Link>
+          ) : (
+            <Button 
+              size="sm"
+              onClick={() => openLoginModal()}
+              className={cn(
+                "text-xs font-medium rounded-full px-4 py-1.5 transition-all duration-300 border z-20 cursor-pointer",
+                (scrolled || isUsersSection)
+                  ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90" 
+                  : "bg-primary text-white border-white/30 hover:bg-primary/90"
+              )}
             >
-              <img
-                src={languages.find((lang) => lang.code === language)?.flag || "/placeholder.svg"}
-                alt={language}
-                className="w-6 h-4 object-cover rounded"
-              />
-              <span className="text-sm font-medium uppercase text-white">{language}</span>
-              <ChevronDown className="w-4 h-4 transition-transform duration-300 text-white" />
-            </button>
+              {t.login}
+            </Button>
+          )}
 
-            {languageDropdownOpen && (
-              <div className="absolute left-0 top-14 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 py-2 min-w-[140px] z-50 overflow-hidden">
-                {languages.map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => {
-                      setLanguage(lang.code as "en" | "fr" | "es")
-                      setLanguageDropdownOpen(false)
-                    }}
-                    className={`flex items-center space-x-3 w-full px-4 py-2.5 text-left hover:bg-primary/20 transition-colors ${
-                      lang.code === language ? "bg-primary/10" : ""
-                    }`}
-                  >
-                    <img
-                      src={lang.flag || "/placeholder.svg"}
-                      alt={lang.name}
-                      className="w-6 h-4 object-cover rounded"
-                    />
-                    <span className="text-sm font-medium text-gray-800">{lang.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Center: Logo - Removed second image, using only one logo */}
+          {/* Center: Logo */}
           <Link href="/" className="absolute left-1/2 -translate-x-1/2 flex items-center z-10">
             <div className="relative h-12 w-24">
               <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority />
@@ -282,18 +282,32 @@ export default function Header() {
             </nav>
 
             {/* Right: Login Button */}
-            <Link href="/login" className="shrink-0">
+            {isLoggedIn ? (
+              <Link href="/users/profile" className="shrink-0">
+                <Button 
+                  className={cn(
+                    "rounded-full p-2.5 transition-all duration-300 cursor-pointer",
+                    (scrolled || isUsersSection)
+                      ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary hover:opacity-90" 
+                      : "bg-primary text-white hover:bg-primary/90"
+                  )}
+                >
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            ) : (
               <Button 
+                onClick={() => openLoginModal()}
                 className={cn(
-                  "text-sm font-medium rounded-full px-6 transition-all duration-300",
-                  scrolled 
+                  "text-sm font-medium rounded-full px-6 transition-all duration-300 shrink-0 cursor-pointer",
+                  (scrolled || isUsersSection)
                     ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary hover:opacity-90" 
                     : "bg-primary text-white hover:bg-primary/90"
                 )}
               >
                 {t.login}
               </Button>
-            </Link>
+            )}
           </div>
         </div>
       </Container>
@@ -317,106 +331,131 @@ export default function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className={cn(
-                "fixed top-0 right-0 bottom-0 w-[85%] max-w-[350px] z-50 md:hidden overflow-y-auto shadow-2xl transition-colors duration-300",
-                scrolled ? "bg-white" : "bg-primary",
-              )}
+              className="fixed top-0 right-0 bottom-0 w-[80%] max-w-[320px] z-50 md:hidden overflow-hidden shadow-2xl bg-white"
             >
               <div className="h-full flex flex-col">
-                {/* Header with logo and close button */}
-                <div
-                  className={cn(
-                    "flex items-center justify-between p-6 border-b transition-colors duration-300",
-                    scrolled ? "border-gray-200 bg-white" : "border-white/20 bg-primary",
-                  )}
-                >
+                {/* Header with close button */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                   <Link href="/" className="inline-block" onClick={() => setIsMenuOpen(false)}>
-                    <div className="relative h-10 w-28">
+                    <div className="relative h-9 w-24">
                       <Image src="/logo.png" alt="Marrakesh Logo" fill className="object-contain" priority />
                     </div>
                   </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon"
+                  <button
                     onClick={() => setIsMenuOpen(false)}
-                    className={cn(
-                      "rounded-full transition-colors",
-                      scrolled ? "hover:bg-gray-100 text-black" : "hover:bg-white/10 text-white",
-                    )}
+                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                   >
                     <svg
-                      width="20"
-                      height="20"
+                      width="16"
+                      height="16"
                       viewBox="0 0 24 24"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                       aria-hidden="true"
                     >
                       <path
-                        stroke="currentColor"
+                        stroke="#374151"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
-                  </Button>
+                  </button>
                 </div>
 
                 {/* Navigation links */}
-                <div className="flex-1 overflow-y-auto py-6 px-4">
-                  <nav className="space-y-1">
+                <div className="flex-1 overflow-y-auto py-3 px-3">
+                  <nav className="space-y-0.5">
                     {navigationLinks.map((link, index) => (
                       <motion.div
                         key={link.href}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.05 + index * 0.05 }}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.03 + index * 0.03 }}
                       >
                         <Link
                           href={link.href}
                           className={cn(
-                            "flex items-center py-2 md:py-3 px-4 rounded-xl transition-colors text-sm md:text-base font-medium font-trajan-pro uppercase",
-                            scrolled ? "text-gray-800 hover:bg-gray-100" : "text-white hover:bg-white/10",
+                            "flex items-center py-3 px-4 rounded-lg transition-all duration-200 text-sm font-medium tracking-wide group",
                             pathname === link.href
-                              ? scrolled
-                                ? "bg-primary/20 text-primary"
-                                : "bg-white/20 text-white"
-                              : "",
+                              ? "bg-primary text-white"
+                              : "text-gray-700 hover:bg-gray-50 hover:text-primary",
                           )}
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          <span>{link.label}</span>
-                          <ChevronRight className="h-4 w-4 ml-auto" />
+                          <span className="flex-1">{link.label}</span>
+                          <ChevronRight className={cn(
+                            "h-4 w-4 transition-transform duration-200",
+                            pathname === link.href ? "text-white/70" : "text-gray-400 group-hover:translate-x-0.5 group-hover:text-primary"
+                          )} />
                         </Link>
                       </motion.div>
                     ))}
                   </nav>
                 </div>
 
-                <div
-                  className={cn(
-                    "p-6 border-t space-y-3 transition-colors duration-300",
-                    scrolled ? "border-gray-200 bg-white" : "border-white/20 bg-primary",
-                  )}
-                >
+                {/* Footer with Language & Login */}
+                <div className="border-t border-gray-100 p-4 space-y-3 bg-gray-50/50">
+                  {/* Language Selector */}
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.45 }}
+                    transition={{ delay: 0.35 }}
                   >
-                    <Link
-                      href="/login"
-                      className={cn(
-                        "flex items-center justify-center py-3 px-6 font-medium text-base font-trajan-pro uppercase rounded-lg transition-all duration-300",
-                        scrolled
-                          ? "bg-primary text-white hover:bg-primary/90"
-                          : "bg-white text-primary hover:bg-white/90",
-                      )}
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {t.login}
-                    </Link>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-1">Language</p>
+                    <div className="flex gap-2">
+                      {languages.map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => setLanguage(lang.code as "en" | "fr" | "es")}
+                          className={cn(
+                            "flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200",
+                            lang.code === language
+                              ? "bg-primary text-white shadow-sm"
+                              : "bg-white text-gray-600 border border-gray-200 hover:border-primary/30 hover:bg-primary/5"
+                          )}
+                        >
+                          <img
+                            src={lang.flag || "/placeholder.svg"}
+                            alt={lang.name}
+                            className="w-5 h-3.5 object-cover rounded-sm"
+                          />
+                          <span className="uppercase text-xs">{lang.code}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+
+                  {/* Login Button */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    {isLoggedIn ? (
+                      <Link
+                        href="/users/profile"
+                        className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary font-semibold text-sm rounded-lg hover:opacity-90 transition-all duration-200 shadow-sm"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <User className="h-5 w-5" />
+                        My Account
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false)
+                          openLoginModal()
+                        }}
+                        className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary font-semibold text-sm rounded-lg hover:opacity-90 transition-all duration-200 shadow-sm"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        {t.login}
+                      </button>
+                    )}
                   </motion.div>
                 </div>
               </div>

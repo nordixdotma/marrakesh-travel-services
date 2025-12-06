@@ -3,8 +3,9 @@
 import Header from "@/components/header"
 import Hero from "@/components/hero"
 import TravelThemes from "@/components/travel-themes"
-import EmptySectionB from "@/components/empty-section-b"
+import OurBestOffers from "@/components/our-best-offers"
 import Testimonials from "@/components/testimonials"
+import CustomizedQuote from "@/components/customized-quote"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
 
@@ -14,8 +15,9 @@ export default function HomePage() {
       <Header />
       <Hero />
       <TravelThemes />
-      <EmptySectionB />
+      <OurBestOffers />
       <Testimonials />
+      <CustomizedQuote />
       <Footer />
       <FloatingContact />
     </main>

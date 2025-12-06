@@ -1,56 +1,77 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import type { CSSProperties } from "react"
+import { toursOffers, excursionsOffers, activitiesOffers, packagesOffers } from "@/lib/offers-data"
+import { MapPin, Compass, Zap, Car, Package, ExternalLink } from "lucide-react"
 
 const TravelThemes = () => {
   const [activeIndex, setActiveIndex] = useState(0)
+
+  // Calculate offer counts dynamically from offers-data
+  const offerCounts = useMemo(() => ({
+    tours: toursOffers.length,
+    excursions: excursionsOffers.length,
+    activities: activitiesOffers.length,
+    transfers: 0, // No transfers in offers-data
+    packages: packagesOffers.length,
+  }), [])
 
   const themes = [
     {
       id: "tours",
       title: "Tours",
-      offers: 24,
-      buttonText: "Explore Tours",
+      subtitle: "Explore with Expert Local Guides",
+      offers: offerCounts.tours,
+      buttonText: "Explore",
       link: "/tours",
+      icon: MapPin,
       bgImage:
-        "https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "https://images.unsplash.com/photo-1615482475488-8f1ff9addba5?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       id: "excursions",
       title: "Excursions",
-      offers: 18,
-      buttonText: "View Excursions",
+      subtitle: "Full-Day Trips & Desert Adventures",
+      offers: offerCounts.excursions,
+      buttonText: "Discover",
       link: "/excursions",
+      icon: Compass,
       bgImage:
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "https://images.unsplash.com/photo-1615482475488-8f1ff9addba5?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       id: "activities",
       title: "Activities",
-      offers: 32,
-      buttonText: "Discover Activities",
+      subtitle: "Thrilling Experiences & Workshops",
+      offers: offerCounts.activities,
+      buttonText: "View All",
       link: "/activities",
+      icon: Zap,
       bgImage:
-        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "https://images.unsplash.com/photo-1615482475488-8f1ff9addba5?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       id: "transfers",
       title: "Transfers",
-      offers: 12,
-      buttonText: "Book Transfer",
+      subtitle: "Airport & Private Car Services",
+      offers: offerCounts.transfers,
+      buttonText: "Book Now",
       link: "/transfers",
+      icon: Car,
       bgImage:
-        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "https://images.unsplash.com/photo-1615482475488-8f1ff9addba5?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       id: "packages",
       title: "Packages",
-      offers: 28,
-      buttonText: "View Packages",
+      subtitle: "All-Inclusive Travel Bundles",
+      offers: offerCounts.packages,
+      buttonText: "Browse",
       link: "/packages",
+      icon: Package,
       bgImage:
-        "https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "https://images.unsplash.com/photo-1615482475488-8f1ff9addba5?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
   ]
 
@@ -69,45 +90,69 @@ const TravelThemes = () => {
           display: grid !important;
           grid-template-columns: 1fr 1fr !important;
           grid-template-rows: auto auto !important;
-          gap: 12px !important;
+          gap: 10px !important;
           height: auto !important;
         }
 
         .travel-image-container {
           height: 200px !important;
-          border-radius: 0.5rem !important;
+          border-radius: 12px !important;
           flex: none !important;
         }
 
+        .travel-theme-icon {
+          width: 32px !important;
+          height: 32px !important;
+          border-radius: 8px !important;
+          top: 12px !important;
+          left: 12px !important;
+        }
+
+        .travel-theme-icon svg {
+          width: 16px !important;
+          height: 16px !important;
+        }
+
         .travel-theme-title {
-          font-size: 20px !important;
+          font-size: 16px !important;
+        }
+
+        .travel-theme-subtitle {
+          font-size: 10px !important;
         }
 
         .travel-theme-offers {
-          font-size: 14px !important;
-          margin-bottom: 12px !important;
+          padding: 4px 8px !important;
+          top: 12px !important;
+          right: 12px !important;
+          gap: 3px !important;
         }
 
         .travel-theme-button {
-          padding: 10px 18px !important;
-          font-size: 13px !important;
+          padding: 6px 12px !important;
+          font-size: 11px !important;
         }
 
         .travel-overlay-content {
           opacity: 1 !important;
-          background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.2) 100%) !important;
+          padding: 12px !important;
+          background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4) 100%) !important;
         }
       }
 
       /* Medium screens (md) */
       @media (min-width: 768px) {
         .travel-gallery-container {
-          height: 450px !important;
+          height: 480px !important;
           display: flex !important;
         }
 
         .travel-image-container {
-          border-radius: 0.5rem !important;
+          border-radius: 12px !important;
+        }
+
+        .travel-image-container:hover img {
+          transform: scale(1.05);
         }
       }
     `
@@ -124,68 +169,133 @@ const TravelThemes = () => {
   return (
     <section className="w-full py-16 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: "var(--color-neutral-50)" }}>
       <div className="max-w-7xl mx-auto">
-        <div className="mb-12 text-center">
-          <h2 className="text-4xl font-bold mb-3" style={{ color: "var(--color-primary)" }}>
-            Our Travel Themes
-          </h2>
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary mb-4">
+            <span className="text-lg font-semibold">Choose Your Adventure</span>
+          </div>
+          <p className="text-muted-foreground max-w-xl mx-auto">
+            Discover curated experiences tailored to your travel style
+          </p>
         </div>
 
         <div className="travel-gallery-container" style={styles.galleryContainer as CSSProperties}>
-          {themes.map((theme, index) => (
-            <div
-              key={theme.id}
-              className="travel-image-container"
-              style={
-                {
-                  ...styles.imageContainer,
-                  flex: index === activeIndex ? 5 : 1,
-                } as CSSProperties
-              }
-              onMouseEnter={() => setActiveIndex(index)}
-              onClick={() => handleClick(index)}
-            >
-              <div style={styles.imageWrapper as CSSProperties}>
-                <img
-                  src={theme.bgImage || "/placeholder.svg"}
-                  alt={theme.title}
-                  style={styles.image as CSSProperties}
-                />
-                <div
-                  className="travel-overlay-content"
-                  style={
-                    {
-                      ...styles.overlay,
-                      opacity: index === activeIndex ? 1 : 0,
-                    } as CSSProperties
-                  }
-                >
-                  <div style={styles.contentWrapper as CSSProperties}>
-                    <h3 className="travel-theme-title" style={styles.title as CSSProperties}>
-                      {theme.title}
-                    </h3>
-                    <p className="travel-theme-offers" style={styles.offers as CSSProperties}>
-                      {theme.offers} Offers Available
-                    </p>
-                    <a
-                      href={theme.link}
-                      style={styles.button as CSSProperties}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "linear-gradient(to right, #fac360, #fce97c)"
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "var(--color-primary)"
-                      }}
-                      className="travel-theme-button"
-                    >
-                      {theme.buttonText}
-                    </a>
+          {themes.map((theme, index) => {
+            const IconComponent = theme.icon
+            return (
+              <div
+                key={theme.id}
+                className="travel-image-container travel-theme-item"
+                style={
+                  {
+                    ...styles.imageContainer,
+                    flex: index === activeIndex ? 5 : 1,
+                  } as CSSProperties
+                }
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => handleClick(index)}
+              >
+                <div style={styles.imageWrapper as CSSProperties}>
+                  <img
+                    src={theme.bgImage || "/placeholder.svg"}
+                    alt={theme.title}
+                    style={styles.image as CSSProperties}
+                  />
+                  <div
+                    className="travel-overlay-content"
+                    style={
+                      {
+                        ...styles.overlay,
+                        opacity: index === activeIndex ? 1 : 0,
+                      } as CSSProperties
+                    }
+                  >
+                    {/* Icon Badge - Top Left */}
+                    <div className="travel-theme-icon" style={styles.iconBadge as CSSProperties}>
+                      <IconComponent size={20} strokeWidth={2} />
+                    </div>
+                    
+                    {/* Offers Count Badge - Top Right */}
+                    <div className="travel-theme-offers" style={styles.offersBadge as CSSProperties}>
+                      <span style={styles.offersNumber as CSSProperties}>{theme.offers}</span>
+                      <span style={styles.offersText as CSSProperties}>
+                        {theme.offers === 1 ? 'offer' : 'offers'}
+                      </span>
+                    </div>
+                    
+                    {/* Center Content - Title & CTA */}
+                    <div style={styles.contentWrapper as CSSProperties}>
+                      <h3 className="travel-theme-title" style={styles.title as CSSProperties}>
+                        {theme.title}
+                      </h3>
+                      <p className="travel-theme-subtitle" style={styles.subtitle as CSSProperties}>
+                        {theme.subtitle}
+                      </p>
+                      
+                      {/* CTA Button */}
+                      <a
+                        href={theme.link}
+                        style={styles.button as CSSProperties}
+                        className="travel-theme-button travel-theme-cta group"
+                      >
+                        <span>{theme.buttonText}</span>
+                        <ExternalLink size={14} className="ml-2 transition-transform group-hover:scale-110" />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
+
+      <style jsx global>{`
+        .travel-theme-cta {
+          position: relative;
+          overflow: hidden;
+          background: var(--color-primary) !important;
+          color: white !important;
+          border: none;
+          padding: 10px 20px !important;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600 !important;
+          font-size: 13px !important;
+          text-decoration: none;
+          display: inline-flex !important;
+          align-items: center;
+          transition: all 0.3s ease;
+          z-index: 1;
+        }
+
+        .travel-theme-cta::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(to right, #fac360, #fce97c);
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          z-index: -1;
+        }
+
+        .travel-theme-cta:hover::before {
+          transform: scaleX(1);
+        }
+
+        .travel-theme-cta:hover {
+          color: var(--color-primary) !important;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .travel-theme-item:hover img {
+          transform: scale(1.05);
+        }
+      `}</style>
     </section>
   )
 }
@@ -194,19 +304,19 @@ const styles: Record<string, CSSProperties> = {
   galleryContainer: {
     display: "flex",
     width: "100%",
-    height: "500px",
+    height: "480px",
     overflow: "hidden",
-    borderRadius: "12px",
-    gap: "12px",
-    backgroundColor: "#f0f2f5",
+    borderRadius: "16px",
+    gap: "10px",
+    backgroundColor: "transparent",
   } as CSSProperties,
   imageContainer: {
     position: "relative",
     overflow: "hidden",
     cursor: "pointer",
-    minWidth: "100px",
-    transition: "all 0.5s ease",
-    borderRadius: "0.5rem",
+    minWidth: "80px",
+    transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+    borderRadius: "12px",
   } as CSSProperties,
   imageWrapper: {
     position: "relative",
@@ -218,6 +328,7 @@ const styles: Record<string, CSSProperties> = {
     height: "100%",
     objectFit: "cover",
     display: "block",
+    transition: "transform 0.5s ease",
   } as CSSProperties,
   overlay: {
     position: "absolute",
@@ -225,46 +336,93 @@ const styles: Record<string, CSSProperties> = {
     bottom: 0,
     left: 0,
     right: 0,
-    background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.2) 100%)",
+    background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.5) 65%, rgba(0,0,0,0.7) 100%)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    transition: "opacity 0.3s ease",
-    borderRadius: "0.5rem",
+    transition: "opacity 0.4s ease",
+    borderRadius: "12px",
+    padding: "16px",
   } as CSSProperties,
   contentWrapper: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    transform: "translateY(-20px)",
-    padding: "0 20px",
     textAlign: "center",
+    gap: "6px",
+  } as CSSProperties,
+  iconBadge: {
+    position: "absolute",
+    top: "16px",
+    left: "16px",
+    width: "40px",
+    height: "40px",
+    borderRadius: "10px",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    backdropFilter: "blur(10px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "white",
+    border: "1px solid rgba(255,255,255,0.2)",
   } as CSSProperties,
   title: {
-    color: "white",
-    margin: "0 0 8px 0",
-    fontSize: "28px",
-    fontWeight: "bold",
-    textShadow: "1px 1px 3px rgba(0,0,0,0.5)",
+    color: "#ffffff",
+    margin: "0",
+    fontSize: "24px",
+    fontWeight: "800",
+    letterSpacing: "-0.02em",
+    textShadow: "0 2px 8px rgba(0,0,0,0.4)",
   } as CSSProperties,
-  offers: {
+  subtitle: {
     color: "rgba(255,255,255,0.9)",
-    margin: "0 0 16px 0",
-    fontSize: "15px",
+    margin: "0",
+    fontSize: "13px",
     fontWeight: "500",
+    letterSpacing: "0.02em",
+    textShadow: "0 1px 4px rgba(0,0,0,0.3)",
+  } as CSSProperties,
+  offersBadge: {
+    position: "absolute",
+    top: "16px",
+    right: "16px",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "5px",
+    padding: "6px 12px",
+    borderRadius: "20px",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    backdropFilter: "blur(10px)",
+    border: "1px solid rgba(255,255,255,0.2)",
+  } as CSSProperties,
+  offersNumber: {
+    color: "white",
+    fontSize: "14px",
+    fontWeight: "700",
+  } as CSSProperties,
+  offersText: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: "11px",
+    fontWeight: "500",
+    textTransform: "uppercase",
+    letterSpacing: "0.03em",
   } as CSSProperties,
   button: {
     backgroundColor: "var(--color-primary)",
     color: "white",
     border: "none",
-    padding: "12px 24px",
-    borderRadius: "6px",
+    padding: "10px 20px",
+    borderRadius: "8px",
     cursor: "pointer",
     fontWeight: "600",
-    transition: "all 0.2s ease",
+    fontSize: "13px",
+    transition: "all 0.3s ease",
     textDecoration: "none",
-    display: "inline-block",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: "4px",
   } as CSSProperties,
 }
 

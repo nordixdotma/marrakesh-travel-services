@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Heart, Trash2, MapPin, ExternalLink } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 import { 
   toursOffers, 
   excursionsOffers, 
@@ -22,6 +23,7 @@ const allOffersArray: Offer[] = [
 ]
 
 export default function FavoritesPage() {
+  const { t } = useLanguage()
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
 
   useEffect(() => {
@@ -47,20 +49,20 @@ export default function FavoritesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">My Favorites</h1>
-        <p className="text-muted-foreground">Your saved tours and activities</p>
+        <h1 className="text-2xl font-bold text-foreground">{t.users.favorites.pageTitle}</h1>
+        <p className="text-muted-foreground">{t.users.favorites.pageDescription}</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Heart className="h-5 w-5 text-red-500" />
-            Saved Items
+            {t.users.favorites.savedItems}
           </CardTitle>
           <CardDescription>
             {favoriteOffers.length > 0
-              ? `You have ${favoriteOffers.length} saved ${favoriteOffers.length === 1 ? "item" : "items"}`
-              : "Items you add to favorites will appear here"}
+              ? t.users.favorites.savedCount.replace("{count}", favoriteOffers.length.toString()).replace("{items}", favoriteOffers.length === 1 ? "item" : "items")
+              : t.users.favorites.savedItemsEmpty}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -80,7 +82,7 @@ export default function FavoritesPage() {
                     <button
                       onClick={() => removeFavorite(offer.id)}
                       className="absolute top-2 right-2 p-2 rounded-full bg-background/80 hover:bg-destructive hover:text-white transition-colors backdrop-blur-sm"
-                      aria-label="Remove from favorites"
+                      aria-label={t.users.favorites.removeFromFavorites}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -92,12 +94,12 @@ export default function FavoritesPage() {
                     </p>
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                       <div>
-                        <p className="text-xs text-muted-foreground">From</p>
+                        <p className="text-xs text-muted-foreground">{t.common.from}</p>
                         <p className="font-semibold text-primary">${offer.priceAdult}</p>
                       </div>
                       <Link href={`/offers/${offer.id}`}>
                         <Button size="sm" variant="outline" className="gap-1">
-                          View Details
+                          {t.users.favorites.viewDetails}
                           <ExternalLink className="h-3.5 w-3.5" />
                         </Button>
                       </Link>
@@ -111,12 +113,12 @@ export default function FavoritesPage() {
               <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                 <Heart className="h-8 w-8 text-red-300" />
               </div>
-              <h3 className="font-semibold text-foreground mb-1">No favorites yet</h3>
+              <h3 className="font-semibold text-foreground mb-1">{t.users.favorites.noFavorites}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Browse our offers and click the heart icon to save your favorites!
+                {t.users.favorites.noFavoritesDescription}
               </p>
               <Link href="/tours">
-                <Button>Explore Tours</Button>
+                <Button>{t.users.favorites.exploreTours}</Button>
               </Link>
             </div>
           )}

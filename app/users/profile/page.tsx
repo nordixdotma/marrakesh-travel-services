@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useAuth } from "@/components/login-modal"
+import { useLanguage } from "@/components/language-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +11,7 @@ import { User, Mail, Phone, Camera, Save } from "lucide-react"
 
 export default function ProfilePage() {
   const { user } = useAuth()
+  const { t } = useLanguage()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -31,8 +33,8 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
-        <p className="text-muted-foreground">Manage your personal information</p>
+        <h1 className="text-2xl font-bold text-foreground">{t.users.profile.pageTitle}</h1>
+        <p className="text-muted-foreground">{t.users.profile.pageDescription}</p>
       </div>
 
       {/* Profile Card */}
@@ -40,21 +42,21 @@ export default function ProfilePage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>Update your profile details</CardDescription>
+              <CardTitle>{t.users.profile.personalInfo}</CardTitle>
+              <CardDescription>{t.users.profile.updateDetails}</CardDescription>
             </div>
             {!isEditing ? (
               <Button onClick={() => setIsEditing(true)} variant="outline">
-                Edit Profile
+                {t.users.profile.editProfile}
               </Button>
             ) : (
               <div className="flex gap-2">
                 <Button onClick={() => setIsEditing(false)} variant="outline">
-                  Cancel
+                  {t.users.profile.cancel}
                 </Button>
                 <Button onClick={handleSave}>
                   <Save className="h-4 w-4 mr-2" />
-                  Save
+                  {t.users.profile.save}
                 </Button>
               </div>
             )}
@@ -75,14 +77,14 @@ export default function ProfilePage() {
             </div>
             <div>
               <p className="font-semibold text-foreground">{user?.name || "User"}</p>
-              <p className="text-sm text-muted-foreground">Member since December 2025</p>
+              <p className="text-sm text-muted-foreground">{t.users.profile.memberSince}</p>
             </div>
           </div>
 
           {/* Form Fields */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">{t.users.profile.fullName}</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -91,13 +93,13 @@ export default function ProfilePage() {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   disabled={!isEditing}
                   className="pl-10"
-                  placeholder="Enter your name"
+                  placeholder={t.users.profile.namePlaceholder}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">{t.users.profile.emailAddress}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -107,13 +109,13 @@ export default function ProfilePage() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   disabled={!isEditing}
                   className="pl-10"
-                  placeholder="Enter your email"
+                  placeholder={t.users.profile.emailPlaceholder}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">{t.users.profile.phoneNumber}</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -123,7 +125,7 @@ export default function ProfilePage() {
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   disabled={!isEditing}
                   className="pl-10"
-                  placeholder="Enter your phone number"
+                  placeholder={t.users.profile.phonePlaceholder}
                 />
               </div>
             </div>

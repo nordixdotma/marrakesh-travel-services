@@ -4,9 +4,11 @@ import { useState, useEffect, useMemo } from "react"
 import type { CSSProperties } from "react"
 import { toursOffers, excursionsOffers, activitiesOffers, packagesOffers } from "@/lib/offers-data"
 import { MapPin, Compass, Zap, Car, Package, ExternalLink } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 
 const TravelThemes = () => {
   const [activeIndex, setActiveIndex] = useState(0)
+  const { t } = useLanguage()
 
   // Calculate offer counts dynamically from offers-data
   const offerCounts = useMemo(() => ({
@@ -20,10 +22,10 @@ const TravelThemes = () => {
   const themes = [
     {
       id: "tours",
-      title: "Tours",
-      subtitle: "Explore with Expert Local Guides",
+      title: t.travelThemes.tours.title,
+      subtitle: t.travelThemes.tours.subtitle,
       offers: offerCounts.tours,
-      buttonText: "Explore",
+      buttonText: t.travelThemes.tours.buttonText,
       link: "/tours",
       icon: MapPin,
       bgImage:
@@ -31,10 +33,10 @@ const TravelThemes = () => {
     },
     {
       id: "excursions",
-      title: "Excursions",
-      subtitle: "Full-Day Trips & Desert Adventures",
+      title: t.travelThemes.excursions.title,
+      subtitle: t.travelThemes.excursions.subtitle,
       offers: offerCounts.excursions,
-      buttonText: "Discover",
+      buttonText: t.travelThemes.excursions.buttonText,
       link: "/excursions",
       icon: Compass,
       bgImage:
@@ -42,10 +44,10 @@ const TravelThemes = () => {
     },
     {
       id: "activities",
-      title: "Activities",
-      subtitle: "Thrilling Experiences & Workshops",
+      title: t.travelThemes.activities.title,
+      subtitle: t.travelThemes.activities.subtitle,
       offers: offerCounts.activities,
-      buttonText: "View All",
+      buttonText: t.travelThemes.activities.buttonText,
       link: "/activities",
       icon: Zap,
       bgImage:
@@ -53,10 +55,10 @@ const TravelThemes = () => {
     },
     {
       id: "transfers",
-      title: "Transfers",
-      subtitle: "Airport & Private Car Services",
+      title: t.travelThemes.transfers.title,
+      subtitle: t.travelThemes.transfers.subtitle,
       offers: offerCounts.transfers,
-      buttonText: "Book Now",
+      buttonText: t.travelThemes.transfers.buttonText,
       link: "/transfers",
       icon: Car,
       bgImage:
@@ -64,10 +66,10 @@ const TravelThemes = () => {
     },
     {
       id: "packages",
-      title: "Packages",
-      subtitle: "All-Inclusive Travel Bundles",
+      title: t.travelThemes.packages.title,
+      subtitle: t.travelThemes.packages.subtitle,
       offers: offerCounts.packages,
-      buttonText: "Browse",
+      buttonText: t.travelThemes.packages.buttonText,
       link: "/packages",
       icon: Package,
       bgImage:
@@ -89,9 +91,19 @@ const TravelThemes = () => {
         .travel-gallery-container {
           display: grid !important;
           grid-template-columns: 1fr 1fr !important;
-          grid-template-rows: auto auto !important;
+          grid-template-rows: auto auto auto !important;
           gap: 10px !important;
           height: auto !important;
+          justify-items: center !important;
+        }
+        
+        .travel-gallery-container .travel-image-container {
+          width: 100% !important;
+        }
+        
+        .travel-gallery-container .travel-image-container:last-child {
+          grid-column: 1 / -1 !important;
+          max-width: calc(50% - 5px) !important;
         }
 
         .travel-image-container {
@@ -167,14 +179,14 @@ const TravelThemes = () => {
   }, [])
 
   return (
-    <section className="w-full py-16 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: "var(--color-neutral-50)" }}>
+    <section className="w-full py-16 px-2 md:px-8" style={{ backgroundColor: "var(--color-neutral-50)" }}>
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary mb-4">
-            <span className="text-lg font-semibold">Choose Your Adventure</span>
+            <span className="text-lg font-semibold">{t.travelThemes.sectionTitle}</span>
           </div>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Discover curated experiences tailored to your travel style
+            {t.travelThemes.sectionDescription}
           </p>
         </div>
 
@@ -218,7 +230,7 @@ const TravelThemes = () => {
                     <div className="travel-theme-offers" style={styles.offersBadge as CSSProperties}>
                       <span style={styles.offersNumber as CSSProperties}>{theme.offers}</span>
                       <span style={styles.offersText as CSSProperties}>
-                        {theme.offers === 1 ? 'offer' : 'offers'}
+                        {t.travelThemes.offers}
                       </span>
                     </div>
                     

@@ -1,56 +1,65 @@
 "use client"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useCallback } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-
-const services = [
-  {
-    title: "Tours",
-    description:
-      "Discover the beauty of Morocco through our expertly curated tours. From desert adventures to cultural experiences, explore iconic landmarks with knowledgeable local guides.",
-    image:
-      "https://images.unsplash.com/photo-1749317899983-a81668bda6b8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    buttonText: "View Tours",
-    buttonLink: "#contact",
-  },
-  {
-    title: "Excursions",
-    description:
-      "Experience thrilling day excursions to Morocco's most scenic destinations. Our excursions offer the perfect blend of adventure, culture, and natural beauty.",
-    image:
-      "https://images.unsplash.com/photo-1749317899983-a81668bda6b8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    buttonText: "Book Excursion",
-    buttonLink: "#contact",
-  },
-  {
-    title: "Activities",
-    description:
-      "Engage in unforgettable activities tailored to your interests. From cultural workshops to outdoor adventures, find the perfect activity for your Moroccan getaway.",
-    image:
-      "https://images.unsplash.com/photo-1749317899983-a81668bda6b8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    buttonText: "Discover Activities",
-    buttonLink: "#contact",
-  },
-  {
-    title: "Packages",
-    description:
-      "Explore our comprehensive travel packages designed for every budget and preference. All-inclusive packages with accommodations, transportation, and curated experiences.",
-    image: "https://images.unsplash.com/photo-1749317899983-a81668bda6b8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    buttonText: "View Packages",
-    buttonLink: "#contact",
-  },
-  {
-    title: "Transfers",
-    description:
-      "Reliable and professional transportation services throughout Morocco. From airport pickups to intercity transfers, we ensure comfortable and timely service.",
-    image:
-      "https://images.unsplash.com/photo-1749317899983-a81668bda6b8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    buttonText: "Book Transfer",
-    buttonLink: "#contact",
-  },
-]
+import { useLanguage } from "@/components/language-provider"
 
 export default function Hero() {
   const sliderRef = useRef<HTMLUListElement>(null)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const { t } = useLanguage()
+
+  const services = [
+    {
+      title: t.hero.tours.title,
+      description: t.hero.tours.description,
+      image:
+        "https://images.unsplash.com/photo-1705765276710-51b6362f9ea7?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      buttonText: t.hero.tours.buttonText,
+      buttonLink: "/tours",
+    },
+    {
+      title: t.hero.excursions.title,
+      description: t.hero.excursions.description,
+      image:
+        "https://images.unsplash.com/photo-1546936703-c36c420d4e5c?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      buttonText: t.hero.excursions.buttonText,
+      buttonLink: "/excursions",
+    },
+    {
+      title: t.hero.activities.title,
+      description: t.hero.activities.description,
+      image:
+        "https://images.unsplash.com/photo-1627240330670-2a18ff1f6b82?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      buttonText: t.hero.activities.buttonText,
+      buttonLink: "/activities",
+    },
+    {
+      title: t.hero.packages.title,
+      description: t.hero.packages.description,
+      image: "https://images.unsplash.com/photo-1624804823268-7d5454caa8c8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      buttonText: t.hero.packages.buttonText,
+      buttonLink: "/packages",
+    },
+    {
+      title: t.hero.transfers.title,
+      description: t.hero.transfers.description,
+      image:
+        "https://i.pinimg.com/736x/0a/5e/c8/0a5ec8aac838b3fad4fbb4985a45972f.jpg",
+      buttonText: t.hero.transfers.buttonText,
+      buttonLink: "/transfers",
+    },
+  ]
+
+  const resetAutoRotate = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+    }
+    intervalRef.current = setInterval(() => {
+      if (!sliderRef.current) return
+      const items = sliderRef.current.querySelectorAll(".carousel-item")
+      sliderRef.current.appendChild(items[0])
+    }, 4000)
+  }, [])
 
   const handleNavigation = (direction: "prev" | "next") => {
     if (!sliderRef.current) return
@@ -62,6 +71,32 @@ export default function Hero() {
     } else {
       sliderRef.current.prepend(items[items.length - 1])
     }
+    
+    // Reset the auto-rotate timer when user manually navigates
+    resetAutoRotate()
+  }
+
+  const handleThumbnailClick = (clickedIndex: number) => {
+    if (!sliderRef.current) return
+
+    const items = sliderRef.current.querySelectorAll(".carousel-item")
+    const itemsArray = Array.from(items)
+    
+    // Find the current active item (index 1 is the visible one)
+    // We need to move items until the clicked one is at position 1
+    const clicksNeeded = clickedIndex - 1
+    
+    if (clicksNeeded > 0) {
+      for (let i = 0; i < clicksNeeded; i++) {
+        const firstItem = sliderRef.current.querySelector(".carousel-item")
+        if (firstItem) {
+          sliderRef.current.appendChild(firstItem)
+        }
+      }
+    }
+    
+    // Reset the auto-rotate timer when user clicks thumbnail
+    resetAutoRotate()
   }
 
   useEffect(() => {
@@ -82,22 +117,34 @@ export default function Hero() {
     }
   }, [])
 
+  // Auto-rotate carousel every 3 seconds
+  useEffect(() => {
+    resetAutoRotate()
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [resetAutoRotate])
+
   return (
     <main className="hero-carousel" style={{ height: "100dvh", minHeight: "100dvh" }}>
       <ul className="slider" ref={sliderRef}>
         {services.map((service, index) => (
-          <li key={index} className="carousel-item" style={{ backgroundImage: `url(${service.image})` }}>
+          <li 
+            key={index} 
+            className="carousel-item" 
+            style={{ backgroundImage: `url(${service.image})` }}
+            onClick={() => handleThumbnailClick(index)}
+          >
             <div className="content">
-              <h2 className="title font-optima">{service.title}</h2>
+              <h2 className="title font-sans">{service.title}</h2>
               <p className="description">{service.description}</p>
               <div className="hero-button-wrapper">
                 <a
-                  href="#contact"
+                  href={service.buttonLink}
                   className="hero-button inline-flex items-center px-6 py-2.5 rounded-md text-sm font-medium"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })
-                  }}
                 >
                   {service.buttonText}
                 </a>

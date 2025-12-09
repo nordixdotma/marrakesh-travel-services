@@ -10,14 +10,15 @@ import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/components/login-modal"
+import { useLanguage } from "@/components/language-provider"
 
 export default function Header({ isStatic = false }: { isStatic?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false)
-  const [language, setLanguage] = useState<"fr" | "en" | "es">("en")
   const pathname = usePathname()
   const { isLoggedIn, openLoginModal } = useAuth()
+  const { language, setLanguage, t, languages } = useLanguage()
   
   // Check if we're in the users section
   const isUsersSection = pathname?.startsWith("/users") || isStatic
@@ -54,71 +55,15 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
     }
   }, [isMenuOpen])
 
-  const languages = [
-    {
-      code: "fr",
-      name: "Français",
-      flag: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg",
-    },
-    {
-      code: "en",
-      name: "English",
-      flag: "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg",
-    },
-    {
-      code: "es",
-      name: "Español",
-      flag: "https://upload.wikimedia.org/wikipedia/en/9/9a/Flag_of_Spain.svg",
-    },
-  ]
-
-  const translations = {
-    fr: {
-      home: "Accueil",
-      tours: "Tours",
-      excursions: "Excursions",
-      activities: "Activités",
-      packages: "Forfaits",
-      transfers: "Transferts",
-      about: "À propos",
-      contact: "Contact",
-      login: "Connexion",
-    },
-    en: {
-      home: "Home",
-      tours: "Tours",
-      excursions: "Excursions",
-      activities: "Activities",
-      packages: "Packages",
-      transfers: "Transfers",
-      about: "About",
-      contact: "Contact",
-      login: "Login",
-    },
-    es: {
-      home: "Inicio",
-      tours: "Tours",
-      excursions: "Excursiones",
-      activities: "Actividades",
-      packages: "Paquetes",
-      transfers: "Transferencias",
-      about: "Acerca de",
-      contact: "Contacto",
-      login: "Iniciar sesión",
-    },
-  }
-
-  const t = translations[language]
-
   const navigationLinks = [
-    { href: "/", label: t.home },
-    { href: "/tours", label: t.tours },
-    { href: "/excursions", label: t.excursions },
-    { href: "/activities", label: t.activities },
-    { href: "/packages", label: t.packages },
-    { href: "/transfers", label: t.transfers },
-    { href: "/about", label: t.about },
-    { href: "/contact", label: t.contact },
+    { href: "/", label: t.header.home },
+    { href: "/tours", label: t.header.tours },
+    { href: "/excursions", label: t.header.excursions },
+    { href: "/activities", label: t.header.activities },
+    { href: "/packages", label: t.header.packages },
+    { href: "/transfers", label: t.header.transfers },
+    { href: "/about", label: t.header.about },
+    { href: "/contact", label: t.header.contact },
   ]
 
   return (
@@ -142,7 +87,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
               <Button 
                 size="sm"
                 className={cn(
-                  "rounded-full p-2 transition-all duration-300 border cursor-pointer",
+                  "rounded-full p-1.5 transition-all duration-300 border cursor-pointer",
                   (scrolled || isUsersSection)
                     ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90" 
                     : "bg-primary text-white border-white/30 hover:bg-primary/90"
@@ -162,7 +107,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                   : "bg-primary text-white border-white/30 hover:bg-primary/90"
               )}
             >
-              {t.login}
+              {t.header.login}
             </Button>
           )}
 
@@ -286,13 +231,14 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
               <Link href="/users/profile" className="shrink-0">
                 <Button 
                   className={cn(
-                    "rounded-full p-2.5 transition-all duration-300 cursor-pointer",
+                    "rounded-full px-4 py-2 transition-all duration-300 cursor-pointer flex items-center gap-2",
                     (scrolled || isUsersSection)
                       ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary hover:opacity-90" 
                       : "bg-primary text-white hover:bg-primary/90"
                   )}
                 >
                   <User className="h-5 w-5" />
+                  <span className="text-sm font-medium">{t.header.myAccount}</span>
                 </Button>
               </Link>
             ) : (
@@ -305,7 +251,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                     : "bg-primary text-white hover:bg-primary/90"
                 )}
               >
-                {t.login}
+                {t.header.login}
               </Button>
             )}
           </div>
@@ -335,7 +281,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
             >
               <div className="h-full flex flex-col">
                 {/* Header with close button */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <div className="flex items-center justify-between px-5 py-4 bg-primary">
                   <Link href="/" className="inline-block" onClick={() => setIsMenuOpen(false)}>
                     <div className="relative h-9 w-24">
                       <Image src="/logo.png" alt="Marrakesh Logo" fill className="object-contain" priority />
@@ -343,7 +289,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                   </Link>
                   <button
                     onClick={() => setIsMenuOpen(false)}
-                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                    className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
                   >
                     <svg
                       width="16"
@@ -354,7 +300,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                       aria-hidden="true"
                     >
                       <path
-                        stroke="#374151"
+                        stroke="#ffffff"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
@@ -403,7 +349,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.35 }}
                   >
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-1">Language</p>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-1">{t.header.language}</p>
                     <div className="flex gap-2">
                       {languages.map((lang) => (
                         <button
@@ -440,7 +386,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <User className="h-5 w-5" />
-                        My Account
+                        {t.header.myAccount}
                       </Link>
                     ) : (
                       <button
@@ -453,7 +399,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
-                        {t.login}
+                        {t.header.login}
                       </button>
                     )}
                   </motion.div>

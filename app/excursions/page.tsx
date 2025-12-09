@@ -9,8 +9,10 @@ import { Container } from "@/components/ui/container"
 import OffersGrid from "@/components/offers-grid"
 import SearchFilter, { type Filters } from "@/components/search-filter"
 import { toursOffers, excursionsOffers, activitiesOffers, packagesOffers, type Offer } from "@/lib/offers-data"
+import { useLanguage } from "@/components/language-provider"
 
 export default function ExcursionsPage() {
+  const { t } = useLanguage()
   const allOffers: Offer[] = [...toursOffers, ...excursionsOffers, ...activitiesOffers, ...packagesOffers]
   const pageType = "excursions"
 
@@ -45,10 +47,10 @@ export default function ExcursionsPage() {
   return (
     <main className="w-full">
       <Header />
-      <PageHero title="Excursions" backgroundImage="https://images.unsplash.com/photo-1609281362702-f46a060b2044?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
+      <PageHero title={t.pageHero.excursions} backgroundImage="https://images.unsplash.com/photo-1609281362702-f46a060b2044?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
 
-      <section className="py-12 bg-background">
-        <Container className="max-w-6xl px-4">
+      <section className="py-12 bg-gray-50">
+        <Container className="max-w-6xl px-2 md:px-4">
           <SearchFilter onChange={handleFilterChange} initial={{ category: pageType }} />
 
           <OffersGrid offers={offers} />

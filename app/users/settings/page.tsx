@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/login-modal"
+import { useLanguage } from "@/components/language-provider"
 import { Settings, Bell, Shield, Globe, Trash2, Lock, Eye, EyeOff } from "lucide-react"
 import {
   AlertDialog,
@@ -24,6 +25,7 @@ import {
 export default function SettingsPage() {
   const router = useRouter()
   const { logout } = useAuth()
+  const { t } = useLanguage()
   
   // Notification settings
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -70,8 +72,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground">Manage your account preferences</p>
+        <h1 className="text-2xl font-bold text-foreground">{t.users.settings.pageTitle}</h1>
+        <p className="text-muted-foreground">{t.users.settings.pageDescription}</p>
       </div>
 
       {/* Notifications */}
@@ -79,16 +81,16 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5 text-primary" />
-            Notifications
+            {t.users.settings.notifications}
           </CardTitle>
-          <CardDescription>Choose how you want to receive updates</CardDescription>
+          <CardDescription>{t.users.settings.notificationsDescription}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="email-notifications">Email Notifications</Label>
+              <Label htmlFor="email-notifications">{t.users.settings.emailNotifications}</Label>
               <p className="text-sm text-muted-foreground">
-                Receive booking confirmations and updates via email
+                {t.users.settings.emailNotificationsDesc}
               </p>
             </div>
             <Switch
@@ -100,9 +102,9 @@ export default function SettingsPage() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="sms-notifications">SMS Notifications</Label>
+              <Label htmlFor="sms-notifications">{t.users.settings.smsNotifications}</Label>
               <p className="text-sm text-muted-foreground">
-                Get text messages for important updates
+                {t.users.settings.smsNotificationsDesc}
               </p>
             </div>
             <Switch
@@ -114,9 +116,9 @@ export default function SettingsPage() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="promotional-emails">Promotional Emails</Label>
+              <Label htmlFor="promotional-emails">{t.users.settings.promotionalEmails}</Label>
               <p className="text-sm text-muted-foreground">
-                Receive special offers and deals
+                {t.users.settings.promotionalEmailsDesc}
               </p>
             </div>
             <Switch
@@ -133,35 +135,35 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Security
+            {t.users.settings.security}
           </CardTitle>
-          <CardDescription>Manage your password and security settings</CardDescription>
+          <CardDescription>{t.users.settings.securityDescription}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {!showPasswordForm ? (
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Password</Label>
+                <Label>{t.users.settings.changePassword}</Label>
                 <p className="text-sm text-muted-foreground">
                   Last changed: Never
                 </p>
               </div>
               <Button variant="outline" onClick={() => setShowPasswordForm(true)}>
                 <Lock className="h-4 w-4 mr-2" />
-                Change Password
+                {t.users.settings.changePassword}
               </Button>
             </div>
           ) : (
             <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
               <div className="space-y-2">
-                <Label htmlFor="current-password">Current Password</Label>
+                <Label htmlFor="current-password">{t.users.settings.currentPassword}</Label>
                 <div className="relative">
                   <Input
                     id="current-password"
                     type={showCurrentPassword ? "text" : "password"}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Enter current password"
+                    placeholder={t.users.settings.currentPassword}
                   />
                   <button
                     type="button"
@@ -174,14 +176,14 @@ export default function SettingsPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
+                <Label htmlFor="new-password">{t.users.settings.newPassword}</Label>
                 <div className="relative">
                   <Input
                     id="new-password"
                     type={showNewPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password"
+                    placeholder={t.users.settings.newPassword}
                   />
                   <button
                     type="button"
@@ -194,20 +196,20 @@ export default function SettingsPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                <Label htmlFor="confirm-new-password">{t.users.settings.confirmNewPassword}</Label>
                 <Input
                   id="confirm-new-password"
                   type="password"
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  placeholder="Confirm new password"
+                  placeholder={t.users.settings.confirmNewPassword}
                 />
               </div>
               
               <div className="flex gap-2">
-                <Button onClick={handlePasswordChange}>Update Password</Button>
+                <Button onClick={handlePasswordChange}>{t.users.settings.updatePassword}</Button>
                 <Button variant="outline" onClick={() => setShowPasswordForm(false)}>
-                  Cancel
+                  {t.users.settings.cancelAction}
                 </Button>
               </div>
             </div>
@@ -220,37 +222,36 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-destructive">
             <Trash2 className="h-5 w-5" />
-            Danger Zone
+            {t.users.settings.dangerZone}
           </CardTitle>
-          <CardDescription>Irreversible account actions</CardDescription>
+          <CardDescription>{t.users.settings.dangerZoneDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <p className="font-medium text-foreground">Delete Account</p>
+              <p className="font-medium text-foreground">{t.users.settings.deleteAccount}</p>
               <p className="text-sm text-muted-foreground">
-                Permanently delete your account and all associated data
+                {t.users.settings.deleteAccountDesc}
               </p>
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive">Delete Account</Button>
+                <Button variant="destructive">{t.users.settings.deleteAccount}</Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogTitle>{t.users.settings.deleteAccountConfirmTitle}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your
-                    account and remove all your data including bookings and favorites.
+                    {t.users.settings.deleteAccountConfirmDesc}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t.users.settings.cancelAction}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteAccount}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Yes, delete my account
+                    {t.users.settings.yesDeleteAccount}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

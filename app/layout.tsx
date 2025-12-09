@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { AuthProvider } from "@/components/login-modal"
+import { LanguageProvider } from "@/components/language-provider"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -267,7 +268,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://fonts.cdnfonts.com" />
         
         {/* Custom fonts */}
-        <link href="https://fonts.cdnfonts.com/css/optima" rel="stylesheet" />
+        <link href="https://fonts.cdnfonts.com/css/urwclassico" rel="stylesheet" />
         
         {/* Theme color for mobile browsers */}
         <meta name="theme-color" content="#c4a47c" />
@@ -287,9 +288,11 @@ export default function RootLayout({
         />
       </head>
       <body className={`font-sans antialiased`} suppressHydrationWarning>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </LanguageProvider>
         <Analytics />
       </body>
     </html>

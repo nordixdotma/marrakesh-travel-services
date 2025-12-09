@@ -6,6 +6,7 @@ import "swiper/css"
 import { Autoplay } from "swiper/modules"
 import { Swiper, SwiperSlide } from "swiper/react"
 import type { Swiper as SwiperType } from "swiper"
+import { useLanguage } from "@/components/language-provider"
 
 const testimonials = [
   {
@@ -79,22 +80,23 @@ const testimonials = [
 export default function Testimonials() {
   const [activeIndex, setActiveIndex] = useState(0)
   const swiperRef = useRef<SwiperType | null>(null)
+  const { t } = useLanguage()
 
   return (
     <section id="testimonials" className="py-16 sm:py-24 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 md:px-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-6">
+      <div className="max-w-7xl mx-auto px-2 md:px-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-8 mb-3 sm:mb-6">
           <h2 className="text-3xl font-bold md:text-4xl text-primary">
-            What Our <span className="text-secondary">Clients Say</span>
+            {t.testimonials.title} <span className="text-secondary">{t.testimonials.titleHighlight}</span>
           </h2>
 
-          <div className="flex items-center justify-start md:justify-end gap-3 sm:gap-6 flex-wrap">
+          <div className="flex items-center justify-center md:justify-end gap-2 sm:gap-6 flex-wrap">
             <div className="flex items-center gap-2">
               <a
                 href="https://www.google.com/search?gs_ssp=eJwFwTkOgCAQAMDYmvgAOwp77ssn-IsFFzVqwxrC850ZJ35wKZMvIlK0YlgX0XcoiEZ78BissqvoTpmsS8BYnJaQ0za_UCvcSCf7KjR8GGFtV0b6AZdIGOw&q=marrakesh+travel+services&rlz=1C1GCEA_enMA1191&oq=marrakesh+travel+&gs_lcrp=EgZjaHJvbWUqDQgBEC4YrwEYxwEYgAQyBggAEEUYOTINCAEQLhivARjHARiABDILCAIQABgKGAsYgAQyCwgDEAAYChgLGIAEMgsIBBAAGAoYCxiABDIHCAUQABiABDILCAYQABgKGAsYgAQyBwgHEAAYgAQyCwgIEAAYChgLGIAE0gEINTU1MWowajeoAgCwAgA&sourceid=chrome&ie=UTF-8#"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center bg-white px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg shadow-sm border-2 border-transparent hover:border-primary hover:bg-primary/5 transition-all duration-300"
+                className="flex items-center bg-white px-1.5 py-1 sm:px-4 sm:py-2 rounded-lg shadow-sm border-2 border-transparent hover:border-primary hover:bg-primary/5 transition-all duration-300"
               >
                 <svg className="w-4 h-4 sm:w-6 sm:h-6 mr-1.5 sm:mr-2" viewBox="0 0 24 24">
                   <path
@@ -123,7 +125,7 @@ export default function Testimonials() {
                       ))}
                     </div>
                   </div>
-                  <p className="text-[10px] sm:text-xs text-gray-600">Google Reviews</p>
+                  <p className="text-[10px] sm:text-xs text-gray-600">{t.testimonials.googleReviews}</p>
                 </div>
               </a>
             </div>
@@ -133,7 +135,7 @@ export default function Testimonials() {
                 href="https://www.tripadvisor.com/Attraction_Review-g293734-d8514036-Reviews-Marrakesh_Travel_Services-Marrakech_Marrakech_Safi.html"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center bg-white px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg shadow-sm border-2 border-transparent hover:border-primary hover:bg-primary/5 transition-all duration-300"
+                className="flex items-center bg-white px-1.5 py-1 sm:px-4 sm:py-2 rounded-lg shadow-sm border-2 border-transparent hover:border-primary hover:bg-primary/5 transition-all duration-300"
               >
                 <img
                   src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/tripadvisor-icon.png"
@@ -149,7 +151,7 @@ export default function Testimonials() {
                       ))}
                     </div>
                   </div>
-                  <p className="text-[10px] sm:text-xs text-gray-600">TripAdvisor</p>
+                  <p className="text-[10px] sm:text-xs text-gray-600">{t.testimonials.tripAdvisor}</p>
                 </div>
               </a>
             </div>

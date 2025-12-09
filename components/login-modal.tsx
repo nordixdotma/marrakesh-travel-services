@@ -302,8 +302,7 @@ function LoginModal({ open, onOpenChange, message, onLogin }: LoginModalProps) {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10 h-11 bg-white"
-                style={{ color: '#1c1917', WebkitTextFillColor: '#1c1917' }}
+                className="pl-10 pr-10 h-11 placeholder:text-muted-foreground"
               />
               <button
                 type="button"
@@ -327,8 +326,7 @@ function LoginModal({ open, onOpenChange, message, onLogin }: LoginModalProps) {
                   placeholder="Confirm your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 pr-10 h-11 bg-white"
-                  style={{ color: '#1c1917', WebkitTextFillColor: '#1c1917' }}
+                  className="pl-10 pr-10 h-11 placeholder:text-muted-foreground"
                 />
                 <button
                   type="button"

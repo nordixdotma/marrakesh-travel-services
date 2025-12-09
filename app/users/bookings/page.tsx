@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { CalendarDays, MapPin, Clock, ChevronRight } from "lucide-react"
 import Link from "next/link"
+import { useLanguage } from "@/components/language-provider"
 
 // Mock bookings data - in a real app this would come from an API
 const bookings: {
@@ -19,14 +20,15 @@ const bookings: {
 }[] = []
 
 export default function BookingsPage() {
+  const { t } = useLanguage()
   const upcomingBookings = bookings.filter((b) => b.status === "upcoming")
   const pastBookings = bookings.filter((b) => b.status === "completed" || b.status === "cancelled")
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">My Bookings</h1>
-        <p className="text-muted-foreground">View and manage your travel bookings</p>
+        <h1 className="text-2xl font-bold text-foreground">{t.users.bookings.pageTitle}</h1>
+        <p className="text-muted-foreground">{t.users.bookings.pageDescription}</p>
       </div>
 
       {/* Upcoming Bookings */}
@@ -34,9 +36,9 @@ export default function BookingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5 text-primary" />
-            Upcoming Bookings
+            {t.users.bookings.upcomingBookings}
           </CardTitle>
-          <CardDescription>Your scheduled tours and activities</CardDescription>
+          <CardDescription>{t.users.bookings.upcomingDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           {upcomingBookings.length > 0 ? (
@@ -73,7 +75,7 @@ export default function BookingsPage() {
                   <div className="text-right">
                     <p className="font-semibold text-primary">${booking.price}</p>
                     <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                      Confirmed
+                      {t.users.bookings.confirmed}
                     </span>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -85,12 +87,12 @@ export default function BookingsPage() {
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <CalendarDays className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="font-semibold text-foreground mb-1">No upcoming bookings</h3>
+              <h3 className="font-semibold text-foreground mb-1">{t.users.bookings.noUpcoming}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Start exploring our tours and activities to plan your next adventure!
+                {t.users.bookings.noUpcomingDescription}
               </p>
               <Link href="/tours">
-                <Button>Browse Tours</Button>
+                <Button>{t.users.bookings.browseTours}</Button>
               </Link>
             </div>
           )}
@@ -100,8 +102,8 @@ export default function BookingsPage() {
       {/* Past Bookings */}
       <Card>
         <CardHeader>
-          <CardTitle>Booking History</CardTitle>
-          <CardDescription>Your past tours and activities</CardDescription>
+          <CardTitle>{t.users.bookings.pastBookings}</CardTitle>
+          <CardDescription>{t.users.bookings.pastDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           {pastBookings.length > 0 ? (
@@ -139,7 +141,7 @@ export default function BookingsPage() {
             </div>
           ) : (
             <p className="text-center py-8 text-muted-foreground">
-              No booking history yet
+              {t.users.bookings.noPast}
             </p>
           )}
         </CardContent>

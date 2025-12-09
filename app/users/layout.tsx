@@ -9,31 +9,9 @@ import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
 import { Container } from "@/components/ui/container"
 import { useAuth } from "@/components/login-modal"
+import { useLanguage } from "@/components/language-provider"
 import { cn } from "@/lib/utils"
-import { User, CalendarDays, Heart, Settings, LogOut } from "lucide-react"
-
-const sidebarLinks = [
-  {
-    href: "/users/profile",
-    label: "Profile",
-    icon: User,
-  },
-  {
-    href: "/users/bookings",
-    label: "My Bookings",
-    icon: CalendarDays,
-  },
-  {
-    href: "/users/favorites",
-    label: "Favorites",
-    icon: Heart,
-  },
-  {
-    href: "/users/settings",
-    label: "Settings",
-    icon: Settings,
-  },
-]
+import { User, CalendarDays, Heart, Settings, LogOut, Headphones } from "lucide-react"
 
 export default function UsersLayout({
   children,
@@ -43,6 +21,35 @@ export default function UsersLayout({
   const router = useRouter()
   const pathname = usePathname()
   const { isLoggedIn, user, logout, openLoginModal } = useAuth()
+  const { t } = useLanguage()
+
+  const sidebarLinks = [
+    {
+      href: "/users/profile",
+      label: t.users.sidebar.profile,
+      icon: User,
+    },
+    {
+      href: "/users/bookings",
+      label: t.users.sidebar.myBookings,
+      icon: CalendarDays,
+    },
+    {
+      href: "/users/favorites",
+      label: t.users.sidebar.favorites,
+      icon: Heart,
+    },
+    {
+      href: "/users/settings",
+      label: t.users.sidebar.settings,
+      icon: Settings,
+    },
+    {
+      href: "/users/support",
+      label: t.users.sidebar.support,
+      icon: Headphones,
+    },
+  ]
 
   useEffect(() => {
     // If not logged in, redirect to home and show login modal
@@ -118,7 +125,7 @@ export default function UsersLayout({
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full"
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign Out
+                    {t.users.sidebar.logout}
                   </button>
                 </div>
               </div>

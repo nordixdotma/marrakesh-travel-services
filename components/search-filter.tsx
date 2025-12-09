@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, SlidersHorizontal, X, Calendar, DollarSign, Tag, Compass } from "lucide-react"
+import { Search, SlidersHorizontal, X, Calendar, DollarSign, Compass } from "lucide-react"
 import type { OfferType } from "@/lib/offers-data"
 import { cn } from "@/lib/utils"
 
@@ -22,7 +22,6 @@ interface Props {
 export default function SearchFilter({ onChange, initial, showCategoryFilter = true }: Props) {
   const [minPrice, setMinPrice] = useState<number | "">(initial?.minPrice ?? "")
   const [maxPrice, setMaxPrice] = useState<number | "">(initial?.maxPrice ?? "")
-  const [theme, setTheme] = useState<string>(initial?.theme ?? "")
   const [category, setCategory] = useState<OfferType | "all">(initial?.category ?? "all")
   const [availableOn, setAvailableOn] = useState<string>(initial?.availableOn ?? "")
   const [isExpanded, setIsExpanded] = useState(false)
@@ -31,7 +30,6 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
     onChange({
       minPrice: minPrice === "" ? null : Number(minPrice),
       maxPrice: maxPrice === "" ? null : Number(maxPrice),
-      theme: theme || undefined,
       category,
       availableOn: availableOn || null,
     })
@@ -40,22 +38,12 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
   const reset = () => {
     setMinPrice("")
     setMaxPrice("")
-    setTheme("")
     setCategory("all")
     setAvailableOn("")
     onChange({})
   }
 
-  const hasActiveFilters = minPrice !== "" || maxPrice !== "" || theme !== "" || category !== "all" || availableOn !== ""
-
-  const themes = [
-    { value: "", label: "All Themes" },
-    { value: "adventure", label: "Adventure" },
-    { value: "culture", label: "Culture" },
-    { value: "relaxation", label: "Relaxation" },
-    { value: "photography", label: "Photography" },
-    { value: "food", label: "Food & Cuisine" },
-  ]
+  const hasActiveFilters = minPrice !== "" || maxPrice !== "" || category !== "all" || availableOn !== ""
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -85,22 +73,13 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
           Filters
           {hasActiveFilters && (
             <span className="ml-1 w-5 h-5 rounded-full bg-white/20 text-xs flex items-center justify-center">
-              {[minPrice, maxPrice, theme, category !== "all" ? category : "", availableOn].filter(Boolean).length}
+              {[minPrice, maxPrice, category !== "all" ? category : "", availableOn].filter(Boolean).length}
             </span>
           )}
         </button>
 
         {/* Quick Filter Pills */}
         <div className="flex items-center gap-2 flex-wrap">
-          {theme && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-              <Tag className="w-3 h-3" />
-              {themes.find(t => t.value === theme)?.label}
-              <button onClick={() => { setTheme(""); emit() }} className="ml-1 hover:bg-primary/20 rounded-full p-0.5">
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
           {(minPrice !== "" || maxPrice !== "") && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
               <DollarSign className="w-3 h-3" />
@@ -151,7 +130,7 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
       >
         <div className="overflow-hidden">
           <div className="p-5 bg-card rounded-xl border border-border shadow-sm">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Price Range */}
               <div className="space-y-2">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -185,23 +164,6 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
                     />
                   </div>
                 </div>
-              </div>
-
-              {/* Theme */}
-              <div className="space-y-2">
-                <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  <Tag className="w-3.5 h-3.5" />
-                  Theme
-                </label>
-                <select
-                  value={theme}
-                  onChange={(e) => { setTheme(e.target.value); setTimeout(emit, 0) }}
-                  className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
-                >
-                  {themes.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
               </div>
 
               {/* Category */}

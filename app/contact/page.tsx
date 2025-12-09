@@ -9,8 +9,11 @@ import PageHero from "@/components/page-hero"
 import { Container } from "@/components/ui/container"
 import { Phone, Mail, MapPin, Clock, Send, MessageCircle, ArrowRight } from "lucide-react"
 import { useState } from "react"
+import { useLanguage } from "@/components/language-provider"
 
 export default function ContactPage() {
+  const { t } = useLanguage()
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -41,47 +44,54 @@ export default function ContactPage() {
   const contactInfo = [
     {
       icon: Phone,
-      title: "Call Us",
+      title: t.contact.callUs,
       value: "+212 524 375 251",
       subValue: "+212 661 044 503",
       action: "tel:+212524375251",
     },
     {
       icon: Mail,
-      title: "Email Us",
+      title: t.contact.emailUs,
       value: "contact@marrakeshtravelservices.com",
       action: "mailto:contact@marrakeshtravelservices.com",
     },
     {
       icon: MapPin,
-      title: "Visit Us",
+      title: t.contact.visitUs,
       value: "Rue Bani marine, Appt N°5",
       subValue: "Medina, Marrakech",
     },
     {
       icon: Clock,
-      title: "Working Hours",
-      value: "Mon - Sun",
-      subValue: "8:00 AM - 8:00 PM",
+      title: t.contact.workingHours,
+      value: t.contact.workingDays,
+      subValue: t.contact.workingTime,
     },
   ]
 
   const subjects = [
-    "General Inquiry",
-    "Tour Booking",
-    "Custom Package",
-    "Group Travel",
-    "Transportation",
-    "Other",
+    { value: "General Inquiry", label: t.contact.subjects.generalInquiry },
+    { value: "Tour Booking", label: t.contact.subjects.tourBooking },
+    { value: "Custom Package", label: t.contact.subjects.customPackage },
+    { value: "Group Travel", label: t.contact.subjects.groupTravel },
+    { value: "Transportation", label: t.contact.subjects.transportation },
+    { value: "Other", label: t.contact.subjects.other },
+  ]
+
+  const whyChooseUsItems = [
+    t.contact.whyChooseUsItems.localExpertise,
+    t.contact.whyChooseUsItems.personalizedExperiences,
+    t.contact.whyChooseUsItems.support247,
+    t.contact.whyChooseUsItems.bestPrice,
   ]
 
   return (
     <main className="w-full">
       <Header />
-      <PageHero title="CONTACT" backgroundImage="https://media-cdn.tripadvisor.com/media/attractions-splice-spp-674x446/07/a5/17/55.jpg" />
+      <PageHero title={t.contact.pageTitle} backgroundImage="https://media-cdn.tripadvisor.com/media/attractions-splice-spp-674x446/07/a5/17/55.jpg" />
 
       <section className="py-16 md:py-24 bg-linear-to-b from-background to-muted/20">
-        <Container className="max-w-7xl mx-auto px-4">
+        <Container className="max-w-7xl mx-auto px-2 md:px-8">
           {/* Quick Contact Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-12 md:mb-16">
             {contactInfo.map((info, index) => (
@@ -113,26 +123,21 @@ export default function ContactPage() {
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-4">
                   <MessageCircle className="w-3.5 h-3.5" />
-                  Let's Talk
+                  {t.contact.letsTalk}
                 </div>
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
-                  Ready to Plan Your <span className="text-primary">Adventure?</span>
+                  {t.contact.readyToPlan} <span className="text-primary">{t.contact.adventure}</span>
                 </h2>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  Whether you're dreaming of exploring ancient medinas, crossing desert dunes, or discovering hidden gems — we're here to make it happen.
+                  {t.contact.contactDescription}
                 </p>
               </div>
 
               {/* Why Choose Us */}
               <div className="bg-linear-to-br from-primary/5 via-primary/3 to-transparent rounded-xl p-5 border border-primary/10">
-                <h3 className="font-semibold text-foreground mb-3 text-sm">Why Choose Us?</h3>
+                <h3 className="font-semibold text-foreground mb-3 text-sm">{t.contact.whyChooseUs}</h3>
                 <ul className="space-y-2.5">
-                  {[
-                    "Local expertise & insider knowledge",
-                    "Personalized travel experiences",
-                    "24/7 support during your trip",
-                    "Best price guarantee",
-                  ].map((item, i) => (
+                  {whyChooseUsItems.map((item, i) => (
                     <li key={i} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                       {item}
@@ -145,7 +150,7 @@ export default function ContactPage() {
               <div className="flex items-center gap-3 p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 <p className="text-sm text-green-700 dark:text-green-400">
-                  Average response time: <span className="font-semibold">Under 2 hours</span>
+                  {t.contact.responseTime} <span className="font-semibold">{t.contact.under2Hours}</span>
                 </p>
               </div>
             </div>
@@ -157,7 +162,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="name" className="block text-xs font-medium text-foreground mb-2">
-                        Full Name *
+                        {t.contact.formLabels.fullName}
                       </label>
                       <input
                         type="text"
@@ -167,12 +172,12 @@ export default function ContactPage() {
                         onChange={handleChange}
                         required
                         className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-                        placeholder="Your name"
+                        placeholder={t.contact.formLabels.namePlaceholder}
                       />
                     </div>
                     <div>
                       <label htmlFor="phone" className="block text-xs font-medium text-foreground mb-2">
-                        Phone Number
+                        {t.contact.formLabels.phoneNumber}
                       </label>
                       <input
                         type="tel"
@@ -181,7 +186,7 @@ export default function ContactPage() {
                         value={formData.phone}
                         onChange={handleChange}
                         className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-                        placeholder="+1 234 567 890"
+                        placeholder={t.contact.formLabels.phonePlaceholder}
                       />
                     </div>
                   </div>
@@ -189,7 +194,7 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="email" className="block text-xs font-medium text-foreground mb-2">
-                        Email Address *
+                        {t.contact.formLabels.emailAddress}
                       </label>
                       <input
                         type="email"
@@ -199,12 +204,12 @@ export default function ContactPage() {
                         onChange={handleChange}
                         required
                         className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-                        placeholder="you@example.com"
+                        placeholder={t.contact.formLabels.emailPlaceholder}
                       />
                     </div>
                     <div>
                       <label htmlFor="subject" className="block text-xs font-medium text-foreground mb-2">
-                        Subject *
+                        {t.contact.formLabels.subject}
                       </label>
                       <select
                         id="subject"
@@ -214,10 +219,10 @@ export default function ContactPage() {
                         required
                         className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all appearance-none cursor-pointer"
                       >
-                        <option value="">Select a topic</option>
+                        <option value="">{t.contact.formLabels.selectTopic}</option>
                         {subjects.map((subject) => (
-                          <option key={subject} value={subject}>
-                            {subject}
+                          <option key={subject.value} value={subject.value}>
+                            {subject.label}
                           </option>
                         ))}
                       </select>
@@ -226,7 +231,7 @@ export default function ContactPage() {
 
                   <div>
                     <label htmlFor="message" className="block text-xs font-medium text-foreground mb-2">
-                      Your Message *
+                      {t.contact.formLabels.yourMessage}
                     </label>
                     <textarea
                       id="message"
@@ -236,7 +241,7 @@ export default function ContactPage() {
                       required
                       rows={4}
                       className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all resize-none"
-                      placeholder="Tell us about your travel plans, preferred dates, group size..."
+                      placeholder={t.contact.formLabels.messagePlaceholder}
                     />
                   </div>
 
@@ -248,11 +253,11 @@ export default function ContactPage() {
                     {isLoading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Sending...
+                        {t.contact.sending}
                       </>
                     ) : (
                       <>
-                        Send Message
+                        {t.contact.sendMessage}
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                       </>
                     )}
@@ -262,7 +267,7 @@ export default function ContactPage() {
                     <div className="p-3.5 rounded-lg bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 animate-in fade-in slide-in-from-bottom-2">
                       <p className="text-sm text-green-700 dark:text-green-400 font-medium flex items-center gap-2">
                         <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">✓</span>
-                        Message sent! We'll get back to you shortly.
+                        {t.contact.messageSent}
                       </p>
                     </div>
                   )}
@@ -274,14 +279,14 @@ export default function ContactPage() {
           {/* Map Section */}
           <div className="mt-12 md:mt-16">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-foreground">Our Location</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-foreground">{t.contact.ourLocation}</h2>
               <a
                 href="https://maps.google.com/?q=Rue+Bani+marine,+Marrakech"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-1 transition-colors"
               >
-                Get Directions
+                {t.contact.getDirections}
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>

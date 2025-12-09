@@ -100,13 +100,13 @@ export default function ContactPage() {
                 href={info.action || "#"}
                 className="group relative bg-card rounded-xl p-4 md:p-5 border border-border/50 hover:border-primary/40 hover:shadow-md transition-all duration-300 cursor-pointer"
               >
-                <div className="flex flex-col items-center text-center gap-3">
+                <div className="flex flex-col items-center text-center gap-3 w-full">
                   <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                     <info.icon className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                   </div>
-                  <div>
+                  <div className="w-full overflow-hidden">
                     <p className="text-xs text-muted-foreground mb-1">{info.title}</p>
-                    <p className="text-xs md:text-sm font-medium text-foreground leading-tight">{info.value}</p>
+                    <p className="text-[10px] md:text-sm font-medium text-foreground leading-tight break-all">{info.value}</p>
                     {info.subValue && (
                       <p className="text-xs text-muted-foreground mt-0.5">{info.subValue}</p>
                     )}

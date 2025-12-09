@@ -29,7 +29,7 @@ const TravelThemes = () => {
       link: "/tours",
       icon: MapPin,
       bgImage:
-        "https://images.unsplash.com/photo-1615482475488-8f1ff9addba5?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1628642004970-1da51c8c7dec?q=80&w=939&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       id: "excursions",
@@ -40,7 +40,7 @@ const TravelThemes = () => {
       link: "/excursions",
       icon: Compass,
       bgImage:
-        "https://images.unsplash.com/photo-1615482475488-8f1ff9addba5?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1597212618440-806262de4f6b?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       id: "activities",
@@ -51,7 +51,7 @@ const TravelThemes = () => {
       link: "/activities",
       icon: Zap,
       bgImage:
-        "https://images.unsplash.com/photo-1615482475488-8f1ff9addba5?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1685311572420-513619470404?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       id: "transfers",
@@ -62,7 +62,7 @@ const TravelThemes = () => {
       link: "/transfers",
       icon: Car,
       bgImage:
-        "https://images.unsplash.com/photo-1615482475488-8f1ff9addba5?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=2670&auto=format&fit=crop",
     },
     {
       id: "packages",
@@ -73,7 +73,7 @@ const TravelThemes = () => {
       link: "/packages",
       icon: Package,
       bgImage:
-        "https://images.unsplash.com/photo-1615482475488-8f1ff9addba5?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1517821362941-f7f753200fef?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
   ]
 

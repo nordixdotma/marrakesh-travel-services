@@ -1,10 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { Heart, MapPin, ArrowRight } from "lucide-react"
 import type { Offer } from "@/lib/offers-data"
+import { getTranslatedOffer } from "@/lib/offers-data"
 import { useAuth } from "@/components/login-modal"
+import { useLanguage } from "@/components/language-provider"
 
 interface OffersGridProps {
   offers: Offer[]
@@ -13,6 +15,12 @@ interface OffersGridProps {
 export default function OffersGrid({ offers }: OffersGridProps) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const { isLoggedIn, openLoginModal } = useAuth()
+  const { language } = useLanguage()
+
+  // Get translated offers based on current language
+  const translatedOffers = useMemo(() => {
+    return offers.map(offer => getTranslatedOffer(offer, language))
+  }, [offers, language])
 
   // Load favorites from localStorage on mount
   useEffect(() => {
@@ -49,7 +57,7 @@ export default function OffersGrid({ offers }: OffersGridProps) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
-      {offers.map((offer) => (
+      {translatedOffers.map((offer) => (
         <Link
           key={offer.id}
           href={`/offers/${offer.id}`}

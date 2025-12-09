@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, use } from "react"
+import { useState, use, useMemo } from "react"
 import { notFound } from "next/navigation"
 import { Calendar, Check, X, Play, ChevronLeft, ChevronRight, Users, User, Clock, MapPin, Shield, ChevronDown, Sparkles, Lightbulb, ListChecks, Info, Car, ArrowRight, Route } from "lucide-react"
 import Header from "@/components/header"
@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { getOfferById } from "@/lib/offers-data"
+import { getOfferById, getTranslatedOffer } from "@/lib/offers-data"
 import { useAuth } from "@/components/login-modal"
 import { useLanguage } from "@/components/language-provider"
 
@@ -23,9 +23,9 @@ interface OfferDetailsPageProps {
 
 export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
   const resolvedParams = use(params)
-  const offer = getOfferById(resolvedParams.id)
+  const rawOffer = getOfferById(resolvedParams.id)
   const { isLoggedIn, openLoginModal } = useAuth()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
@@ -39,9 +39,12 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
     message: "",
   })
 
-  if (!offer) {
+  if (!rawOffer) {
     notFound()
   }
+
+  // Get translated offer based on current language
+  const offer = useMemo(() => getTranslatedOffer(rawOffer, language), [rawOffer, language])
 
   const allImages = [offer.mainImage, ...offer.thumbnailImages]
 

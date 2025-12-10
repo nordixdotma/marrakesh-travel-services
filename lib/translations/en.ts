@@ -9,6 +9,7 @@ export const en = {
     transfers: "Transfers",
     about: "About",
     contact: "Contact",
+    blog: "Blog",
     login: "Login",
     myAccount: "My Account",
     language: "Language",
@@ -472,6 +473,15 @@ export const en = {
       faqDescription: "Find quick answers to common questions",
       viewAllFaq: "View All FAQ",
     },
+  },
+
+  // Blog Page
+  blog: {
+    pageTitle: "Blog",
+    heroTitle: "Travel Stories & Insights",
+    heroDescription: "Discover travel tips, cultural insights, and inspiring stories from Morocco",
+    readMore: "Read More",
+    latestPosts: "Latest Posts",
   },
 } as const
 

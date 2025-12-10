@@ -11,6 +11,7 @@ export const fr: TranslationKeys = {
     transfers: "Transferts",
     about: "À propos",
     contact: "Contact",
+    blog: "Blog",
     login: "Connexion",
     myAccount: "Mon Compte",
     language: "Langue",
@@ -474,5 +475,14 @@ export const fr: TranslationKeys = {
       faqDescription: "Trouvez des réponses rapides aux questions courantes",
       viewAllFaq: "Voir Toutes les FAQ",
     },
+  },
+
+  // Blog Page
+  blog: {
+    pageTitle: "Blog",
+    heroTitle: "Récits et Perspectives de Voyage",
+    heroDescription: "Découvrez des conseils de voyage, des perspectives culturelles et des histoires inspirantes du Maroc",
+    readMore: "Lire la Suite",
+    latestPosts: "Derniers Articles",
   },
 }

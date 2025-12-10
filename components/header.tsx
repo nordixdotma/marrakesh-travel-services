@@ -63,7 +63,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
     { href: "/packages", label: t.header.packages },
     { href: "/transfers", label: t.header.transfers },
     { href: "/about", label: t.header.about },
-    { href: "/contact", label: t.header.contact },
+    { href: "/blog", label: t.header.blog },
   ]
 
   return (
@@ -226,34 +226,49 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
               ))}
             </nav>
 
-            {/* Right: Login Button */}
-            {isLoggedIn ? (
-              <Link href="/users/profile" className="shrink-0">
+            {/* Right: Contact & Login Buttons */}
+            <div className="flex items-center gap-3 shrink-0">
+              <Link href="/contact">
                 <Button 
+                  variant="outline"
                   className={cn(
-                    "rounded-full px-4 py-2 transition-all duration-300 cursor-pointer flex items-center gap-2",
+                    "text-sm font-medium rounded-full px-6 transition-all duration-300 cursor-pointer",
+                    (scrolled || isUsersSection)
+                      ? "border-white text-primary  hover:text-white hover:bg-primary/10" 
+                      : "border-white text-primary hover:text-white hover:bg-white/10"
+                  )}
+                >
+                  {t.header.contact}
+                </Button>
+              </Link>
+              {isLoggedIn ? (
+                <Link href="/users/profile">
+                  <Button 
+                    className={cn(
+                      "rounded-full px-4 py-2 transition-all duration-300 cursor-pointer flex items-center gap-2",
+                      (scrolled || isUsersSection)
+                        ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary hover:opacity-90" 
+                        : "bg-primary text-white hover:bg-primary/90"
+                    )}
+                  >
+                    <User className="h-5 w-5" />
+                    <span className="text-sm font-medium">{t.header.myAccount}</span>
+                  </Button>
+                </Link>
+              ) : (
+                <Button 
+                  onClick={() => openLoginModal()}
+                  className={cn(
+                    "text-sm font-medium rounded-full px-6 transition-all duration-300 cursor-pointer",
                     (scrolled || isUsersSection)
                       ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary hover:opacity-90" 
                       : "bg-primary text-white hover:bg-primary/90"
                   )}
                 >
-                  <User className="h-5 w-5" />
-                  <span className="text-sm font-medium">{t.header.myAccount}</span>
+                  {t.header.login}
                 </Button>
-              </Link>
-            ) : (
-              <Button 
-                onClick={() => openLoginModal()}
-                className={cn(
-                  "text-sm font-medium rounded-full px-6 transition-all duration-300 shrink-0 cursor-pointer",
-                  (scrolled || isUsersSection)
-                    ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary hover:opacity-90" 
-                    : "bg-primary text-white hover:bg-primary/90"
-                )}
-              >
-                {t.header.login}
-              </Button>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </Container>

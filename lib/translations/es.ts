@@ -11,6 +11,7 @@ export const es: TranslationKeys = {
     transfers: "Traslados",
     about: "Acerca de",
     contact: "Contacto",
+    blog: "Blog",
     login: "Iniciar Sesión",
     myAccount: "Mi Cuenta",
     language: "Idioma",
@@ -474,5 +475,14 @@ export const es: TranslationKeys = {
       faqDescription: "Encuentra respuestas rápidas a consultas comunes",
       viewAllFaq: "Ver Todas las FAQ",
     },
+  },
+
+  // Blog Page
+  blog: {
+    pageTitle: "Blog",
+    heroTitle: "Historias y Perspectivas de Viaje",
+    heroDescription: "Descubre consejos de viaje, perspectivas culturales e historias inspiradoras de Marruecos",
+    readMore: "Leer Más",
+    latestPosts: "Últimas Publicaciones",
   },
 }

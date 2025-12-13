@@ -109,6 +109,14 @@ export const es: TranslationKeys = {
   bestOffers: {
     sectionTitle: "Nuestras Mejores Ofertas",
     sectionDescription: "Descubra nuestra selección cuidadosamente elegida de tours, excursiones, actividades y paquetes premium",
+    badge: {
+      tours: "¡Mejor Tour!",
+      excursions: "¡Mejor Excursión!",
+      activities: "¡Mejor Actividad!",
+      packages: "¡Mejor Paquete!",
+      transfers: "¡Mejor Traslado!",
+      default: "¡Mejor Oferta!",
+    },
   },
 
   // Offer Details Page

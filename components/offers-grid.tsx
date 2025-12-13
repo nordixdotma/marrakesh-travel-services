@@ -12,10 +12,15 @@ interface OffersGridProps {
   offers: Offer[]
 }
 
-export default function OffersGrid({ offers }: OffersGridProps) {
+interface OffersGridProps {
+  offers: Offer[]
+  showBadge?: boolean
+}
+
+export default function OffersGrid({ offers, showBadge = false }: OffersGridProps) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const { isLoggedIn, openLoginModal } = useAuth()
-  const { language } = useLanguage()
+  const { language, t } = useLanguage()
 
   // Get translated offers based on current language
   const translatedOffers = useMemo(() => {
@@ -55,15 +60,49 @@ export default function OffersGrid({ offers }: OffersGridProps) {
     localStorage.setItem("favorites", JSON.stringify([...newFavorites]))
   }
 
+  const getBadgeText = (type: string) => {
+    const badge = (t && t.bestOffers && t.bestOffers.badge) || {
+      tours: "Best Tour!",
+      excursions: "Best Excursion!",
+      activities: "Best Activity!",
+      packages: "Best Package!",
+      transfers: "Best Transfer!",
+      default: "Best Offer!",
+    }
+
+    const map: Record<string, string> = {
+      tours: badge.tours,
+      excursions: badge.excursions,
+      activities: badge.activities,
+      packages: badge.packages,
+      transfers: badge.transfers,
+    }
+
+    return map[type] ?? badge.default
+  }
+
+  const isOdd = translatedOffers.length % 2 === 1
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
-      {translatedOffers.map((offer) => (
-        <Link
-          key={offer.id}
-          href={`/offers/${offer.id}`}
-          className="rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group block"
-        >
-          <div className="relative overflow-hidden h-36 sm:h-48 md:h-60">
+    <div className="offers-grid grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6 ">
+      {translatedOffers.map((offer, idx) => {
+
+        return (
+          <Link
+            key={offer.id}
+            href={`/offers/${offer.id}`}
+            className={`${idx === translatedOffers.length - 1 && isOdd ? "solo-mobile" : ""} offer-card rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group block relative `}
+          >
+            {/* Diagonal Corner Ribbon Badge (only in Best Offers grid) */}
+            {showBadge && (
+              <div className="absolute top-0 left-0 w-20 h-20 md:w-28 md:h-28 overflow-hidden pointer-events-none z-10">
+                <div className="absolute w-32 md:w-44 text-center bg-linear-to-l from-accent to-secondary text-primary text-[0.5rem] md:text-xs font-bold py-1 md:py-2 shadow-md transform -rotate-45 -left-8 md:-left-12 top-4 md:top-6">
+                  {getBadgeText(offer.type)}
+                </div>
+              </div>
+            )}
+
+            <div className="relative overflow-hidden h-36 sm:h-48 md:h-60">
             <img
               src={offer.mainImage || "/placeholder.svg"}
               alt={offer.title}
@@ -126,7 +165,27 @@ export default function OffersGrid({ offers }: OffersGridProps) {
             </div>
           </div>
         </Link>
-      ))}
+        )
+      })}
+
+    <style jsx>{`
+      /* Mobile-only centering for a lone last card when total is odd. */
+      .offers-grid :global(.solo-mobile) {
+        grid-column: 1 / -1;
+        justify-self: center;
+        max-width: calc((100% - 0.5rem) / 2); /* gap-2 = 0.5rem */
+      }
+
+      @media (min-width: 768px) {
+        /* Disable the special layout at md and above (keeps normal grid behavior) */
+        .offers-grid :global(.solo-mobile) {
+          grid-column: auto;
+          justify-self: auto;
+          max-width: none;
+        }
+      }
+    `}</style>
+
     </div>
   )
 }

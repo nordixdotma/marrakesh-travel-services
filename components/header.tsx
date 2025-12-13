@@ -15,7 +15,6 @@ import { useLanguage } from "@/components/language-provider"
 export default function Header({ isStatic = false }: { isStatic?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false)
   const pathname = usePathname()
   const { isLoggedIn, openLoginModal } = useAuth()
   const { language, setLanguage, t, languages } = useLanguage()
@@ -28,20 +27,11 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
       setScrolled(window.scrollY > 10)
     }
 
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      if (languageDropdownOpen && !target.closest(".language-dropdown-container")) {
-        setLanguageDropdownOpen(false)
-      }
-    }
-
     window.addEventListener("scroll", handleScroll)
-    document.addEventListener("mousedown", handleClickOutside)
     return () => {
       window.removeEventListener("scroll", handleScroll)
-      document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [languageDropdownOpen])
+  }, [])
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -81,45 +71,44 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
       <Container className="max-w-7xl mx-auto">
         {/* Mobile layout - three columns */}
         <div className="md:hidden flex h-16 items-center justify-between">
-          {/* Left: Login Button */}
-          {isLoggedIn ? (
-            <Link href="/users/profile" className="z-20">
-              <Button 
-                size="sm"
-                className={cn(
-                  "rounded-full p-1.5 transition-all duration-300 border cursor-pointer",
-                  (scrolled || isUsersSection)
-                    ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90" 
-                    : "bg-primary text-white border-white/30 hover:bg-primary/90"
-                )}
-              >
-                <User className="h-4 w-4" />
-              </Button>
-            </Link>
-          ) : (
-            <Button 
-              size="sm"
-              onClick={() => openLoginModal()}
-              className={cn(
-                "text-xs font-medium rounded-full px-4 py-1.5 transition-all duration-300 border z-20 cursor-pointer",
-                (scrolled || isUsersSection)
-                  ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90" 
-                  : "bg-primary text-white border-white/30 hover:bg-primary/90"
-              )}
-            >
-              {t.header.login}
-            </Button>
-          )}
-
-          {/* Center: Logo */}
-          <Link href="/" className="absolute left-1/2 -translate-x-1/2 flex items-center z-10">
+          {/* Left: Logo */}
+          <Link href="/" className="flex items-center z-10">
             <div className="relative h-12 w-24">
               <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority />
             </div>
           </Link>
 
-          {/* Right: Menu Button */}
+          {/* Right: Login & Menu Button */}
           <div className="flex items-center gap-2 z-20">
+            {isLoggedIn ? (
+              <Link href="/users/profile">
+                <Button 
+                  size="sm"
+                  className={cn(
+                    "rounded-full p-1.5 transition-all duration-300 border cursor-pointer",
+                    (scrolled || isUsersSection)
+                      ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90" 
+                      : "bg-primary text-white border-white/30 hover:bg-primary/90"
+                  )}
+                >
+                  <User className="h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <Button 
+                size="sm"
+                onClick={() => openLoginModal()}
+                className={cn(
+                  "text-xs font-medium rounded-full px-4 py-1.5 transition-all duration-300 border cursor-pointer",
+                  (scrolled || isUsersSection)
+                    ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90" 
+                    : "bg-primary text-white border-white/30 hover:bg-primary/90"
+                )}
+              >
+                {t.header.login}
+              </Button>
+            )}
+
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="relative flex flex-col justify-center items-center w-10 h-10 rounded-lg hover:bg-white/10 transition-colors"
@@ -146,73 +135,21 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
           </div>
         </div>
 
-        {/* Desktop layout - single row */}
+        {/* Desktop layout - logo left, nav center, actions right */}
         <div className="hidden md:block">
           <div className="flex h-20 items-center justify-between gap-6">
-            {/* Left: Language Switcher */}
-            <div className="relative language-dropdown-container shrink-0">
-              <button
-                onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                className="w-10 h-10 rounded-full transition-all duration-300 hover:bg-white/10 flex items-center justify-center cursor-pointer"
-              >
-                <img
-                  src={languages.find((lang) => lang.code === language)?.flag || "/placeholder.svg"}
-                  alt={language}
-                  className="w-8 h-8 object-cover rounded-full"
-                />
-              </button>
-
-              {languageDropdownOpen && (
-                <div className="absolute left-0 top-14 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 py-2 min-w-40 z-50 overflow-hidden">
-                  {languages.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        setLanguage(lang.code as "en" | "fr" | "es")
-                        setLanguageDropdownOpen(false)
-                      }}
-                      className={`flex items-center space-x-3 w-full px-4 py-2.5 text-left hover:bg-primary/20 transition-colors cursor-pointer ${
-                        lang.code === language ? "bg-primary/10" : ""
-                      }`}
-                    >
-                      <img
-                        src={lang.flag || "/placeholder.svg"}
-                        alt={lang.name}
-                        className="w-6 h-4 object-cover rounded"
-                      />
-                      <span className="text-sm font-medium text-gray-800">{lang.name}</span>
-                    </button>
-                  ))}
+            {/* Left: Logo */}
+            <div className="flex items-center gap-6 shrink-0">
+              <Link href="/" className="flex items-center">
+                <div className="relative h-16 w-32">
+                  <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority />
                 </div>
-              )}
+              </Link>
             </div>
 
-            {/* Left Nav Links (4 links) */}
-            <nav className="flex items-center gap-5">
-              {navigationLinks.slice(0, 4).map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`text-sm font-medium transition-all duration-300 relative group font-trajan-pro uppercase tracking-wider text-white hover:text-secondary ${
-                    pathname === link.href ? "text-secondary" : ""
-                  }`}
-                >
-                  {link.label}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
-                </Link>
-              ))}
-            </nav>
-
-            {/* Center: Logo */}
-            <Link href="/" className="flex items-center shrink-0">
-              <div className="relative h-16 w-32">
-                <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority />
-              </div>
-            </Link>
-
-            {/* Right Nav Links (4 links) */}
-            <nav className="flex items-center gap-5">
-              {navigationLinks.slice(4, 8).map((link) => (
+            {/* Center: All Navigation Links */}
+            <nav className="flex items-center gap-5 flex-1 justify-center">
+              {navigationLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -234,7 +171,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                   className={cn(
                     "text-sm font-medium rounded-full px-6 transition-all duration-300 cursor-pointer",
                     (scrolled || isUsersSection)
-                      ? "border-white text-primary  hover:text-white hover:bg-primary/10" 
+                      ? "border-white text-primary hover:text-white hover:bg-primary/10" 
                       : "border-white text-primary hover:text-white hover:bg-white/10"
                   )}
                 >

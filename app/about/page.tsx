@@ -4,6 +4,7 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
 import PageHero from "@/components/page-hero"
+import AboutUs from "@/components/about-us"
 import { Container } from "@/components/ui/container"
 import { MapPin, Users, Award, Heart, CheckCircle, Globe, Zap, ArrowRight } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
@@ -34,90 +35,12 @@ export default function AboutPage() {
     },
   ]
 
-  const highlights = [
-    { icon: Globe, label: t.about.countries, value: "50+" },
-    { icon: Users, label: t.about.travelers, value: "10K+" },
-    { icon: Award, label: t.about.experience, value: "15 yrs" },
-    { icon: Zap, label: t.about.guides, value: "100+" },
-  ]
-
-  const features = [
-    t.about.features.hiddenGems,
-    t.about.features.personalizedItineraries,
-    t.about.features.excellenceInDetail,
-    t.about.features.support247,
-    t.about.features.transparentPricing,
-    t.about.features.intimateGroupTours,
-  ]
-
   return (
     <main className="w-full">
       <Header />
       <PageHero title={t.about.pageTitle} backgroundImage="https://media-cdn.tripadvisor.com/media/attractions-splice-spp-674x446/07/a5/17/55.jpg" />
 
-      {/* Hero Story Section */}
-      <section className="py-16 md:py-20 bg-gray-50">
-        <Container className="max-w-6xl mx-auto px-2 md:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
-            {/* Image Column */}
-            <div className="lg:col-span-2 order-2 lg:order-1">
-              <div className="relative">
-                <div className="aspect-4/5 rounded-2xl overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1609281362702-f46a060b2044?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                    alt="Morocco landscape"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {/* Floating Stats Card */}
-                <div className="absolute -bottom-6 -right-4 md:right-0 lg:-right-6 bg-background/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border/50">
-                  <div className="grid grid-cols-2 gap-3">
-                    {highlights.map((item, index) => (
-                      <div key={index} className="text-center px-3 py-2">
-                        <p className="text-xl font-bold text-primary">{item.value}</p>
-                        <p className="text-xs text-muted-foreground">{item.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Content Column */}
-            <div className="lg:col-span-3 order-1 lg:order-2">
-              <span className="inline-block text-sm font-medium text-primary mb-3 tracking-wide uppercase">
-                {t.about.ourStory}
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-5 leading-tight">
-                {t.about.heroTitle} <span className="text-primary">{t.about.heroTitleHighlight}</span>
-              </h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                {t.about.heroDescription1}
-              </p>
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                {t.about.heroDescription2}
-              </p>
-
-              {/* Feature Grid */}
-              <div className="grid grid-cols-2 gap-2.5 mb-6">
-                {features.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2.5">
-                    <CheckCircle className="w-4 h-4 text-primary shrink-0" />
-                    <span className="text-sm text-muted-foreground">{item}</span>
-                  </div>
-                ))}
-              </div>
-
-              <a
-                href="/contact"
-                className="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all"
-              >
-                {t.about.startJourney} <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
-        </Container>
-      </section>
+      <AboutUs />
 
       {/* Core Values Section */}
       <section className="py-14 md:py-18 bg-gray-50">

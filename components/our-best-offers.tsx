@@ -19,7 +19,7 @@ export default function OurBestOffers() {
           </p>
         </div>
 
-        <OffersGrid offers={bestOffers} />
+        <OffersGrid offers={bestOffers} showBadge />
       </div>
     </section>
   )

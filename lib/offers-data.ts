@@ -4672,12 +4672,12 @@ export const transfersOffers: Offer[] = [
 
 // Best Offers (mix from other types)
 export const bestOffers: Offer[] = [
-  toursOffers[1], // Palaces & Gardens Evening Tour
-  excursionsOffers[0], // Sahara Desert 3-Day Adventure
-  activitiesOffers[0], // Hot Air Balloon Ride at Sunrise
-  packagesOffers[0], // Marrakesh Classic 4-Day Package
-  toursOffers[2], // Atlas Mountains Day Excursion
-  excursionsOffers[2], // High Atlas Trek & Imlil Village
+  // Pick up to 3 offers from each category to highlight
+  ...toursOffers.slice(0, 3),
+  ...excursionsOffers.slice(0, 3),
+  ...activitiesOffers.slice(0, 3),
+  ...packagesOffers.slice(0, 3),
+  ...transfersOffers.slice(0, 3),
 ]
 
 export const allOffers = {

@@ -107,6 +107,14 @@ export const en = {
   bestOffers: {
     sectionTitle: "Our Best Offers",
     sectionDescription: "Discover our handpicked selection of premium tours, excursions, activities, and packages",
+    badge: {
+      tours: "Best Tour!",
+      excursions: "Best Excursion!",
+      activities: "Best Activity!",
+      packages: "Best Package!",
+      transfers: "Best Transfer!",
+      default: "Best Offer!",
+    },
   },
 
   // Offer Details Page

@@ -12,12 +12,7 @@ interface OffersGridProps {
   offers: Offer[]
 }
 
-interface OffersGridProps {
-  offers: Offer[]
-  showBadge?: boolean
-}
-
-export default function OffersGrid({ offers, showBadge = false }: OffersGridProps) {
+export default function OffersGrid({ offers }: OffersGridProps) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const { isLoggedIn, openLoginModal } = useAuth()
   const { language, t } = useLanguage()
@@ -60,27 +55,6 @@ export default function OffersGrid({ offers, showBadge = false }: OffersGridProp
     localStorage.setItem("favorites", JSON.stringify([...newFavorites]))
   }
 
-  const getBadgeText = (type: string) => {
-    const badge = (t && t.bestOffers && t.bestOffers.badge) || {
-      tours: "Best Tour!",
-      excursions: "Best Excursion!",
-      activities: "Best Activity!",
-      packages: "Best Package!",
-      transfers: "Best Transfer!",
-      default: "Best Offer!",
-    }
-
-    const map: Record<string, string> = {
-      tours: badge.tours,
-      excursions: badge.excursions,
-      activities: badge.activities,
-      packages: badge.packages,
-      transfers: badge.transfers,
-    }
-
-    return map[type] ?? badge.default
-  }
-
   const isOdd = translatedOffers.length % 2 === 1
 
   return (
@@ -91,16 +65,9 @@ export default function OffersGrid({ offers, showBadge = false }: OffersGridProp
           <Link
             key={offer.id}
             href={`/offers/${offer.id}`}
-            className={`${idx === translatedOffers.length - 1 && isOdd ? "solo-mobile" : ""} offer-card rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group block relative `}
+            className={`${idx === translatedOffers.length - 1 && isOdd ? "solo-mobile" : ""} offer-card rounded-sm md:rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group block relative `}
           >
-            {/* Diagonal Corner Ribbon Badge (only in Best Offers grid) */}
-            {showBadge && (
-              <div className="absolute top-0 left-0 w-20 h-20 md:w-28 md:h-28 overflow-hidden pointer-events-none z-10">
-                <div className="absolute w-32 md:w-44 text-center bg-linear-to-l from-accent to-secondary text-primary text-[0.5rem] md:text-xs font-bold py-1 md:py-2 shadow-md transform -rotate-45 -left-8 md:-left-12 top-4 md:top-6">
-                  {getBadgeText(offer.type)}
-                </div>
-              </div>
-            )}
+            {/* Badge removed: subtitle/labels moved to the surrounding section */}
 
             <div className="relative overflow-hidden h-36 sm:h-48 md:h-60">
             <img
@@ -139,13 +106,13 @@ export default function OffersGrid({ offers, showBadge = false }: OffersGridProp
             ) : (
               <div className="text-[10px] sm:text-xs text-muted-foreground mb-2 md:mb-3 flex items-center gap-1">
                 <span className="inline-block w-1 h-1 rounded-full bg-primary"></span>
-                Available:{" "}
-                {new Date(offer.availabilityDates.startDate).toLocaleDateString("en-US", {
+                {(t?.offerDetails?.availability ?? "Available") + ":"} {" "}
+                {new Date(offer.availabilityDates.startDate).toLocaleDateString(language || "en", {
                   month: "short",
                   day: "numeric",
                 })}{" "}
                 -{" "}
-                {new Date(offer.availabilityDates.endDate).toLocaleDateString("en-US", {
+                {new Date(offer.availabilityDates.endDate).toLocaleDateString(language || "en", {
                   month: "short",
                   day: "numeric",
                 })}
@@ -155,11 +122,11 @@ export default function OffersGrid({ offers, showBadge = false }: OffersGridProp
             <div className="pt-2 md:pt-3 border-t border-border">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">From</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">{t?.common?.from ?? "From"}</p>
                   <p className="text-sm md:text-base font-semibold text-primary">${offer.priceAdult}</p>
                 </div>
                 <div className="text-right hidden sm:block">
-                  <p className="text-xs text-muted-foreground">{offer.type === "transfers" ? "per vehicle" : "per person"}</p>
+                  <p className="text-xs text-muted-foreground">{offer.type === "transfers" ? (t?.offerDetails?.perVehicle ?? "per vehicle") : (t?.common?.perPerson ?? "per person")}</p>
                 </div>
               </div>
             </div>

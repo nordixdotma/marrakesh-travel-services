@@ -18,6 +18,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
   const pathname = usePathname()
   const { isLoggedIn, openLoginModal } = useAuth()
   const { language, setLanguage, t, languages } = useLanguage()
+  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false)
   
   // Check if we're in the users section
   const isUsersSection = pathname?.startsWith("/users") || isStatic
@@ -45,15 +46,28 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
     }
   }, [isMenuOpen])
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (languageDropdownOpen && !target.closest('.header-language-dropdown')) {
+        setLanguageDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [languageDropdownOpen])
+
   const navigationLinks = [
     { href: "/", label: t.header.home },
+    { href: "/about", label: t.header.about },
     { href: "/tours", label: t.header.tours },
     { href: "/excursions", label: t.header.excursions },
     { href: "/activities", label: t.header.activities },
     { href: "/packages", label: t.header.packages },
     { href: "/transfers", label: t.header.transfers },
-    { href: "/about", label: t.header.about },
     { href: "/blog", label: t.header.blog },
+    { href: "/contact", label: t.header.contact },
   ]
 
   return (
@@ -83,9 +97,9 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
             {isLoggedIn ? (
               <Link href="/users/profile">
                 <Button 
-                  size="sm"
+                  size="icon-sm"
                   className={cn(
-                    "rounded-full p-1.5 transition-all duration-300 border cursor-pointer",
+                    "rounded-full transition-all duration-300 border cursor-pointer",
                     (scrolled || isUsersSection)
                       ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90" 
                       : "bg-primary text-white border-white/30 hover:bg-primary/90"
@@ -164,20 +178,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
             </nav>
 
             {/* Right: Contact & Login Buttons */}
-            <div className="flex items-center gap-3 shrink-0">
-              <Link href="/contact">
-                <Button 
-                  variant="outline"
-                  className={cn(
-                    "text-sm font-medium rounded-full px-6 transition-all duration-300 cursor-pointer",
-                    (scrolled || isUsersSection)
-                      ? "border-white text-primary hover:text-white hover:bg-primary/10" 
-                      : "border-white text-primary hover:text-white hover:bg-white/10"
-                  )}
-                >
-                  {t.header.contact}
-                </Button>
-              </Link>
+            <div className="flex items-center gap-3 shrink-0">    
               {isLoggedIn ? (
                 <Link href="/users/profile">
                   <Button 
@@ -205,6 +206,40 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                   {t.header.login}
                 </Button>
               )}
+              {/* Desktop Language Dropdown */}
+              <div className="relative header-language-dropdown">
+                <button
+                  onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+                  aria-label="Open language selector"
+                >
+                  <img
+                    src={languages.find((lang) => lang.code === language)?.flag || "/placeholder.svg"}
+                    alt={language}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </button>
+
+                {languageDropdownOpen && (
+                  <div className="absolute right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-40 z-50 overflow-hidden">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          setLanguage(lang.code as "en" | "fr" | "es")
+                          setLanguageDropdownOpen(false)
+                        }}
+                        className={`flex items-center gap-3 w-full px-4 py-2 text-left hover:bg-primary/10 transition-colors cursor-pointer ${
+                          lang.code === language ? "bg-primary/5" : ""
+                        }`}
+                      >
+                        <img src={lang.flag || "/placeholder.svg"} alt={lang.name} className="w-6 h-4 object-cover rounded" />
+                        <span className="text-sm font-medium text-gray-800">{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

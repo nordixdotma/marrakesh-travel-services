@@ -1,9 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { useLanguage } from "@/components/language-provider"
 
 // Custom WhatsApp SVG icon
 const WhatsAppIcon = () => (
@@ -18,76 +16,8 @@ const WhatsAppIcon = () => (
 )
 
 export default function FloatingContact() {
-  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false)
-  const { language, setLanguage, languages } = useLanguage()
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      if (languageDropdownOpen && !target.closest(".language-dropdown-container")) {
-        setLanguageDropdownOpen(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [languageDropdownOpen])
-
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-3 items-end">
-      {/* Language Switcher */}
-      <div className="relative language-dropdown-container">
-        <motion.button
-          onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-          className="w-12 h-12 md:w-14 md:h-14 text-white bg-primary rounded-full flex items-center justify-center shadow-lg cursor-pointer"
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          whileHover={{
-            scale: 1.1,
-            boxShadow: "0 0 25px rgba(44, 56, 99, 0.6), 0 0 60px rgba(44, 56, 99, 0.4)",
-          }}
-          whileTap={{ scale: 1 }}
-        >
-          <img
-            src={languages.find((lang) => lang.code === language)?.flag || "/placeholder.svg"}
-            alt={language}
-            className="w-full h-full object-cover rounded-full"
-          />
-        </motion.button>
-
-        {languageDropdownOpen && (
-          <motion.div
-            className="absolute right-0 bottom-full mb-2 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 py-2 min-w-40 z-50 overflow-hidden"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-          >
-            {languages.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => {
-                  setLanguage(lang.code as "en" | "fr" | "es")
-                  setLanguageDropdownOpen(false)
-                }}
-                className={`flex items-center space-x-3 w-full px-4 py-2.5 text-left hover:bg-primary/20 transition-colors cursor-pointer ${
-                  lang.code === language ? "bg-primary/10" : ""
-                }`}
-              >
-                <img
-                  src={lang.flag || "/placeholder.svg"}
-                  alt={lang.name}
-                  className="w-6 h-4 object-cover rounded"
-                />
-                <span className="text-sm font-medium text-gray-800">{lang.name}</span>
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </div>
-
       {/* WhatsApp Button */}
       <Link href="https://wa.me/212661044503" target="_blank" rel="noopener noreferrer" className="inline-flex">
         <motion.div

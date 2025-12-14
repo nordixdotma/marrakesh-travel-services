@@ -497,6 +497,31 @@ export const en = {
     readMore: "Read More",
     latestPosts: "Latest Posts",
   },
+
+  // Cookie Banner
+  cookies: {
+    title: "We use cookies",
+    description: "We use cookies to enhance your browsing experience and analyze site traffic. By clicking 'Accept All', you consent to our use of cookies.",
+    acceptAll: "Accept All",
+    rejectNonEssential: "Essential Only",
+    preferences: "Preferences",
+    preferencesTitle: "Cookie Preferences",
+    necessary: "Essential Cookies",
+    necessaryDesc: "Required for the website to function properly",
+    analytics: "Analytics Cookies",
+    analyticsDesc: "Help us understand how visitors use our site",
+    marketing: "Marketing Cookies",
+    marketingDesc: "Used for personalized advertising",
+    required: "Required",
+    save: "Save Preferences",
+  },
+
+  // Infant/Baby option
+  infant: {
+    label: "Infants",
+    description: "Under 3 years",
+    free: "FREE",
+  },
 } as const
 
 // Use a flexible type that allows any string values for translations

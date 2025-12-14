@@ -19,12 +19,12 @@ export default function HomePage() {
       <Header />
       <Hero />
       <AboutUs />
+      <Partners />
       <TravelThemes />
       <OurBestOffers />
       <Testimonials />
       <BlogsGrid />
       <CustomizedQuote />
-      <Partners />
       <Footer />
       <FloatingContact />
     </main>

@@ -2,7 +2,7 @@
 
 import { useState, use, useMemo } from "react"
 import { notFound } from "next/navigation"
-import { Calendar, Check, X, Play, ChevronLeft, ChevronRight, Users, User, Clock, MapPin, Shield, ChevronDown, Sparkles, Lightbulb, ListChecks, Info, Car, ArrowRight, Route } from "lucide-react"
+import { Calendar, Check, X, Play, ChevronLeft, ChevronRight, Users, User, Clock, MapPin, Shield, ChevronDown, Sparkles, Lightbulb, ListChecks, Info, Car, ArrowRight, Route, Baby } from "lucide-react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
@@ -36,6 +36,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
     date: "",
     adults: 1,
     children: 0,
+    infants: 0,
     message: "",
   })
 
@@ -627,39 +628,61 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                         />
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="adults" className="text-xs font-medium flex items-center gap-1.5">
-                            <User size={12} />
-                            {t.offerDetails.reservationForm.adults}
-                          </Label>
-                          <Input
-                            id="adults"
-                            name="adults"
-                            type="number"
-                            min={1}
-                            value={formData.adults}
-                            onChange={handleInputChange}
-                            className="h-10 text-sm"
-                            required
-                          />
+                      <>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="adults" className="text-xs font-medium flex items-center gap-1.5">
+                              <User size={12} />
+                              {t.offerDetails.reservationForm.adults}
+                            </Label>
+                            <Input
+                              id="adults"
+                              name="adults"
+                              type="number"
+                              min={1}
+                              value={formData.adults}
+                              onChange={handleInputChange}
+                              className="h-10 text-sm"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="children" className="text-xs font-medium flex items-center gap-1.5">
+                              <Users size={12} />
+                              {t.offerDetails.reservationForm.children}
+                            </Label>
+                            <Input
+                              id="children"
+                              name="children"
+                              type="number"
+                              min={0}
+                              value={formData.children}
+                              onChange={handleInputChange}
+                              className="h-10 text-sm"
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="children" className="text-xs font-medium flex items-center gap-1.5">
-                            <Users size={12} />
-                            {t.offerDetails.reservationForm.children}
+                        {/* Infants - Under 3 years FREE */}
+                        <div className="space-y-1.5 mt-3">
+                          <Label htmlFor="infants" className="text-xs font-medium flex items-center gap-2">
+                            <Baby size={12} className="text-pink-500" />
+                            <span>{t.infant?.label || "Infants"}</span>
+                            <span className="text-[10px] text-muted-foreground">({t.infant?.description || "Under 3 years"})</span>
+                            <span className="ml-auto text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                              {t.infant?.free || "FREE"}
+                            </span>
                           </Label>
                           <Input
-                            id="children"
-                            name="children"
+                            id="infants"
+                            name="infants"
                             type="number"
                             min={0}
-                            value={formData.children}
+                            value={formData.infants}
                             onChange={handleInputChange}
                             className="h-10 text-sm"
                           />
                         </div>
-                      </div>
+                      </>
                     )}
                   </div>
 
@@ -702,6 +725,15 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>{formData.children} {t.offerDetails.reservationForm.children} × ${offer.priceChild}</span>
                           <span>${formData.children * offer.priceChild}</span>
+                        </div>
+                      )}
+                      {formData.infants > 0 && (
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Baby size={10} className="text-pink-500" />
+                            {formData.infants} {t.infant?.label || "Infants"}
+                          </span>
+                          <span className="text-green-600 font-medium">{t.infant?.free || "FREE"}</span>
                         </div>
                       )}
                       <div className="flex justify-between font-semibold text-foreground pt-2 border-t border-border/50">

@@ -1,18 +1,20 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
-import { AuthProvider } from "@/components/login-modal"
-import { LanguageProvider } from "@/components/language-provider"
-import "./globals.css"
+import type React from "react";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { AuthProvider } from "@/components/login-modal";
+import { LanguageProvider } from "@/components/language-provider";
+import CookieBanner from "@/components/cookie-banner";
+import "./globals.css";
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const _geist = Geist({ subsets: ["latin"] });
+const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://marrakesh-travel-services.com"),
   title: {
-    default: "Marrakesh Travel Services | Premium Morocco Tours, Transfers & Excursions",
+    default:
+      "Marrakesh Travel Services | Premium Morocco Tours, Transfers & Excursions",
     template: "%s | Marrakesh Travel Services",
   },
   description:
@@ -34,7 +36,12 @@ export const metadata: Metadata = {
     "private driver Morocco",
     "Morocco day trips",
   ],
-  authors: [{ name: "Marrakesh Travel Services", url: "https://marrakesh-travel-services.com" }],
+  authors: [
+    {
+      name: "Marrakesh Travel Services",
+      url: "https://marrakesh-travel-services.com",
+    },
+  ],
   creator: "Marrakesh Travel Services",
   publisher: "Marrakesh Travel Services",
   formatDetection: {
@@ -49,9 +56,7 @@ export const metadata: Metadata = {
       { url: "/logo.png", sizes: "32x32", type: "image/png" },
       { url: "/logo.png", sizes: "16x16", type: "image/png" },
     ],
-    apple: [
-      { url: "/logo.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: [{ url: "/logo.png", sizes: "180x180", type: "image/png" }],
     shortcut: "/logo.png",
   },
   manifest: "/site.webmanifest",
@@ -118,9 +123,9 @@ export const metadata: Metadata = {
     "geo.region": "MA",
     "geo.placename": "Marrakesh",
     "geo.position": "31.6295;-7.9811",
-    "ICBM": "31.6295, -7.9811",
+    ICBM: "31.6295, -7.9811",
   },
-}
+};
 
 // JSON-LD Structured Data for SEO
 const jsonLd = {
@@ -159,7 +164,15 @@ const jsonLd = {
       openingHoursSpecification: [
         {
           "@type": "OpeningHoursSpecification",
-          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          dayOfWeek: [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ],
           opens: "08:00",
           closes: "20:00",
         },
@@ -233,7 +246,8 @@ const jsonLd = {
         "@type": "SearchAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: "https://marrakesh-travel-services.com/search?q={search_term_string}",
+          urlTemplate:
+            "https://marrakesh-travel-services.com/search?q={search_term_string}",
         },
         "query-input": "required name=search_term_string",
       },
@@ -252,37 +266,46 @@ const jsonLd = {
       ],
     },
   ],
-}
-
-import CookieBanner from "@/components/cookie-banner"
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Preconnect to external resources for performance */}
-        <link rel="preconnect" href="https://fonts.cdnfonts.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://fonts.cdnfonts.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         <link rel="dns-prefetch" href="https://fonts.cdnfonts.com" />
-        
+
         {/* Custom fonts */}
-        <link href="https://fonts.cdnfonts.com/css/urwclassico" rel="stylesheet" />
-        
+        <link
+          href="https://fonts.cdnfonts.com/css/urwclassico"
+          rel="stylesheet"
+        />
+
         {/* Theme color for mobile browsers */}
         <meta name="theme-color" content="#c4a47c" />
         <meta name="msapplication-TileColor" content="#c4a47c" />
-        
+
         {/* Additional SEO meta tags */}
         <meta name="application-name" content="Marrakesh Travel Services" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Marrakesh Travel" />
         <meta name="mobile-web-app-capable" content="yes" />
-        
+
         {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"
@@ -291,12 +314,11 @@ export default function RootLayout({
       </head>
       <body className={`font-sans antialiased`} suppressHydrationWarning>
         <LanguageProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
+          <CookieBanner />
         </LanguageProvider>
         <Analytics />
       </body>
     </html>
-  )
+  );
 }

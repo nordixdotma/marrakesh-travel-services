@@ -414,3 +414,40 @@ input[type="password"] {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Hero Search Dropdown Styling */
+.hero-search-select {
+  background-color: #fff;
+  border-radius: 0.75rem;
+}
+
+.hero-search-select option {
+  padding: 12px 16px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #1c1917;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.15s ease;
+}
+
+.hero-search-select option:hover,
+.hero-search-select option:focus {
+  background: linear-gradient(135deg, #2c3863 0%, #3d4d7a 100%);
+  color: #ffffff;
+}
+
+.hero-search-select option:checked {
+  background: linear-gradient(135deg, #fac360 0%, #fce97c 100%);
+  color: #1c1917;
+  font-weight: 600;
+}
+
+.hero-search-select option:last-child {
+  border-bottom: none;
+  border-radius: 0 0 0.75rem 0.75rem;
+}
+
+.hero-search-select option:first-child {
+  border-radius: 0.75rem 0.75rem 0 0;
+}

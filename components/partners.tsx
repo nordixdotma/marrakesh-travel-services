@@ -135,29 +135,38 @@ function BlurredInfiniteSlider({
 }
 
 const PARTNER_LOGOS = [
-    { src: "/partners/viator.svg", alt: "Viator", height: 32 },
-    { src: "/partners/tripadvisor.svg", alt: "TripAdvisor", height: 32 },
-    { src: "/partners/expedia.svg", alt: "Expedia", height: 28 },
-    { src: "/partners/booking.svg", alt: "Booking.com", height: 28 },
-    { src: "/partners/airbnb.svg", alt: "Airbnb", height: 32 },
-    { src: "/partners/getyourguide.svg", alt: "GetYourGuide", height: 32 },
-    // Reusing standard placeholder icons if images don't exist yet, 
-    // but code structure expects SVGs. 
-    // For now I will use text placeholders or existing logo.png if specific SVGs aren't available.
-    // Actually, I'll assume they want the structure primarily. 
-    // I'll leave these as paths, but maybe fallback to text in the img onError or just use a generic placeholder.
+  {
+    src: "https://th.bing.com/th/id/OADD2.8108982943622_1JLMIX77UXV5TKOYDU?w=32&h=32&o=6&cb=ucfimg1&pid=21.2&ucfimg=1",
+    alt: "Viator",
+    height: 32,
+  },
+  {
+    src: "https://upload.wikimedia.org/wikipedia/commons/0/02/TripAdvisor_Logo.svg",
+    alt: "TripAdvisor",
+    height: 32,
+  },
+  {
+    src: "https://upload.wikimedia.org/wikipedia/commons/d/dd/Booking.com_Logo.svg",
+    alt: "Booking.com",
+    height: 28,
+  },
+  {
+    src: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Expedia_Logo_2023.svg",
+    alt: "Expedia",
+    height: 28,
+  },
+  {
+    src: "https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_Bélo.svg",
+    alt: "Airbnb",
+    height: 32,
+  },
+  {
+    src: "https://upload.wikimedia.org/wikipedia/commons/e/e2/GetYourGuide_logo.svg",
+    alt: "GetYourGuide",
+    height: 32,
+  },
 ];
 
-// Using placeholder images for now since I don't have the partner logos
-// Users can replace these URLs later.
-const PLACEHOLDER_LOGOS = [
-  { text: "Viator", color: "#F59E0B" },
-  { text: "TripAdvisor", color: "#34D399" },
-  { text: "Booking.com", color: "#3B82F6" },
-  { text: "Expedia", color: "#FACC15" },
-  { text: "GetYourGuide", color: "#EF4444" },
-  { text: "Airbnb", color: "#EC4899" },
-]
 
 import { useLanguage } from "@/components/language-provider";
 
@@ -165,8 +174,8 @@ export default function Partners() {
     const { t } = useLanguage();
 
     return (
-        <section className="bg-gray-50 py-16 w-full">
-            <Container className="max-w-7xl mx-auto px-6">
+        <section className="bg-gray-50 py-8 w-full">
+            <Container className="max-w-7xl mx-auto px-2 md:px-6">
                 <div className="flex flex-col items-center md:flex-row gap-8">
                     <div className="shrink-0 text-center md:text-right md:max-w-44 md:border-r md:border-gray-200 md:pr-6">
                         <p className="text-lg font-trajan-pro tracking-widest text-primary font-bold">
@@ -183,11 +192,14 @@ export default function Partners() {
                             gap={80}
                             fadeWidth={80}
                         >
-                            {PLACEHOLDER_LOGOS.map((logo, index) => (
-                                <div key={index} className="flex items-center justify-center min-w-[120px] h-16 bg-gray-50 rounded-lg border border-gray-100 px-4">
-                                  <span className="text-xl font-bold" style={{ color: logo.color }}>
-                                    {logo.text}
-                                  </span>
+                            {PARTNER_LOGOS.map((logo, index) => (
+                                <div key={index} className="flex items-center justify-center min-w-[120px] h-16 px-4">
+                                  <img 
+                                    src={logo.src} 
+                                    alt={logo.alt} 
+                                    height={logo.height}
+                                    className="h-auto max-h-8 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                                  />
                                 </div>
                             ))}
                         </BlurredInfiniteSlider>

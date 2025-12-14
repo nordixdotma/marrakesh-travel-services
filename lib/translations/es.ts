@@ -499,4 +499,29 @@ export const es: TranslationKeys = {
     readMore: "Leer Más",
     latestPosts: "Últimas Publicaciones",
   },
+
+  // Cookie Banner
+  cookies: {
+    title: "Utilizamos cookies",
+    description: "Utilizamos cookies para mejorar tu experiencia de navegación y analizar el tráfico del sitio. Al hacer clic en 'Aceptar Todo', consientes el uso de nuestras cookies.",
+    acceptAll: "Aceptar Todo",
+    rejectNonEssential: "Solo Esenciales",
+    preferences: "Preferencias",
+    preferencesTitle: "Preferencias de Cookies",
+    necessary: "Cookies Esenciales",
+    necessaryDesc: "Necesarias para el funcionamiento del sitio web",
+    analytics: "Cookies de Análisis",
+    analyticsDesc: "Nos ayudan a entender cómo los visitantes usan nuestro sitio",
+    marketing: "Cookies de Marketing",
+    marketingDesc: "Utilizadas para publicidad personalizada",
+    required: "Requerido",
+    save: "Guardar Preferencias",
+  },
+
+  // Infant/Baby option
+  infant: {
+    label: "Bebés",
+    description: "Menores de 3 años",
+    free: "GRATIS",
+  },
 }

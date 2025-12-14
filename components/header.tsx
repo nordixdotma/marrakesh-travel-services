@@ -85,7 +85,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
         className={cn(
           "top-0 z-40 w-full transition-all duration-300",
           isUsersSection 
-            ? "relative bg-primary shadow-md border-b border-primary/20" 
+            ? "sticky top-0 bg-primary shadow-md border-b border-primary/20" 
             : cn(
                 "fixed",
                 scrolled ? "bg-primary shadow-md border-b border-primary/20" : "bg-transparent"
@@ -95,7 +95,8 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
         {/* Top Bar - Hides on Scroll */}
         <div 
           className={cn(
-            "w-full bg-primary transition-all duration-300 overflow-hidden z-50 relative", 
+            "w-full transition-all duration-300 overflow-hidden z-50 relative", 
+            isUsersSection ? "bg-primary" : "bg-primary",
             scrolled ? "h-0 opacity-0" : "h-10 opacity-100"
           )}
         >

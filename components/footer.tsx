@@ -13,6 +13,7 @@ export default function Footer() {
     { href: "/activities", label: t.header.activities },
     { href: "/packages", label: t.header.packages },
     { href: "/transfers", label: t.header.transfers },
+    { href: "/blog", label: "Blog" },
   ]
 
   return (

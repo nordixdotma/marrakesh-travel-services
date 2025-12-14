@@ -13,6 +13,7 @@ export const en = {
     login: "Login",
     myAccount: "My Account",
     language: "Language",
+    services: "Services",
   },
 
   // Footer
@@ -482,6 +483,11 @@ export const en = {
       viewAllFaq: "View All FAQ",
     },
   },
+
+    partners: {
+      title: "OUR PARTNERS",
+      description: "Trusted by industry leaders",
+    },
 
   // Blog Page
   blog: {

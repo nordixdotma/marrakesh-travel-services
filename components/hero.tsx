@@ -1,5 +1,7 @@
 "use client"
 
+import HeroSearch from "@/components/hero-search"
+
 export default function Hero() {
 
   return (
@@ -23,7 +25,8 @@ export default function Hero() {
       <div className="absolute inset-0 bg-black/30" />
 
       {/* Content */}
-      <div className="relative z-10 flex items-center justify-center h-full px-4">
+      <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 pt-20">
+         <HeroSearch />
       </div>
 
       {/* TripAdvisor Badge */}

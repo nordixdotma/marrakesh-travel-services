@@ -15,6 +15,7 @@ export const fr: TranslationKeys = {
     login: "Connexion",
     myAccount: "Mon Compte",
     language: "Langue",
+    services: "Services",
   },
 
   // Footer
@@ -484,6 +485,11 @@ export const fr: TranslationKeys = {
       viewAllFaq: "Voir Toutes les FAQ",
     },
   },
+
+    partners: {
+      title: "NOS PARTENAIRES",
+      description: "Approuvés par les leaders de l'industrie",
+    },
 
   // Blog Page
   blog: {

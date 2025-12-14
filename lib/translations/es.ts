@@ -15,6 +15,7 @@ export const es: TranslationKeys = {
     login: "Iniciar Sesión",
     myAccount: "Mi Cuenta",
     language: "Idioma",
+    services: "Servicios",
   },
 
   // Footer
@@ -484,6 +485,11 @@ export const es: TranslationKeys = {
       viewAllFaq: "Ver Todas las FAQ",
     },
   },
+
+    partners: {
+      title: "NUESTROS SOCIOS",
+      description: "Confiado por líderes de la industria",
+    },
 
   // Blog Page
   blog: {

@@ -254,6 +254,8 @@ const jsonLd = {
   ],
 }
 
+import CookieBanner from "@/components/cookie-banner"
+
 export default function RootLayout({
   children,
 }: Readonly<{

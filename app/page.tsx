@@ -11,6 +11,8 @@ import BlogsGrid from "@/components/blogs-grid"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
 
+import Partners from "@/components/partners"
+
 export default function HomePage() {
   return (
     <main className="w-full">
@@ -22,6 +24,7 @@ export default function HomePage() {
       <Testimonials />
       <BlogsGrid />
       <CustomizedQuote />
+      <Partners />
       <Footer />
       <FloatingContact />
     </main>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Heart, MapPin, ArrowRight } from "lucide-react"
 import type { Offer } from "@/lib/offers-data"
 import { getTranslatedOffer } from "@/lib/offers-data"
@@ -70,10 +71,12 @@ export default function OffersGrid({ offers }: OffersGridProps) {
             {/* Badge removed: subtitle/labels moved to the surrounding section */}
 
             <div className="relative overflow-hidden h-36 sm:h-48 md:h-60">
-            <img
+            <Image
               src={offer.mainImage || "/placeholder.svg"}
               alt={offer.title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
             <button
               onClick={(e) => toggleFavorite(e, offer.id)}

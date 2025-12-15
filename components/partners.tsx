@@ -3,6 +3,8 @@
 import { animate, motion, useMotionValue } from 'framer-motion';
 import React, { CSSProperties, useEffect, useState } from 'react';
 import useMeasure from '@/lib/hooks/use-measure';
+import Link from "next/link"
+import Image from "next/image"
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Container } from "@/components/ui/container";
@@ -193,13 +195,16 @@ export default function Partners() {
                             fadeWidth={80}
                         >
                             {PARTNER_LOGOS.map((logo, index) => (
-                                <div key={index} className="flex items-center justify-center min-w-[120px] h-16 px-4">
-                                  <img 
-                                    src={logo.src} 
-                                    alt={logo.alt} 
-                                    height={logo.height}
-                                    className="h-auto max-h-8 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
-                                  />
+                                <div key={index} className="flex items-center justify-center min-w-[120px] h-16 px-4 relative group/logo">
+                                  <div className="relative h-8 w-24">
+                                    <Image 
+                                      src={logo.src} 
+                                      alt={logo.alt} 
+                                      fill
+                                      className="object-contain grayscale opacity-60 group-hover/logo:grayscale-0 group-hover/logo:opacity-100 transition-all duration-300"
+                                      sizes="96px"
+                                    />
+                                  </div>
                                 </div>
                             ))}
                         </BlurredInfiniteSlider>

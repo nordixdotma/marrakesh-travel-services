@@ -333,13 +333,15 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                 <div className="relative header-language-dropdown">
                   <button
                     onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer relative overflow-hidden"
                     aria-label="Open language selector"
                   >
-                    <img
+                    <Image
                       src={languages.find((lang) => lang.code === language)?.flag || "/placeholder.svg"}
                       alt={language}
-                      className="w-full h-full object-cover rounded-full"
+                      fill
+                      className="object-cover"
+                      sizes="32px"
                     />
                   </button>
 
@@ -356,7 +358,15 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                             lang.code === language ? "bg-primary/5" : ""
                           }`}
                         >
-                          <img src={lang.flag || "/placeholder.svg"} alt={lang.name} className="w-6 h-4 object-cover rounded" />
+                          <div className="relative w-6 h-4 shrink-0">
+                            <Image 
+                              src={lang.flag || "/placeholder.svg"} 
+                              alt={lang.name} 
+                              fill
+                              className="object-cover rounded-sm"
+                              sizes="24px"
+                            />
+                          </div>
                           <span className="text-sm font-medium text-gray-800">{lang.name}</span>
                         </button>
                       ))}
@@ -570,11 +580,15 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                                 : "bg-white text-gray-600 border border-gray-200 hover:border-primary/30 hover:bg-primary/5"
                             )}
                           >
-                            <img
-                              src={lang.flag || "/placeholder.svg"}
-                              alt={lang.name}
-                              className="w-5 h-3.5 object-cover rounded-sm"
-                            />
+                            <div className="relative w-5 h-3.5 shrink-0">
+                              <Image
+                                src={lang.flag || "/placeholder.svg"}
+                                alt={lang.name}
+                                fill
+                                className="object-cover rounded-sm"
+                                sizes="20px"
+                              />
+                            </div>
                             <span className="uppercase text-xs">{lang.code}</span>
                           </button>
                         ))}

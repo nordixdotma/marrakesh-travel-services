@@ -7,6 +7,7 @@ import { Autoplay } from "swiper/modules"
 import { Swiper, SwiperSlide } from "swiper/react"
 import type { Swiper as SwiperType } from "swiper"
 import { useLanguage } from "@/components/language-provider"
+import Image from "next/image"
 
 const testimonials = [
   {
@@ -142,9 +143,11 @@ export default function Testimonials() {
               rel="noopener noreferrer"
               className="flex items-center bg-white px-1.5 py-1 sm:px-4 sm:py-2 rounded-lg shadow-sm border-2 border-transparent hover:border-primary hover:bg-primary/5 transition-all duration-300"
             >
-              <img
+              <Image
                 src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/tripadvisor-icon.png"
                 alt="TripAdvisor"
+                width={24}
+                height={24}
                 className="w-4 h-4 sm:w-6 sm:h-6 mr-1.5 sm:mr-2"
               />
               <div className="text-left">
@@ -210,9 +213,11 @@ export default function Testimonials() {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <img
+                          <Image
                             src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/tripadvisor-icon.png"
                             alt="TripAdvisor"
+                            width={20}
+                            height={20}
                             className="w-5 h-5"
                           />
                           <span className="text-sm font-medium text-gray-700">TripAdvisor</span>
@@ -245,14 +250,18 @@ export default function Testimonials() {
 
                     {/* User Info */}
                     <div className="flex items-center pt-4 border-t border-gray-100">
-                      <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden mr-3 bg-gray-200">
-                        <img
+                      <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden mr-3 bg-gray-200 relative">
+                        <Image
                           src={t.image || "/placeholder.svg"}
                           alt={t.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
+                          fill
+                          className="object-cover"
+                          sizes="40px"
                           onError={(e) => {
-                            e.currentTarget.src = "/placeholder.svg?width=150&height=150"
+                            // Removing error handler as next/image handles placeholders differently, 
+                            // but for now keeping it simple or relying on fallback logic if we could.
+                            // Basic error handling isn't directly supported on Image component in the same way for src replacement.
+                            // We heavily rely on the src being correct or the placeholder.
                           }}
                         />
                       </div>

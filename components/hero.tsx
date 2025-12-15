@@ -132,6 +132,17 @@ export default function Hero() {
 
   const [highlightInputs, setHighlightInputs] = useState(false)
 
+  // Defer video loading to improve LCP
+  const [showVideo, setShowVideo] = useState(false)
+  const [videoLoaded, setVideoLoaded] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowVideo(true)
+    }, 2500) // Start loading video after LCP is likely done
+    return () => clearTimeout(timer)
+  }, [])
+
   const handleSuggestionClick = (suggestion: typeof SUGGESTIONS[0]) => {
     const service = SERVICES.find(s => s.id === suggestion.service)
     if (service) {
@@ -146,18 +157,37 @@ export default function Hero() {
   return (
     <section className="relative w-full overflow-hidden" style={{ height: "100dvh" }}>
       {/* YouTube Video Background */}
-      <div className="absolute inset-0 w-full h-full">
-        <iframe
-          className="absolute top-1/2 left-1/2 w-[400vw] h-[400vh] md:w-[300vw] md:h-[300vh] lg:w-[150vw] lg:h-[150vh]"
-          style={{
-            transform: "translate(-50%, -50%)",
-            pointerEvents: "none"
-          }}
-          src="https://www.youtube-nocookie.com/embed/1XKaUV4dJFU?autoplay=1&mute=1&loop=1&playlist=1XKaUV4dJFU&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&start=0&end=150"
-          title="Background video"
-          frameBorder="0"
-          allow="autoplay; encrypted-media"
+      {/* Background Image (LCP Optimized) */}
+      <div className="absolute inset-0 w-full h-full z-0">
+        <Image
+          src="/videoframe_2741.png"
+          alt="Marrakesh Landscape"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+          quality={85}
         />
+        {/* Dark Overlay - Baked into design but added here to ensure text readability on image before video loads */}
+        <div className="absolute inset-0 bg-black/10" />
+      </div>
+
+      {/* YouTube Video Background - Deferred */}
+      <div className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}>
+        {showVideo && (
+          <iframe
+            className="absolute top-1/2 left-1/2 w-[400vw] h-[400vh] md:w-[300vw] md:h-[300vh] lg:w-[150vw] lg:h-[150vh]"
+            style={{
+              transform: "translate(-50%, -50%)",
+              pointerEvents: "none"
+            }}
+            src="https://www.youtube-nocookie.com/embed/1XKaUV4dJFU?autoplay=1&mute=1&loop=1&playlist=1XKaUV4dJFU&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&start=0&end=150"
+            title="Background video"
+            frameBorder="0"
+            allow="autoplay; encrypted-media"
+            onLoad={() => setVideoLoaded(true)}
+          />
+        )}
       </div>
 
       {/* Dark Overlay */}

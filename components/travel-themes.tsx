@@ -212,7 +212,8 @@ const TravelThemes = () => {
                     src={theme.bgImage || "/placeholder.svg"}
                     alt={theme.title}
                     fill
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 50vw, 60vw"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 60vw"
+                    quality={80}
                     style={styles.image as CSSProperties}
                   />
                   <div

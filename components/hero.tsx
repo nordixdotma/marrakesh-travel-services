@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { MapPin, Search, Compass, ChevronDown, Sparkles, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/components/language-provider"
@@ -248,10 +249,13 @@ export default function Hero() {
         className="absolute bottom-4 left-4 z-20 hover:scale-110 transition-transform duration-300"
         aria-label="Visit our TripAdvisor page"
       >
-        <img
-          src="https://morthai.vercel.app/certif.png"
+        <Image
+          src="/certif.png"
           alt="TripAdvisor"
+          width={56}
+          height={56}
           className="w-10 h-10 md:w-14 md:h-14 rounded-sm"
+          sizes="(max-width: 768px) 40px, 56px"
         />
       </a>
     </section>

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import type { CSSProperties } from "react"
 import { toursOffers, excursionsOffers, activitiesOffers, packagesOffers } from "@/lib/offers-data"
 import { MapPin, Compass, Zap, Car, Package, ExternalLink } from "lucide-react"
+import Image from "next/image"
 import { useLanguage } from "@/components/language-provider"
 
 const TravelThemes = () => {
@@ -207,9 +208,11 @@ const TravelThemes = () => {
                 onClick={() => handleClick(index)}
               >
                 <div style={styles.imageWrapper as CSSProperties}>
-                  <img
+                  <Image
                     src={theme.bgImage || "/placeholder.svg"}
                     alt={theme.title}
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 50vw, 60vw"
                     style={styles.image as CSSProperties}
                   />
                   <div

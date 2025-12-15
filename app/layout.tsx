@@ -291,7 +291,7 @@ export default function RootLayout({
 
         {/* Custom fonts */}
         <link
-          href="https://fonts.cdnfonts.com/css/urwclassico"
+          href="https://fonts.cdnfonts.com/css/urwclassico?display=swap"
           rel="stylesheet"
         />
 

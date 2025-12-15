@@ -2,6 +2,7 @@
 
 import { Container } from "@/components/ui/container"
 import { CheckCircle, ArrowRight, Globe, Users, Award, Zap } from "lucide-react"
+import Image from "next/image"
 import { useLanguage } from "@/components/language-provider"
 
 export default function AboutUs() {
@@ -30,11 +31,13 @@ export default function AboutUs() {
           {/* Image Column */}
           <div className="lg:col-span-2 order-1 lg:order-1">
             <div className="relative">
-              <div className="aspect-square rounded-2xl overflow-hidden">
-                <img
+              <div className="aspect-square overflow-hidden">
+                <Image
                   src="https://images.unsplash.com/photo-1609281362702-f46a060b2044?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                   alt="Morocco landscape"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover rounded-2xl"
+                  sizes="(max-width: 1024px) 100vw, 40vw"
                 />
               </div>
               {/* Floating Stats Card */}

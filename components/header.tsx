@@ -131,7 +131,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
             {/* Left: Logo */}
             <Link href="/" className="flex items-center z-10">
               <div className="relative h-12 w-24">
-                <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority />
+                <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority sizes="(max-width: 768px) 96px, 128px" />
               </div>
             </Link>
 
@@ -199,7 +199,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
               <div className="flex items-center gap-6 shrink-0">
                 <Link href="/" className="flex items-center">
                   <div className="relative h-16 w-32">
-                    <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority />
+                    <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority sizes="(max-width: 768px) 96px, 128px" />
                   </div>
                 </Link>
               </div>
@@ -394,7 +394,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                   <div className="flex items-center justify-between px-5 py-4 bg-primary">
                     <Link href="/" className="inline-block" onClick={() => setIsMenuOpen(false)}>
                       <div className="relative h-9 w-24">
-                        <Image src="/logo.png" alt="Marrakesh Logo" fill className="object-contain" priority />
+                        <Image src="/logo.png" alt="Marrakesh Logo" fill className="object-contain" priority sizes="(max-width: 768px) 96px, 128px" />
                       </div>
                     </Link>
                     <button

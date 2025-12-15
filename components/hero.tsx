@@ -143,7 +143,7 @@ export default function Hero() {
   }
 
   return (
-    <main className="relative w-full overflow-hidden" style={{ height: "100dvh" }}>
+    <section className="relative w-full overflow-hidden" style={{ height: "100dvh" }}>
       {/* YouTube Video Background */}
       <div className="absolute inset-0 w-full h-full">
         <iframe
@@ -152,7 +152,7 @@ export default function Hero() {
             transform: "translate(-50%, -50%)",
             pointerEvents: "none"
           }}
-          src="https://www.youtube.com/embed/1XKaUV4dJFU?autoplay=1&mute=1&loop=1&playlist=1XKaUV4dJFU&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&start=0&end=150"
+          src="https://www.youtube-nocookie.com/embed/1XKaUV4dJFU?autoplay=1&mute=1&loop=1&playlist=1XKaUV4dJFU&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&start=0&end=150"
           title="Background video"
           frameBorder="0"
           allow="autoplay; encrypted-media"
@@ -254,6 +254,6 @@ export default function Hero() {
           className="w-10 h-10 md:w-14 md:h-14 rounded-sm"
         />
       </a>
-    </main>
+    </section>
   )
 }

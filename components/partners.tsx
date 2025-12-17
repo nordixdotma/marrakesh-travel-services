@@ -174,6 +174,17 @@ import { useLanguage } from "@/components/language-provider";
 
 export default function Partners() {
     const { t } = useLanguage();
+    const [computedGap, setComputedGap] = useState<number>(80);
+
+    useEffect(() => {
+        const calc = () => {
+            // match Tailwind's `md` breakpoint (768px)
+            setComputedGap(window.innerWidth < 768 ? 32 : 80);
+        };
+        calc();
+        window.addEventListener('resize', calc);
+        return () => window.removeEventListener('resize', calc);
+    }, []);
 
     return (
         <section className="bg-gray-50 py-8 w-full">
@@ -188,22 +199,22 @@ export default function Partners() {
                         </p>
                     </div>
                     <div className="w-full py-6 md:w-auto md:flex-1 min-w-0">
-                        <BlurredInfiniteSlider
-                            speedOnHover={20}
-                            speed={40}
-                            gap={80}
-                            fadeWidth={80}
-                        >
+                                                <BlurredInfiniteSlider
+                                                        speedOnHover={20}
+                                                        speed={40}
+                                                        gap={computedGap}
+                                                        fadeWidth={80}
+                                                >
                             {PARTNER_LOGOS.map((logo, index) => (
-                                <div key={index} className="flex items-center justify-center min-w-[120px] h-16 px-4 relative group/logo">
-                                  <div className="relative h-8 w-24">
-                                    <Image 
-                                      src={logo.src} 
-                                      alt={logo.alt} 
-                                      fill
-                                      className="object-contain grayscale opacity-60 group-hover/logo:grayscale-0 group-hover/logo:opacity-100 transition-all duration-300"
-                                      sizes="96px"
-                                    />
+                                                                <div key={index} className="flex items-center justify-center min-w-20 md:min-w-[120px] h-12 md:h-16 px-2 md:px-4 relative group/logo">
+                                                                    <div className="relative h-6 w-20 md:h-8 md:w-24">
+                                                                        <Image
+                                                                            src={logo.src}
+                                                                            alt={logo.alt}
+                                                                            fill
+                                                                            className="object-contain"
+                                                                            sizes="96px"
+                                                                        />
                                   </div>
                                 </div>
                             ))}

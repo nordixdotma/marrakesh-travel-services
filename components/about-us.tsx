@@ -40,17 +40,6 @@ export default function AboutUs() {
                   sizes="(max-width: 1024px) 100vw, 40vw"
                 />
               </div>
-              {/* Floating Stats Card */}
-              <div className="absolute -bottom-6 right-0 md:right-0 lg:-right-6 bg-accent rounded-xl p-2 shadow-lg border border-border/50">
-                <div className="grid grid-cols-2 gap-2">
-                  {highlights.map((item, index) => (
-                    <div key={index} className="text-center px-2 py-1">
-                      <p className="text-xl font-bold text-primary">{item.value}</p>
-                      <p className="text-xs text-muted-foreground">{item.label}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
 

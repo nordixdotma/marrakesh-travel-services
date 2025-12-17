@@ -56,21 +56,20 @@ export default function OffersGrid({ offers }: OffersGridProps) {
     localStorage.setItem("favorites", JSON.stringify([...newFavorites]))
   }
 
-  const isOdd = translatedOffers.length % 2 === 1
+  
 
   return (
-    <div className="offers-grid grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6 ">
+    <div className="offers-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6 ">
       {translatedOffers.map((offer, idx) => {
 
         return (
           <Link
             key={offer.id}
             href={`/offers/${offer.id}`}
-            className={`${idx === translatedOffers.length - 1 && isOdd ? "solo-mobile" : ""} offer-card rounded-sm md:rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group block relative `}
+            className={`offer-card rounded-sm md:rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group block relative flex-col`}
           >
-            {/* Badge removed: subtitle/labels moved to the surrounding section */}
 
-            <div className="relative overflow-hidden h-36 sm:h-48 md:h-60">
+            <div className="relative overflow-hidden h-52 md:h-56 lg:h-64">
             <Image
               src={offer.mainImage || "/placeholder.svg"}
               alt={offer.title}
@@ -93,10 +92,10 @@ export default function OffersGrid({ offers }: OffersGridProps) {
             </button>
           </div>
 
-          <div className="p-2 sm:p-3 md:p-4">
-            <h3 className="text-sm sm:text-base md:text-lg font-semibold text-foreground mb-1 md:mb-2 line-clamp-2">{offer.title}</h3>
+          <div className="p-2 sm:p-3 md:p-4 grow flex flex-col">
+            <h3 className="text-sm sm:text-base md:text-lg font-semibold text-foreground mb-2 md:mb-2 line-clamp-2">{offer.title}</h3>
 
-            <p className="text-xs sm:text-sm text-muted-foreground mb-2 md:mb-3 line-clamp-2 hidden sm:block">{offer.description}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-3 md:mb-3 line-clamp-2">{offer.description}</p>
 
             {/* Show transfer route for transfers, availability dates for others */}
             {offer.type === "transfers" && offer.transferDetails ? (
@@ -121,16 +120,16 @@ export default function OffersGrid({ offers }: OffersGridProps) {
                 })}
               </div>
             )}
+          </div>
 
-            <div className="pt-2 md:pt-3 border-t border-border">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">{t?.common?.from ?? "From"}</p>
-                  <p className="text-sm md:text-base font-semibold text-primary">${offer.priceAdult}</p>
-                </div>
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs text-muted-foreground">{offer.type === "transfers" ? (t?.offerDetails?.perVehicle ?? "per vehicle") : (t?.common?.perPerson ?? "per person")}</p>
-                </div>
+          <div className="bg-primary p-2 sm:p-3 md:p-4 mt-auto">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-[10px] sm:text-xs text-primary-foreground opacity-90">{t?.common?.from ?? "From"}</p>
+                <p className="text-sm md:text-base font-semibold text-primary-foreground">${offer.priceAdult}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-primary-foreground opacity-90">{offer.type === "transfers" ? (t?.offerDetails?.perVehicle ?? "per vehicle") : (t?.common?.perPerson ?? "per person")}</p>
               </div>
             </div>
           </div>
@@ -138,23 +137,7 @@ export default function OffersGrid({ offers }: OffersGridProps) {
         )
       })}
 
-    <style jsx>{`
-      /* Mobile-only centering for a lone last card when total is odd. */
-      .offers-grid :global(.solo-mobile) {
-        grid-column: 1 / -1;
-        justify-self: center;
-        max-width: calc((100% - 0.5rem) / 2); /* gap-2 = 0.5rem */
-      }
-
-      @media (min-width: 768px) {
-        /* Disable the special layout at md and above (keeps normal grid behavior) */
-        .offers-grid :global(.solo-mobile) {
-          grid-column: auto;
-          justify-self: auto;
-          max-width: none;
-        }
-      }
-    `}</style>
+    
 
     </div>
   )

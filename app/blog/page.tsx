@@ -21,7 +21,7 @@ export default function BlogPage() {
       <Header />
       <PageHero 
         title={t.blog.pageTitle} 
-        backgroundImage="https://images.pexels.com/photos/3889843/pexels-photo-3889843.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+        backgroundImage="https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
       />
 
       <section className="py-16 md:py-24 bg-linear-to-b from-background to-muted/20">

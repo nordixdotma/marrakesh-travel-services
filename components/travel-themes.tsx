@@ -87,24 +87,20 @@ const TravelThemes = () => {
     const styleElement = document.createElement("style")
 
     styleElement.innerHTML = `
-      /* Mobile styles */
+      /* Mobile styles - single column */
       @media (max-width: 767px) {
         .travel-gallery-container {
           display: grid !important;
-          grid-template-columns: 1fr 1fr !important;
-          grid-template-rows: auto auto auto !important;
+          grid-template-columns: 1fr !important;
+          grid-auto-rows: auto !important;
           gap: 10px !important;
           height: auto !important;
-          justify-items: center !important;
+          justify-items: stretch !important;
         }
-        
+
         .travel-gallery-container .travel-image-container {
           width: 100% !important;
-        }
-        
-        .travel-gallery-container .travel-image-container:last-child {
-          grid-column: 1 / -1 !important;
-          max-width: calc(50% - 5px) !important;
+          max-width: 100% !important;
         }
 
         .travel-image-container {
@@ -149,7 +145,7 @@ const TravelThemes = () => {
         .travel-overlay-content {
           opacity: 1 !important;
           padding: 12px !important;
-          background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4) 100%) !important;
+          background: transparent !important;
         }
       }
 
@@ -352,7 +348,7 @@ const styles: Record<string, CSSProperties> = {
     bottom: 0,
     left: 0,
     right: 0,
-    background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.5) 65%, rgba(0,0,0,0.7) 100%)",
+    background: "transparent",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",

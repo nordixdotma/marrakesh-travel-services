@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { MapPin, Search, Compass, ChevronDown, Sparkles, Check } from "lucide-react"
+import { MapPin, Search, Compass, ChevronDown, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/components/language-provider"
 
@@ -24,14 +24,7 @@ const CITIES = [
   "Ouarzazate"
 ]
 
-// Quick search suggestions
-const SUGGESTIONS = [
-  { service: "tours", city: "Marrakech", label: { en: "Medina Tour", fr: "Visite Médina", es: "Tour Medina" } },
-  { service: "excursions", city: "Marrakech", label: { en: "Atlas Mountains", fr: "Montagnes Atlas", es: "Montañas Atlas" } },
-  { service: "excursions", city: "Marrakech", label: { en: "Sahara Desert", fr: "Désert Sahara", es: "Desierto Sahara" } },
-  { service: "transfers", city: "Marrakech", label: { en: "Airport Transfer", fr: "Transfert Aéroport", es: "Traslado Aeropuerto" } },
-  { service: "activities", city: "Fes", label: { en: "Cooking Class", fr: "Cours de Cuisine", es: "Clase de Cocina" } },
-]
+// Quick search suggestions removed
 
 // Custom Dropdown Component
 function CustomDropdown({ 
@@ -143,16 +136,7 @@ export default function Hero() {
     return () => clearTimeout(timer)
   }, [])
 
-  const handleSuggestionClick = (suggestion: typeof SUGGESTIONS[0]) => {
-    const service = SERVICES.find(s => s.id === suggestion.service)
-    if (service) {
-      setActiveService(service)
-      setSelectedCity(suggestion.city)
-      // Visual feedback - highlight inputs briefly
-      setHighlightInputs(true)
-      setTimeout(() => setHighlightInputs(false), 600)
-    }
-  }
+  // suggestion handler removed
 
   return (
     <section className="relative w-full overflow-hidden" style={{ height: "100dvh" }}>
@@ -194,8 +178,8 @@ export default function Hero() {
       <div className="absolute inset-0 bg-black/30" />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 pt-20">
-        <div className="w-full max-w-4xl mx-auto space-y-4">
+      <div className="relative z-10 flex flex-col items-center justify-end md:justify-center h-full px-4 pt-20 pb-28 md:pb-0">
+        <div className="w-full max-w-4xl mx-auto space-y-2">
           {/* Main Search Bar */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl md:rounded-full p-2 md:p-2.5 flex flex-col md:flex-row items-stretch gap-2 border border-white/20 relative z-20">
             {/* Service Selector Dropdown */}
@@ -252,22 +236,7 @@ export default function Hero() {
             </Button>
           </div>
 
-          {/* Quick Search Suggestions */}
-          <div className="flex flex-wrap items-center justify-center gap-2 px-2 cur">
-            <span className="text-white/70 text-xs font-medium flex items-center gap-1.5 mr-1">
-              <Sparkles className="h-3.5 w-3.5" />
-              {language === 'fr' ? 'Populaires:' : language === 'es' ? 'Populares:' : 'Popular:'}
-            </span>
-            {SUGGESTIONS.map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => handleSuggestionClick(suggestion)}
-                className="px-3.5 py-1.5 rounded-full text-xs font-medium bg-white/15 backdrop-blur-sm text-white border border-white/20 hover:bg-white hover:text-gray-900 hover:border-white transition-all duration-200 hover:shadow-md cursor-pointer"
-              >
-                {suggestion.label[language as keyof typeof suggestion.label] || suggestion.label.en}
-              </button>
-            ))}
-          </div>
+          {/* Quick suggestions removed - search positioned at bottom */}
         </div>
       </div>
 

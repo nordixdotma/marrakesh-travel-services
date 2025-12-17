@@ -54,13 +54,14 @@ export default function OurBestOffers() {
         <div className="flex flex-col gap-8">
           {groups.map(([type, offersForType]) => (
             <div key={type} className="w-full">
-                <h4 className="flex items-center gap-2 w-40 text-left text-sm md:text-base text-primary font-semibold mb-3 ml-1 bg-linear-to-r from-primary/20 to-transparent ">
-                  <span className="inline-block w-0.5 h-7 bg-primary rounded" aria-hidden />
-                  <span className="leading-none">{getSubtitle(type)}</span>
-                </h4>
-                {t.bestOffers && t.bestOffers[`desc_${type}`] && (
-                  <p className="text-left text-muted-foreground mb-4 hidden md:block">{t.bestOffers[`desc_${type}`]}</p>
-                )}
+                <div className="text-center mb-3">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary mb-2">
+                    <span className="text-sm md:text-base font-semibold">{getSubtitle(type)}</span>
+                  </div>
+                  {t.bestOffers && t.bestOffers[`desc_${type}`] && (
+                    <p className="text-muted-foreground mx-auto hidden md:block">{t.bestOffers[`desc_${type}`]}</p>
+                  )}
+                </div>
 
               <OffersGrid offers={offersForType} />
             </div>

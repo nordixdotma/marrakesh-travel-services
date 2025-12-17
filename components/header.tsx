@@ -126,25 +126,18 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
         </div>
 
         <Container className="max-w-7xl mx-auto">
-          {/* Mobile layout - three columns */}
-          <div className="md:hidden flex h-16 items-center justify-between">
-            {/* Left: Logo */}
-            <Link href="/" className="flex items-center z-10">
-              <div className="relative h-12 w-24">
-                <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority sizes="(max-width: 768px) 96px, 128px" />
-              </div>
-            </Link>
-
-            {/* Right: Login & Menu Button */}
-            <div className="flex items-center gap-2 z-20">
+          {/* Mobile layout - centered logo, login left, menu right */}
+          <div className="md:hidden relative flex h-16 items-center justify-between px-1">
+            {/* Left: Login (or user) */}
+            <div className="flex items-center z-20">
               {isLoggedIn ? (
                 <Link href="/users/profile">
-                  <Button 
+                  <Button
                     size="icon-sm"
                     className={cn(
                       "rounded-full transition-all duration-300 border cursor-pointer",
                       (scrolled || isUsersSection)
-                        ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90" 
+                        ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90"
                         : "bg-primary text-white border-white/30 hover:bg-primary/90"
                     )}
                   >
@@ -152,20 +145,30 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                   </Button>
                 </Link>
               ) : (
-                <Button 
+                <Button
                   size="sm"
                   onClick={() => openLoginModal()}
                   className={cn(
                     "text-xs font-medium rounded-full px-4 py-1.5 transition-all duration-300 border cursor-pointer",
                     (scrolled || isUsersSection)
-                      ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90" 
+                      ? "bg-linear-to-r from-[#fac360] to-[#fce97c] text-primary border-[#fac360]/50 hover:opacity-90"
                       : "bg-primary text-white border-white/30 hover:bg-primary/90"
                   )}
                 >
                   {t.header.login}
                 </Button>
               )}
+            </div>
 
+            {/* Center: Logo (absolutely centered for mobile) */}
+            <Link href="/" className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+              <div className="pointer-events-auto relative h-12 w-24">
+                <Image src="/logo.png" alt="Marrakesh Travel Services Logo" fill className="object-contain" priority sizes="(max-width: 768px) 96px, 128px" />
+              </div>
+            </Link>
+
+            {/* Right: Menu Button */}
+            <div className="flex items-center gap-2 z-20">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="relative flex flex-col justify-center items-center w-10 h-10 rounded-lg hover:bg-white/10 transition-colors"

@@ -18,15 +18,12 @@ import {
   LogOut,
   Menu,
   X,
-  ChevronDown,
+  Package,
+  Users2,
+  Ticket,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+
 
 // Auth Context
 interface AdminAuthContextType {
@@ -57,10 +54,13 @@ const navItems: NavItem[] = [
   { title: "Excursions", href: "/admin/excursions", icon: Compass },
   { title: "Activities", href: "/admin/activities", icon: Activity },
   { title: "Transfers", href: "/admin/transfers", icon: Car },
-  { title: "Bookings", href: "/admin/bookings", icon: CalendarCheck, badge: 12 },
+  { title: "Packages", href: "/admin/packages", icon: Package },
+  { title: "Bookings", href: "/admin/bookings", icon: CalendarCheck },
   { title: "Payments", href: "/admin/payments", icon: CreditCard },
   { title: "Users", href: "/admin/users", icon: Users },
-  { title: "Reviews", href: "/admin/reviews", icon: Star, badge: 5 },
+  { title: "Reviews", href: "/admin/reviews", icon: Star },
+  { title: "Affiliates", href: "/admin/affiliates", icon: Users2 },
+  { title: "Promo Codes", href: "/admin/promo-codes", icon: Ticket },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -181,7 +181,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           {/* Navigation */}
-          <nav className="p-4 space-y-1.5 overflow-y-auto h-[calc(100%-4rem-4.5rem)]">
+          <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100%-4rem-4.5rem)]">
             {navItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
               return (
@@ -190,7 +190,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
-                    "flex items-center justify-between px-4 py-2.5 rounded-md transition-colors",
+                    "flex items-center justify-between px-3 py-2 rounded-md transition-colors",
                     isActive
                       ? "bg-primary text-primary-foreground font-medium"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -217,7 +217,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-card">
             <button
               onClick={logout}
-              className="flex items-center gap-3 w-full px-4 py-2.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors"
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-destructive hover:bg-destructive/10 transition-colors"
             >
               <LogOut className="h-5 w-5" />
               <span>Sign Out</span>
@@ -239,23 +239,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
 
             <div className="flex items-center gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted transition-colors">
-                    <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-medium text-primary">AD</span>
-                    </div>
-                    <span className="hidden sm:block font-medium">Admin</span>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={logout} className="text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-3 px-3 py-2">
+                <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center">
+                  <span className="text-sm font-medium text-primary">AD</span>
+                </div>
+                <span className="hidden sm:block font-medium">Admin</span>
+              </div>
             </div>
           </header>
 

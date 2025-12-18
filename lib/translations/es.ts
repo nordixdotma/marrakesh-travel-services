@@ -524,4 +524,21 @@ export const es: TranslationKeys = {
     description: "Menores de 3 años",
     free: "GRATIS",
   },
+
+  // Search Filter
+  searchFilter: {
+    title: "Filtros",
+    priceRange: "Rango de precios",
+    minPrice: "Min",
+    maxPrice: "Max",
+    departureCity: "Ciudad de salida",
+    availableOn: "Disponible el",
+    search: "Buscar",
+    reset: "Reiniciar",
+    clearAll: "Borrar todo",
+    allCities: "Todas las ciudades",
+    selectCity: "Seleccionar ciudad",
+    fromPrice: "Desde",
+    upToPrice: "Hasta",
+  },
 }

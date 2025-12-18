@@ -11,20 +11,46 @@ import SearchFilter, { type Filters } from "@/components/search-filter"
 import { toursOffers, excursionsOffers, activitiesOffers, packagesOffers, type Offer } from "@/lib/offers-data"
 import { useLanguage } from "@/components/language-provider"
 
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+
 export default function PackagesPage() {
   const { t } = useLanguage()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const cityParam = searchParams.get('city')
+
   const allOffers: Offer[] = [...toursOffers, ...excursionsOffers, ...activitiesOffers, ...packagesOffers]
   const pageType = "packages"
 
-  const [offers, setOffers] = useState<Offer[]>(() => packagesOffers)
+  const [offers, setOffers] = useState<Offer[]>(() => {
+    if (cityParam) {
+      return packagesOffers.filter(o => o.departCity === cityParam)
+    }
+    return packagesOffers
+  })
 
   const handleFilterChange = (filters: Filters) => {
+    // Update URL with city parameter
+    const params = new URLSearchParams(searchParams.toString())
+    if (filters.departureCity && filters.departureCity !== "all") {
+      params.set('city', filters.departureCity)
+    } else {
+      params.delete('city')
+    }
+    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname
+    router.replace(newUrl, { scroll: false })
+
     const filtered = allOffers.filter((o) => {
       const categoryToMatch = filters.category && filters.category !== "all" ? filters.category : pageType
       if (o.type !== categoryToMatch) return false
 
       if (filters.minPrice != null && o.priceAdult < filters.minPrice) return false
       if (filters.maxPrice != null && o.priceAdult > filters.maxPrice) return false
+
+      if (filters.departureCity && filters.departureCity !== "all") {
+        if (o.departCity !== filters.departureCity) return false
+      }
 
       if (filters.theme) {
         const hay = (o.title + " " + o.description + " " + o.includedItems.join(" ")).toLowerCase()
@@ -51,7 +77,13 @@ export default function PackagesPage() {
 
       <section className="py-12 bg-gray-50">
         <Container className="max-w-6xl px-2 md:px-4">
-          <SearchFilter onChange={handleFilterChange} initial={{ category: pageType }} />
+          <SearchFilter 
+            onChange={handleFilterChange} 
+            initial={{ 
+              category: pageType, 
+              departureCity: cityParam ?? "all"
+            }} 
+          />
 
           <OffersGrid offers={offers} />
         </Container>

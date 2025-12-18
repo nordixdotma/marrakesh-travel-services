@@ -32,6 +32,7 @@ export interface OfferTranslations {
 export interface Offer {
   id: string
   type: OfferType
+  departCity: string
   title: string
   description: string
   detailedDescription: DetailedDescription
@@ -71,6 +72,7 @@ export const toursOffers: Offer[] = [
   {
     id: "tour-001",
     type: "tours",
+    departCity: "Marrakech",
     title: "Medina Guided Walking Tour",
     description:
       "Explore the historic medina of Marrakesh with an expert guide. Discover hidden souks, traditional riads, and historical landmarks.",
@@ -274,6 +276,7 @@ export const toursOffers: Offer[] = [
   {
     id: "tour-002",
     type: "tours",
+    departCity: "Marrakech",
     title: "Palaces & Gardens Evening Tour",
     description:
       "Experience the stunning Bahia Palace and Majorelle Gardens in the golden evening light. Perfect for photography enthusiasts.",
@@ -477,6 +480,7 @@ export const toursOffers: Offer[] = [
   {
     id: "tour-003",
     type: "tours",
+    departCity: "Marrakech",
     title: "Atlas Mountains Day Excursion",
     description:
       "Journey to the majestic Atlas Mountains, visit Berber villages, and enjoy traditional Moroccan tea with mountain views.",
@@ -692,6 +696,7 @@ export const excursionsOffers: Offer[] = [
   {
     id: "excur-001",
     type: "excursions",
+    departCity: "Marrakech",
     title: "Sahara Desert 3-Day Adventure",
     description:
       "Experience the magic of the Sahara with camel trekking, desert camping, and sunrise over golden dunes.",
@@ -867,6 +872,7 @@ export const excursionsOffers: Offer[] = [
   {
     id: "excur-002",
     type: "excursions",
+    departCity: "Marrakech",
     title: "Ourika Valley & Waterfalls",
     description: "Visit the scenic Ourika Valley, swim in refreshing waterfalls, and enjoy a traditional Berber lunch.",
     detailedDescription: {
@@ -1039,6 +1045,7 @@ export const excursionsOffers: Offer[] = [
   {
     id: "excur-003",
     type: "excursions",
+    departCity: "Marrakech",
     title: "High Atlas Trek & Imlil Village",
     description:
       "Trek through alpine meadows to Imlil village, meet local families, and discover traditional mountain life.",
@@ -1195,6 +1202,7 @@ export const activitiesOffers: Offer[] = [
   {
     id: "activ-001",
     type: "activities",
+    departCity: "Marrakech",
     title: "Hot Air Balloon Ride at Sunrise",
     description: "Spectacular sunrise hot air balloon experience over Marrakesh with champagne breakfast upon landing.",
     detailedDescription: {
@@ -1346,6 +1354,7 @@ export const activitiesOffers: Offer[] = [
   {
     id: "activ-002",
     type: "activities",
+    departCity: "Marrakech",
     title: "Quad Bike Desert Adventure",
     description: "Thrilling quad bike ride through desert trails with experienced guides and safety equipment.",
     detailedDescription: {
@@ -1493,6 +1502,7 @@ export const activitiesOffers: Offer[] = [
   {
     id: "activ-003",
     type: "activities",
+    departCity: "Marrakech",
     title: "Traditional Moroccan Spa Day",
     description: "Relax with traditional hammam treatment, argan oil massage, and beauty treatments at luxury spa.",
     detailedDescription: {
@@ -1644,6 +1654,7 @@ export const packagesOffers: Offer[] = [
   {
     id: "pkg-001",
     type: "packages",
+    departCity: "Marrakech",
     title: "Marrakesh Classic 4-Day Package",
     description: "Complete Marrakesh experience including medina tour, mountain excursion, and cultural highlights.",
     detailedDescription: {
@@ -1765,6 +1776,7 @@ export const packagesOffers: Offer[] = [
   {
     id: "pkg-002",
     type: "packages",
+    departCity: "Marrakech",
     title: "Ultimate Morocco 10-Day Journey",
     description: "Complete tour of Morocco including Marrakesh, Sahara, coastal towns, and mountain villages.",
     detailedDescription: {
@@ -1894,6 +1906,7 @@ export const packagesOffers: Offer[] = [
   {
     id: "pkg-003",
     type: "packages",
+    departCity: "Marrakech",
     title: "Luxury Marrakesh Retreat 5 Days",
     description: "Premium 5-star experience in Marrakesh with luxury riad, spa, and exclusive tours.",
     detailedDescription: {
@@ -2027,6 +2040,7 @@ export const transfersOffers: Offer[] = [
   {
     id: "transfer-001",
     type: "transfers",
+    departCity: "Marrakech",
     title: "Airport to Marrakesh City Transfer",
     description:
       "Comfortable private transfer from Marrakesh Menara Airport to your hotel or riad in the city center.",
@@ -2145,6 +2159,7 @@ export const transfersOffers: Offer[] = [
   {
     id: "transfer-002",
     type: "transfers",
+    departCity: "Marrakech",
     title: "Marrakesh to Essaouira Transfer",
     description:
       "Scenic private transfer from Marrakesh to the coastal town of Essaouira with optional stops along the way.",
@@ -2270,6 +2285,7 @@ export const transfersOffers: Offer[] = [
   {
     id: "transfer-003",
     type: "transfers",
+    departCity: "Marrakech",
     title: "Marrakesh to Ouarzazate Transfer",
     description:
       "Scenic transfer through the High Atlas Mountains to Ouarzazate, the gateway to the Sahara Desert.",

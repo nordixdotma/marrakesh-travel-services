@@ -1,19 +1,21 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Search, SlidersHorizontal, X, Calendar, DollarSign, Compass, MapPin, ChevronDown, Check } from "lucide-react"
+import { useState, useRef, useEffect, useMemo } from "react"
+import { Search, SlidersHorizontal, X, Calendar, DollarSign, MapPin, ChevronDown, Check } from "lucide-react"
 import type { OfferType } from "@/lib/offers-data"
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/components/language-provider"
 
-const CITIES = [
-  { name: "All Cities", value: "all" },
-  { name: "Marrakech", value: "Marrakech" },
-  { name: "Casablanca", value: "Casablanca" },
-  { name: "Agadir", value: "Agadir" },
-  { name: "Tanger", value: "Tanger" },
-  { name: "Fes", value: "Fes" },
-  { name: "Rabat", value: "Rabat" },
-  { name: "Ouarzazate", value: "Ouarzazate" }
+const CITIES_DATA = [
+  "Agadir", "Al Hoceima", "Asilah", "Azemmour", "Azrou", "Beni Mellal",
+  "Berkane", "Berrechid", "Boujdour", "Bouznika", "Casablanca", "Chefchaouen",
+  "Dakhla", "El Jadida", "Errachidia", "Essaouira", "Fes", "Guelmim",
+  "Ifrane", "Kelaat M'Gouna", "Kenitra", "Khemisset", "Khenifra", "Khouribga",
+  "Ksar El Kebir", "Laayoune", "Larache", "Marrakech", "Meknes", "M'diq",
+  "Midelt", "Mohammedia", "Nador", "Ouarzazate", "Ouezzane", "Oujda",
+  "Rabat", "Safi", "Saidia", "Salé", "Settat", "Sidi Ifni", "Sidi Kacem",
+  "Sidi Slimane", "Skhirat", "Tanger", "Tan-Tan", "Taroudant", "Tata",
+  "Taza", "Témara", "Tétouan", "Tiznit", "Zagora"
 ]
 
 export interface Filters {
@@ -64,7 +66,7 @@ function FilterDropdown({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm",
+          "w-full px-3 py-2 sm:py-2.5 bg-background border border-border rounded-lg text-sm",
           "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
           "transition-all cursor-pointer flex items-center justify-between gap-2",
           isOpen && "ring-2 ring-primary/20 border-primary"
@@ -122,18 +124,29 @@ function FilterDropdown({
 }
 
 export default function SearchFilter({ onChange, initial, showCategoryFilter = true }: Props) {
+  const { t, language } = useLanguage()
   const [minPrice, setMinPrice] = useState<number | "">(initial?.minPrice ?? "")
   const [maxPrice, setMaxPrice] = useState<number | "">(initial?.maxPrice ?? "")
-  const [category, setCategory] = useState<OfferType | "all">(initial?.category ?? "all")
   const [availableOn, setAvailableOn] = useState<string>(initial?.availableOn ?? "")
   const [departureCity, setDepartureCity] = useState<string>(initial?.departureCity ?? "all")
   const [isExpanded, setIsExpanded] = useState(false)
+
+  const CITIES = useMemo(() => [
+    { name: t.searchFilter.allCities, value: "all" },
+    ...CITIES_DATA.map(city => ({ name: city, value: city }))
+  ], [t.searchFilter.allCities])
 
   const emit = () => {
     onChange({
       minPrice: minPrice === "" ? null : Number(minPrice),
       maxPrice: maxPrice === "" ? null : Number(maxPrice),
-      category,
+      // category removed from UI but keeping type compatibility if needed, though strictly it should be removed. 
+      // The parent component expects Filters which includes category, so we can just omit it or pass 'all' / undefined effectively.
+      // Actually, let's keep passing whatever the parent might expect or just omit it if the parent handles 'all' default.
+      // Based on previous code, category was part of state. 
+      // We'll pass category: "all" or simply omit if the interface allows optional.
+      // Checking interface: category?: OfferType | "all". So acceptable.
+      category: "all",
       availableOn: availableOn || null,
       departureCity: departureCity === "all" ? null : departureCity,
     })
@@ -142,21 +155,12 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
   const reset = () => {
     setMinPrice("")
     setMaxPrice("")
-    setCategory("all")
     setAvailableOn("")
     setDepartureCity("all")
     onChange({})
   }
 
-  const hasActiveFilters = minPrice !== "" || maxPrice !== "" || category !== "all" || availableOn !== "" || departureCity !== "all"
-
-  const categories = [
-    { value: "all", name: "All Categories" },
-    { value: "tours", name: "Tours" },
-    { value: "excursions", name: "Excursions" },
-    { value: "activities", name: "Activities" },
-    { value: "packages", name: "Packages" },
-  ]
+  const hasActiveFilters = minPrice !== "" || maxPrice !== "" || availableOn !== "" || departureCity !== "all"
 
   return (
     <div className="w-full mb-8">
@@ -175,10 +179,10 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
           )}
         >
           <SlidersHorizontal className="w-4 h-4" />
-          Filters
+          {t.searchFilter.title}
           {hasActiveFilters && (
             <span className="ml-1 w-5 h-5 rounded-full bg-white/20 text-xs flex items-center justify-center">
-              {[minPrice, maxPrice, category !== "all" ? category : "", availableOn, departureCity !== "all" ? departureCity : ""].filter(Boolean).length}
+              {[minPrice, maxPrice, availableOn, departureCity !== "all" ? departureCity : ""].filter(Boolean).length}
             </span>
           )}
         </button>
@@ -188,7 +192,11 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
           {(minPrice !== "" || maxPrice !== "") && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
               <DollarSign className="w-3 h-3" />
-              {minPrice !== "" && maxPrice !== "" ? `$${minPrice} - $${maxPrice}` : minPrice !== "" ? `From $${minPrice}` : `Up to $${maxPrice}`}
+              {minPrice !== "" && maxPrice !== "" 
+                ? `$${minPrice} - $${maxPrice}` 
+                : minPrice !== "" 
+                  ? `${t.searchFilter.fromPrice} $${minPrice}` 
+                  : `${t.searchFilter.upToPrice} $${maxPrice}`}
               <button onClick={() => { setMinPrice(""); setMaxPrice(""); emit() }} className="ml-1 hover:bg-primary/20 rounded-full p-0.5">
                 <X className="w-3 h-3" />
               </button>
@@ -197,17 +205,8 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
           {availableOn && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
               <Calendar className="w-3 h-3" />
-              {new Date(availableOn).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              {new Date(availableOn).toLocaleDateString(language === 'en' ? 'en-US' : language === 'fr' ? 'fr-FR' : 'es-ES', { month: "short", day: "numeric" })}
               <button onClick={() => { setAvailableOn(""); emit() }} className="ml-1 hover:bg-primary/20 rounded-full p-0.5">
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-          {showCategoryFilter && category !== "all" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-              <Compass className="w-3 h-3" />
-              {categories.find(c => c.value === category)?.name}
-              <button onClick={() => { setCategory("all"); emit() }} className="ml-1 hover:bg-primary/20 rounded-full p-0.5">
                 <X className="w-3 h-3" />
               </button>
             </span>
@@ -230,7 +229,7 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
             onClick={reset}
             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
           >
-            Clear all
+            {t.searchFilter.clearAll}
           </button>
         )}
       </div>
@@ -239,17 +238,17 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
       <div
         className={cn(
           "transition-all duration-300 ease-in-out",
-          isExpanded ? "opacity-100 mt-4 max-h-[500px]" : "opacity-0 max-h-0 overflow-hidden pointer-events-none"
+          isExpanded ? "opacity-100 mt-2 sm:mt-4 max-h-[500px]" : "opacity-0 max-h-0 overflow-hidden pointer-events-none"
         )}
       >
         <div className="relative">
-          <div className="p-5 bg-card rounded-xl border border-border shadow-sm">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="p-3 sm:p-5 bg-card rounded-xl border border-border shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {/* Price Range */}
               <div className="space-y-2">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   <DollarSign className="w-3.5 h-3.5" />
-                  Price Range
+                  {t.searchFilter.priceRange}
                 </label>
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
@@ -259,8 +258,8 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
                       value={minPrice as any}
                       onChange={(e) => setMinPrice(e.target.value === "" ? "" : Number(e.target.value))}
                       onBlur={emit}
-                      className="w-full pl-7 pr-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                      placeholder="Min"
+                      className="w-full pl-7 pr-3 py-2 sm:py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      placeholder={t.searchFilter.minPrice}
                       min={0}
                     />
                   </div>
@@ -272,41 +271,25 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
                       value={maxPrice as any}
                       onChange={(e) => setMaxPrice(e.target.value === "" ? "" : Number(e.target.value))}
                       onBlur={emit}
-                      className="w-full pl-7 pr-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                      placeholder="Max"
+                      className="w-full pl-7 pr-3 py-2 sm:py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      placeholder={t.searchFilter.maxPrice}
                       min={0}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Category */}
-              {showCategoryFilter && (
-                <div className="space-y-2">
-                  <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    <Compass className="w-3.5 h-3.5" />
-                    Category
-                  </label>
-                  <FilterDropdown
-                    options={categories}
-                    value={category}
-                    onChange={(val) => { setCategory(val as any); setTimeout(emit, 0) }}
-                    placeholder="Select category"
-                  />
-                </div>
-              )}
-
               {/* Departure City */}
               <div className="space-y-2">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   <MapPin className="w-3.5 h-3.5" />
-                  Departure City
+                  {t.searchFilter.departureCity}
                 </label>
                 <FilterDropdown
                   options={CITIES}
                   value={departureCity}
                   onChange={(val) => { setDepartureCity(val); setTimeout(emit, 0) }}
-                  placeholder="Select city"
+                  placeholder={t.searchFilter.selectCity}
                 />
               </div>
 
@@ -314,13 +297,13 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
               <div className="space-y-2">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   <Calendar className="w-3.5 h-3.5" />
-                  Available On
+                  {t.searchFilter.availableOn}
                 </label>
                 <input
                   type="date"
                   value={availableOn}
                   onChange={(e) => { setAvailableOn(e.target.value); setTimeout(emit, 0) }}
-                  className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                  className="w-full px-3 py-2 sm:py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                 />
               </div>
 
@@ -329,17 +312,17 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
                 <button
                   type="button"
                   onClick={emit}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
                 >
                   <Search className="w-4 h-4" />
-                  Search
+                  {t.searchFilter.search}
                 </button>
                 <button
                   type="button"
                   onClick={reset}
-                  className="px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="px-4 py-2 sm:py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  Reset
+                  {t.searchFilter.reset}
                 </button>
               </div>
             </div>

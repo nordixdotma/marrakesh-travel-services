@@ -524,4 +524,21 @@ export const fr: TranslationKeys = {
     description: "Moins de 3 ans",
     free: "GRATUIT",
   },
+
+  // Search Filter
+  searchFilter: {
+    title: "Filtres",
+    priceRange: "Gamme de prix",
+    minPrice: "Min",
+    maxPrice: "Max",
+    departureCity: "Ville de départ",
+    availableOn: "Disponible le",
+    search: "Rechercher",
+    reset: "Réinitialiser",
+    clearAll: "Effacer tout",
+    allCities: "Toutes les villes",
+    selectCity: "Choisir une ville",
+    fromPrice: "À partir de",
+    upToPrice: "Jusqu'à",
+  },
 }

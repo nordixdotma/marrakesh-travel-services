@@ -522,6 +522,23 @@ export const en = {
     description: "Under 3 years",
     free: "FREE",
   },
+
+  // Search Filter
+  searchFilter: {
+    title: "Filters",
+    priceRange: "Price Range",
+    minPrice: "Min",
+    maxPrice: "Max",
+    departureCity: "Departure City",
+    availableOn: "Available On",
+    search: "Search",
+    reset: "Reset",
+    clearAll: "Clear all",
+    allCities: "All Cities",
+    selectCity: "Select city",
+    fromPrice: "From",
+    upToPrice: "Up to",
+  },
 } as const
 
 // Use a flexible type that allows any string values for translations

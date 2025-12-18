@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
@@ -12,7 +12,7 @@ import { toursOffers, excursionsOffers, activitiesOffers, packagesOffers, transf
 import SearchFilter, { type Filters } from "@/components/search-filter"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 
-export default function TransfersPage() {
+function TransfersContent() {
   const { t } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
@@ -94,5 +94,13 @@ export default function TransfersPage() {
       <Footer />
       <FloatingContact />
     </main>
+  )
+}
+
+export default function TransfersPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <TransfersContent />
+    </Suspense>
   )
 }

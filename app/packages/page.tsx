@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
@@ -13,7 +13,7 @@ import { useLanguage } from "@/components/language-provider"
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 
-export default function PackagesPage() {
+function PackagesContent() {
   const { t } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
@@ -92,5 +92,13 @@ export default function PackagesPage() {
       <Footer />
       <FloatingContact />
     </main>
+  )
+}
+
+export default function PackagesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PackagesContent />
+    </Suspense>
   )
 }

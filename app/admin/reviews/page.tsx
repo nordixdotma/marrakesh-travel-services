@@ -123,7 +123,7 @@ export default function AdminReviewsPage() {
             placeholder="Search reviews..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 rounded-sm"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -149,13 +149,13 @@ export default function AdminReviewsPage() {
       {filteredReviews.length > 0 ? (
         <div className="space-y-4">
           {filteredReviews.map((review) => (
-            <Card key={review.id} className="hover:bg-muted/30 transition-colors">
+            <Card key={review.id} className="hover:bg-muted/30 transition-colors rounded-sm">
               <CardContent className="p-4">
                 <div className="flex flex-col gap-4">
                   {/* Header Row */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center">
                         <User className="h-5 w-5 text-primary" />
                       </div>
                       <div>
@@ -193,7 +193,7 @@ export default function AdminReviewsPage() {
                   </div>
 
                   {/* Comment */}
-                  <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-sm">
                     &quot;{review.comment}&quot;
                   </p>
 
@@ -203,7 +203,7 @@ export default function AdminReviewsPage() {
                       <>
                         <Button
                           size="sm"
-                          className="gap-1"
+                          className="gap-1 rounded-sm"
                           onClick={() => handleApprove(review.id)}
                         >
                           <CheckCircle className="h-3.5 w-3.5" />
@@ -212,7 +212,7 @@ export default function AdminReviewsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="gap-1 text-destructive hover:text-destructive"
+                          className="gap-1 text-destructive hover:text-destructive rounded-sm"
                           onClick={() => handleReject(review.id)}
                         >
                           <XCircle className="h-3.5 w-3.5" />
@@ -223,7 +223,7 @@ export default function AdminReviewsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
+                      className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto rounded-sm"
                       onClick={() => handleDelete(review.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -236,7 +236,7 @@ export default function AdminReviewsPage() {
           ))}
         </div>
       ) : (
-        <Card className="border-dashed">
+        <Card className="border-dashed rounded-sm">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Star className="h-8 w-8 text-muted-foreground" />

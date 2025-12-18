@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
       
       {/* Login Form */}
       <div className="relative z-10 w-full max-w-md mx-4">
-        <div className="bg-card/95 backdrop-blur-sm rounded-lg shadow-2xl p-8">
+        <div className="bg-card/95 backdrop-blur-sm rounded-sm shadow-2xl p-8">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
             <Image
@@ -106,7 +106,7 @@ export default function AdminLoginPage() {
             </div>
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
+              <div className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-sm">
                 {error}
               </div>
             )}

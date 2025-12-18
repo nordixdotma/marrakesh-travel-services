@@ -33,12 +33,12 @@ export default function BookingDetailsPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="gap-1">
+          <Button variant="ghost" size="sm" onClick={() => router.back()} className="gap-1 rounded-sm">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
         </div>
-        <Card className="border-dashed">
+        <Card className="border-dashed rounded-sm">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <CalendarCheck className="h-8 w-8 text-muted-foreground" />
@@ -109,7 +109,7 @@ export default function BookingDetailsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="gap-1">
+          <Button variant="ghost" size="sm" onClick={() => router.back()} className="gap-1 rounded-sm">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
@@ -127,18 +127,18 @@ export default function BookingDetailsPage() {
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
           {booking.status === "pending" && (
-            <Button onClick={handleConfirm} className="gap-1">
+            <Button onClick={handleConfirm} className="gap-1 rounded-sm">
               <CheckCircle className="h-4 w-4" />
               Confirm Booking
             </Button>
           )}
           {booking.status !== "cancelled" && booking.status !== "completed" && (
-            <Button variant="outline" onClick={handleCancel} className="gap-1 text-destructive hover:text-destructive">
+            <Button variant="outline" onClick={handleCancel} className="gap-1 text-destructive hover:text-destructive rounded-sm">
               <XCircle className="h-4 w-4" />
               Cancel
             </Button>
           )}
-          <Button variant="outline" onClick={handleContact} className="gap-1">
+          <Button variant="outline" onClick={handleContact} className="gap-1 rounded-sm">
             <MessageSquare className="h-4 w-4" />
             Contact
           </Button>
@@ -147,7 +147,7 @@ export default function BookingDetailsPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Customer Information */}
-        <Card>
+        <Card className="rounded-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -178,7 +178,7 @@ export default function BookingDetailsPage() {
         </Card>
 
         {/* Booking Details */}
-        <Card>
+        <Card className="rounded-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <CalendarCheck className="h-4 w-4" />
@@ -223,7 +223,7 @@ export default function BookingDetailsPage() {
         </Card>
 
         {/* Offer Information */}
-        <Card>
+        <Card className="rounded-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Package className="h-4 w-4" />

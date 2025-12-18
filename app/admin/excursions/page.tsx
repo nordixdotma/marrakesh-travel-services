@@ -48,7 +48,7 @@ export default function AdminExcursionsPage() {
             Manage your excursions. {excursionsOffers.length} total excursions.
           </p>
         </div>
-        <Button onClick={handleCreate} className="gap-2">
+        <Button onClick={handleCreate} className="gap-2 rounded-sm">
           <Plus className="h-4 w-4" />
           Create Excursion
         </Button>
@@ -61,76 +61,75 @@ export default function AdminExcursionsPage() {
           placeholder="Search excursions..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
+          className="pl-10 rounded-sm"
         />
       </div>
 
-      {/* Offers Grid */}
+      {/* Offers List */}
       {filteredOffers.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-3">
           {filteredOffers.map((offer) => (
-            <Card key={offer.id} className="overflow-hidden group">
-              <div className="aspect-[16/10] relative overflow-hidden">
+            <div
+              key={offer.id}
+              className="flex items-center gap-4 p-3 bg-card border rounded-sm hover:bg-muted/50 transition-colors"
+            >
+              {/* Thumbnail */}
+              <div className="relative w-20 h-14 shrink-0 overflow-hidden rounded-sm">
                 <Image
                   src={offer.mainImage}
                   alt={offer.title}
                   fill
-                  className="object-cover transition-transform group-hover:scale-105"
+                  className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-white font-semibold line-clamp-2">{offer.title}</h3>
-                </div>
               </div>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" />
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm truncate">{offer.title}</h3>
+                <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
                     {offer.departCity}
                   </div>
-                  <div className="flex items-center gap-1 text-sm font-medium">
-                    <DollarSign className="h-3.5 w-3.5" />
-                    {offer.priceAdult}
-                    <span className="text-muted-foreground font-normal">/adult</span>
+                  <div className="flex items-center gap-1">
+                    <DollarSign className="h-3 w-3" />
+                    {offer.priceAdult}/adult
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground line-clamp-2 mb-4">
-                  {offer.description}
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 gap-1"
-                    onClick={() => handleView(offer.id)}
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                    View
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 gap-1"
-                    onClick={() => handleEdit(offer.id)}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => handleDelete(offer.id)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-sm"
+                  onClick={() => handleView(offer.id)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-sm"
+                  onClick={() => handleEdit(offer.id)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-sm text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => handleDelete(offer.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           ))}
         </div>
       ) : (
-        <Card className="border-dashed">
+        <Card className="border-dashed rounded-sm">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Compass className="h-8 w-8 text-muted-foreground" />

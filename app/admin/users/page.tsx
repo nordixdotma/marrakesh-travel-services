@@ -63,7 +63,7 @@ export default function AdminUsersPage() {
           placeholder="Search users..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
+          className="pl-10 rounded-sm"
         />
       </div>
 
@@ -71,12 +71,12 @@ export default function AdminUsersPage() {
       {filteredUsers.length > 0 ? (
         <div className="space-y-3">
           {filteredUsers.map((user) => (
-            <Card key={user.id} className="hover:bg-muted/30 transition-colors">
+            <Card key={user.id} className="hover:bg-muted/30 transition-colors rounded-sm">
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   {/* Left: User Info */}
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="h-12 w-12 rounded-sm bg-primary/10 flex items-center justify-center">
                       <span className="text-lg font-semibold text-primary">
                         {user.name.charAt(0).toUpperCase()}
                       </span>
@@ -115,7 +115,7 @@ export default function AdminUsersPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-1"
+                      className="gap-1 rounded-sm"
                       onClick={() => handleViewDetails(user.id)}
                     >
                       <Eye className="h-3.5 w-3.5" />
@@ -128,7 +128,7 @@ export default function AdminUsersPage() {
           ))}
         </div>
       ) : (
-        <Card className="border-dashed">
+        <Card className="border-dashed rounded-sm">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Users className="h-8 w-8 text-muted-foreground" />

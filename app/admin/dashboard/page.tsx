@@ -94,7 +94,7 @@ export default function AdminDashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="rounded-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -104,14 +104,14 @@ export default function AdminDashboardPage() {
                   <span className="text-amber-600">{stats.pendingBookings} pending</span>
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-sm bg-primary/10 flex items-center justify-center">
                 <CalendarCheck className="h-6 w-6 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -119,14 +119,14 @@ export default function AdminDashboardPage() {
                 <p className="text-2xl font-bold">{totalOffers}</p>
                 <p className="text-xs text-muted-foreground mt-1">Across all categories</p>
               </div>
-              <div className="h-12 w-12 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-sm bg-emerald-500/10 flex items-center justify-center">
                 <Package className="h-6 w-6 text-emerald-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -134,14 +134,14 @@ export default function AdminDashboardPage() {
                 <p className="text-2xl font-bold">{stats.totalUsers}</p>
                 <p className="text-xs text-muted-foreground mt-1">Registered accounts</p>
               </div>
-              <div className="h-12 w-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-sm bg-blue-500/10 flex items-center justify-center">
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -151,7 +151,7 @@ export default function AdminDashboardPage() {
                   <span className="text-amber-600">{stats.pendingReviews} pending</span>
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-sm bg-amber-500/10 flex items-center justify-center">
                 <Star className="h-6 w-6 text-amber-600" />
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function AdminDashboardPage() {
       {/* Chart and Revenue */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Monthly Bookings Chart */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 rounded-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold">Booking Trends</CardTitle>
@@ -181,7 +181,7 @@ export default function AdminDashboardPage() {
                       {stat.bookings}
                     </span>
                     <div
-                      className="w-full bg-primary/80 rounded-t-md transition-all hover:bg-primary"
+                      className="w-full bg-primary/80 rounded-t-sm transition-all hover:bg-primary"
                       style={{
                         height: `${Math.max((stat.bookings / maxBookings) * 140, 8)}px`,
                       }}
@@ -195,14 +195,14 @@ export default function AdminDashboardPage() {
         </Card>
 
         {/* Revenue Summary */}
-        <Card>
+        <Card className="rounded-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Revenue Overview</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-sm">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-sm bg-emerald-500/10 flex items-center justify-center">
                   <DollarSign className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
@@ -227,7 +227,7 @@ export default function AdminDashboardPage() {
       {/* Latest Bookings and Users */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Latest Bookings */}
-        <Card>
+        <Card className="rounded-sm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold">Latest Bookings</CardTitle>
@@ -244,7 +244,7 @@ export default function AdminDashboardPage() {
               {latestBookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-3 bg-muted/30 rounded-sm hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{booking.customerName}</p>
@@ -269,7 +269,7 @@ export default function AdminDashboardPage() {
         </Card>
 
         {/* New Users */}
-        <Card>
+        <Card className="rounded-sm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold">New Users</CardTitle>
@@ -286,7 +286,7 @@ export default function AdminDashboardPage() {
               {latestUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-3 bg-muted/30 rounded-sm hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">

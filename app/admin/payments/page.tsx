@@ -13,7 +13,7 @@ export default function AdminPaymentsPage() {
       </div>
 
       {/* Empty State */}
-      <Card className="border-dashed">
+      <Card className="border-dashed rounded-sm">
         <CardContent className="flex flex-col items-center justify-center py-16">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
             <CreditCard className="h-8 w-8 text-muted-foreground" />

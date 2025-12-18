@@ -174,7 +174,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1.5 rounded-md hover:bg-muted absolute right-5"
+              className="lg:hidden p-1.5 rounded-sm hover:bg-muted absolute right-5"
             >
               <X className="h-4 w-4" />
             </button>
@@ -190,7 +190,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
-                    "flex items-center justify-between px-3 py-2 rounded-md transition-colors",
+                    "flex items-center justify-between px-3 py-2 rounded-sm transition-colors",
                     isActive
                       ? "bg-primary text-primary-foreground font-medium"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -202,7 +202,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </div>
                   {item.badge && (
                     <span className={cn(
-                      "text-xs px-2 py-0.5 rounded font-medium",
+                      "text-xs px-2 py-0.5 rounded-sm font-medium",
                       isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary"
                     )}>
                       {item.badge}
@@ -217,7 +217,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-card">
             <button
               onClick={logout}
-              className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-destructive hover:bg-destructive/10 transition-colors"
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-sm text-destructive hover:bg-destructive/10 transition-colors"
             >
               <LogOut className="h-5 w-5" />
               <span>Sign Out</span>
@@ -232,7 +232,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 -ml-2 rounded-md hover:bg-muted"
+                className="lg:hidden p-2 -ml-2 rounded-sm hover:bg-muted"
               >
                 <Menu className="h-5 w-5" />
               </button>
@@ -240,7 +240,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-3 px-3 py-2">
-                <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
                   <span className="text-sm font-medium text-primary">AD</span>
                 </div>
                 <span className="hidden sm:block font-medium">Admin</span>

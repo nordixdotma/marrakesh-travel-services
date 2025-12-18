@@ -6,7 +6,7 @@ import {
   ArrowLeft,
   CalendarCheck,
   Clock,
-  DollarSign,
+  Banknote,
   Mail,
   Phone,
   User,
@@ -38,7 +38,7 @@ export default function BookingDetailsPage() {
             Back
           </Button>
         </div>
-        <Card className="border-dashed rounded-sm">
+        <Card className="border-dashed rounded-sm bg-white">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <CalendarCheck className="h-8 w-8 text-muted-foreground" />
@@ -147,7 +147,7 @@ export default function BookingDetailsPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Customer Information */}
-        <Card className="rounded-sm">
+        <Card className="rounded-sm bg-white">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -178,7 +178,7 @@ export default function BookingDetailsPage() {
         </Card>
 
         {/* Booking Details */}
-        <Card className="rounded-sm">
+        <Card className="rounded-sm bg-white">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <CalendarCheck className="h-4 w-4" />
@@ -205,10 +205,10 @@ export default function BookingDetailsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <Banknote className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Total Price</p>
-                <p className="text-lg font-bold">${booking.totalPrice}</p>
+                <p className="text-lg font-bold">{booking.totalPrice} MAD</p>
               </div>
             </div>
             <Separator />
@@ -223,7 +223,7 @@ export default function BookingDetailsPage() {
         </Card>
 
         {/* Offer Information */}
-        <Card className="rounded-sm">
+        <Card className="rounded-sm bg-white">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Package className="h-4 w-4" />

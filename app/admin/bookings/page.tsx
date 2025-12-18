@@ -9,7 +9,6 @@ import {
   Filter,
   Clock,
   Users,
-  DollarSign,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -103,7 +102,7 @@ export default function AdminBookingsPage() {
             placeholder="Search bookings..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 rounded-sm"
+            className="pl-10 rounded-sm bg-white"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -112,7 +111,7 @@ export default function AdminBookingsPage() {
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value as BookingStatus)}
           >
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[140px] bg-white">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -130,7 +129,7 @@ export default function AdminBookingsPage() {
       {filteredBookings.length > 0 ? (
         <div className="space-y-3">
           {filteredBookings.map((booking) => (
-            <Card key={booking.id} className="hover:bg-muted/30 transition-colors rounded-sm">
+            <Card key={booking.id} className="hover:bg-muted/30 transition-colors rounded-sm bg-white">
               <CardContent className="p-4">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   {/* Left: Customer & Offer Info */}
@@ -158,8 +157,7 @@ export default function AdminBookingsPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-1 font-medium">
-                      <DollarSign className="h-4 w-4" />
-                      <span>{booking.totalPrice}</span>
+                      <span>{booking.totalPrice} MAD</span>
                     </div>
                   </div>
 
@@ -187,7 +185,7 @@ export default function AdminBookingsPage() {
           ))}
         </div>
       ) : (
-        <Card className="border-dashed rounded-sm">
+        <Card className="border-dashed rounded-sm bg-white">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <CalendarCheck className="h-8 w-8 text-muted-foreground" />

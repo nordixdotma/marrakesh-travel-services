@@ -123,7 +123,7 @@ export default function AdminReviewsPage() {
             placeholder="Search reviews..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 rounded-sm"
+            className="pl-10 rounded-sm bg-white"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -132,7 +132,7 @@ export default function AdminReviewsPage() {
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value as ReviewStatus)}
           >
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[140px] bg-white">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -149,7 +149,7 @@ export default function AdminReviewsPage() {
       {filteredReviews.length > 0 ? (
         <div className="space-y-4">
           {filteredReviews.map((review) => (
-            <Card key={review.id} className="hover:bg-muted/30 transition-colors rounded-sm">
+            <Card key={review.id} className="hover:bg-muted/30 transition-colors rounded-sm bg-white">
               <CardContent className="p-4">
                 <div className="flex flex-col gap-4">
                   {/* Header Row */}
@@ -236,7 +236,7 @@ export default function AdminReviewsPage() {
           ))}
         </div>
       ) : (
-        <Card className="border-dashed rounded-sm">
+        <Card className="border-dashed rounded-sm bg-white">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Star className="h-8 w-8 text-muted-foreground" />

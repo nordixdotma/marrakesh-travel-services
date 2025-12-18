@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import {
   Users,
   Search,
@@ -17,6 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { users } from "@/lib/admin-data"
 
 export default function AdminUsersPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
 
   const filteredUsers = useMemo(() => {
@@ -43,7 +45,7 @@ export default function AdminUsersPage() {
   }
 
   const handleViewDetails = (id: string) => {
-    alert(`View user details: ${id}`)
+    router.push(`/admin/users/${id}`)
   }
 
   return (
@@ -63,7 +65,7 @@ export default function AdminUsersPage() {
           placeholder="Search users..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 rounded-sm"
+          className="pl-10 rounded-sm bg-white"
         />
       </div>
 
@@ -71,7 +73,7 @@ export default function AdminUsersPage() {
       {filteredUsers.length > 0 ? (
         <div className="space-y-3">
           {filteredUsers.map((user) => (
-            <Card key={user.id} className="hover:bg-muted/30 transition-colors rounded-sm">
+            <Card key={user.id} className="hover:bg-muted/30 transition-colors rounded-sm bg-white">
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   {/* Left: User Info */}
@@ -128,7 +130,7 @@ export default function AdminUsersPage() {
           ))}
         </div>
       ) : (
-        <Card className="border-dashed rounded-sm">
+        <Card className="border-dashed rounded-sm bg-white">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Users className="h-8 w-8 text-muted-foreground" />

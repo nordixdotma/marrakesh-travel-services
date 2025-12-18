@@ -63,9 +63,9 @@ export default function OffersGrid({ offers }: OffersGridProps) {
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
             <Search className="w-8 h-8 text-muted-foreground" />
           </div>
-          <h3 className="text-xl font-semibold text-foreground mb-2">No offers found</h3>
+          <h3 className="text-xl font-semibold text-foreground mb-2">{t.common?.noOffersFound || "No offers found"}</h3>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            We couldn't find any offers matching your criteria. Try adjusting your filters or search for something else.
+            {t.common?.noOffersDescription || "We couldn't find any offers matching your criteria. Try adjusting your filters or search for something else."}
           </p>
         </div>
       ) : (

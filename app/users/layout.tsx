@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -20,8 +20,9 @@ export default function UsersLayout({
 }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { isLoggedIn, user, logout, openLoginModal } = useAuth()
+  const { isLoggedIn, user, logout, openLoginModal, isLoading } = useAuth()
   const { t } = useLanguage()
+  const isLoggingOut = useRef(false)
 
   const sidebarLinks = [
     {
@@ -52,22 +53,26 @@ export default function UsersLayout({
   ]
 
   useEffect(() => {
-    // If not logged in, redirect to home and show login modal
-    if (!isLoggedIn) {
+    // Wait for auth check to complete
+    if (isLoading) return
+
+    // If not logged in and not intentionally logging out, redirect to home and show login modal
+    if (!isLoggedIn && !isLoggingOut.current) {
       router.push("/")
       setTimeout(() => {
         openLoginModal("Please sign in to access your account")
       }, 100)
     }
-  }, [isLoggedIn, router, openLoginModal])
+  }, [isLoggedIn, isLoading, router, openLoginModal])
 
   const handleLogout = () => {
+    isLoggingOut.current = true
     logout()
     router.push("/")
   }
 
-  // Don't render the layout if not logged in
-  if (!isLoggedIn) {
+  // Don't render the layout if loading or not logged in
+  if (isLoading || !isLoggedIn) {
     return null
   }
 
@@ -75,7 +80,7 @@ export default function UsersLayout({
     <>
       <Header isStatic />
       <main className="min-h-screen bg-muted/30 py-8">
-        <Container className="max-w-6xl">
+        <Container className="max-w-7xl">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar */}
             <aside className="lg:w-64 shrink-0">

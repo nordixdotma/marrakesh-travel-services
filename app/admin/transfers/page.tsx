@@ -1,14 +1,16 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Car, Plus, Search, Eye, Pencil, Trash2, MapPin, DollarSign } from "lucide-react"
+import { Car, Plus, Search, Eye, Pencil, Trash2, MapPin } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { transfersOffers } from "@/lib/offers-data"
 
 export default function AdminTransfersPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
 
   const filteredOffers = useMemo(() => {
@@ -21,20 +23,21 @@ export default function AdminTransfersPage() {
   }, [searchQuery])
 
   const handleCreate = () => {
-    alert("Create Transfer functionality coming soon!")
+    router.push("/admin/transfers/new")
   }
 
   const handleView = (id: string) => {
-    alert(`View details for transfer: ${id}`)
+    router.push(`/admin/transfers/${id}?mode=view`)
   }
 
   const handleEdit = (id: string) => {
-    alert(`Edit transfer: ${id}`)
+    router.push(`/admin/transfers/${id}?mode=edit`)
   }
 
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this transfer?")) {
-      alert(`Delete transfer: ${id}`)
+      // In a real app, this would delete from a backend
+      alert(`Deleted transfer: ${id}`)
     }
   }
 
@@ -61,17 +64,18 @@ export default function AdminTransfersPage() {
           placeholder="Search transfers..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 rounded-sm"
+          className="pl-10 rounded-sm bg-white"
         />
       </div>
 
+      {/* Offers List */}
       {/* Offers List */}
       {filteredOffers.length > 0 ? (
         <div className="space-y-3">
           {filteredOffers.map((offer) => (
             <div
               key={offer.id}
-              className="flex items-center gap-4 p-3 bg-card border rounded-sm hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-4 p-3 bg-white border rounded-sm hover:bg-muted/50 transition-colors"
             >
               {/* Thumbnail */}
               <div className="relative w-20 h-14 shrink-0 overflow-hidden rounded-sm">
@@ -92,8 +96,7 @@ export default function AdminTransfersPage() {
                     {offer.departCity}
                   </div>
                   <div className="flex items-center gap-1">
-                    <DollarSign className="h-3 w-3" />
-                    {offer.priceAdult}/adult
+                    <span className="font-medium">{offer.priceAdult} MAD</span>/adult
                   </div>
                 </div>
               </div>
@@ -129,7 +132,7 @@ export default function AdminTransfersPage() {
           ))}
         </div>
       ) : (
-        <Card className="border-dashed rounded-sm">
+        <Card className="border-dashed rounded-sm bg-white">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Car className="h-8 w-8 text-muted-foreground" />

@@ -230,6 +230,8 @@ export const es: TranslationKeys = {
     location: "Ubicación",
     rating: "Puntuación",
     reviews: "reseñas",
+    noOffersFound: "No se encontraron ofertas",
+    noOffersDescription: "No pudimos encontrar ofertas que coincidan con sus criterios. Intente ajustar sus filtros o busque otra cosa.",
   },
 
   // Login Modal
@@ -483,6 +485,29 @@ export const es: TranslationKeys = {
       faqTitle: "Preguntas Frecuentes",
       faqDescription: "Encuentra respuestas rápidas a consultas comunes",
       viewAllFaq: "Ver Todas las FAQ",
+    },
+    bookingDetails: {
+      backToBookings: "Volver a Reservas",
+      pageTitle: "Detalles de la Reserva",
+      bookedOn: "Reservado el",
+      serviceInfo: "Información del Servicio",
+      reservationDetails: "Detalles de la Reserva",
+      reservationDesc: "Información proporcionada durante la reserva",
+      contactInfo: "Información de Contacto",
+      groupSummary: "Resumen del Grupo",
+      specialRequests: "Solicitudes Especiales / Mensaje",
+      paymentSummary: "Resumen de Pago",
+      pricePerPerson: "Precio por persona",
+      totalPeople: "Total de Personas",
+      total: "Total",
+      paymentNote: "El pago se suele realizar en el lugar o según las condiciones específicas de la oferta. Por favor revise su correo para instrucciones de pago.",
+      downloadVoucher: "Descargar Bono",
+      status: {
+        confirmed: "Confirmado",
+        completed: "Completado",
+        cancelled: "Cancelado",
+        upcoming: "Próximo",
+      },
     },
   },
 

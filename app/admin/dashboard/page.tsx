@@ -9,7 +9,7 @@ import {
   Star,
   TrendingUp,
   ArrowRight,
-  DollarSign,
+  Banknote,
   Clock,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -94,7 +94,7 @@ export default function AdminDashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-sm">
+        <Card className="rounded-sm bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -111,7 +111,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-sm">
+        <Card className="rounded-sm bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -126,7 +126,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-sm">
+        <Card className="rounded-sm bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -141,7 +141,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-sm">
+        <Card className="rounded-sm bg-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -162,7 +162,7 @@ export default function AdminDashboardPage() {
       {/* Chart and Revenue */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Monthly Bookings Chart */}
-        <Card className="lg:col-span-2 rounded-sm">
+        <Card className="lg:col-span-2 rounded-sm bg-white">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold">Booking Trends</CardTitle>
@@ -195,7 +195,7 @@ export default function AdminDashboardPage() {
         </Card>
 
         {/* Revenue Summary */}
-        <Card className="rounded-sm">
+        <Card className="rounded-sm bg-white">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Revenue Overview</CardTitle>
           </CardHeader>
@@ -203,20 +203,20 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-sm">
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-sm bg-emerald-500/10 flex items-center justify-center">
-                  <DollarSign className="h-5 w-5 text-emerald-600" />
+                  <Banknote className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">Total Revenue</p>
                   <p className="text-xs text-muted-foreground">All time</p>
                 </div>
               </div>
-              <p className="text-lg font-bold">${stats.totalRevenue.toLocaleString()}</p>
+              <p className="text-lg font-bold">{stats.totalRevenue.toLocaleString()} MAD</p>
             </div>
             <div className="space-y-3">
               {monthlyStats.slice(-3).reverse().map((stat, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{stat.month} 2025</span>
-                  <span className="text-sm font-medium">${stat.revenue.toLocaleString()}</span>
+                  <span className="text-sm font-medium">{stat.revenue.toLocaleString()} MAD</span>
                 </div>
               ))}
             </div>
@@ -227,7 +227,7 @@ export default function AdminDashboardPage() {
       {/* Latest Bookings and Users */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Latest Bookings */}
-        <Card className="rounded-sm">
+        <Card className="rounded-sm bg-white">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold">Latest Bookings</CardTitle>
@@ -252,7 +252,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="flex items-center gap-3 ml-4">
                     <div className="text-right hidden sm:block">
-                      <p className="text-sm font-medium">${booking.totalPrice}</p>
+                      <p className="text-sm font-medium">{booking.totalPrice} MAD</p>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {formatDate(booking.createdAt)}
@@ -269,7 +269,7 @@ export default function AdminDashboardPage() {
         </Card>
 
         {/* New Users */}
-        <Card className="rounded-sm">
+        <Card className="rounded-sm bg-white">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold">New Users</CardTitle>

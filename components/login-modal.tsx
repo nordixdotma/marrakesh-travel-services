@@ -25,6 +25,7 @@ interface User {
 interface AuthContextType {
   user: User | null
   isLoggedIn: boolean
+  isLoading: boolean
   login: (user: User) => void
   logout: () => void
   openLoginModal: (message?: string) => void
@@ -47,6 +48,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMessage, setModalMessage] = useState<string | undefined>()
 
@@ -60,6 +62,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         localStorage.removeItem("user")
       }
     }
+    setIsLoading(false)
   }, [])
 
   const login = (userData: User) => {
@@ -89,6 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       value={{
         user,
         isLoggedIn: !!user,
+        isLoading,
         login,
         logout,
         openLoginModal,

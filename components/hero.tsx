@@ -65,7 +65,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative w-full overflow-hidden" style={{ height: "100dvh" }}>
+    <section className="relative w-full overflow-hidden" style={{ height: "100svh" }}>
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full z-0">
         <Image

@@ -536,7 +536,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
             <div className="lg:col-span-1">
               <div className="sticky top-24 bg-background rounded-2xl border border-border/50 shadow-lg overflow-hidden">
                 {/* Price Header */}
-                {offer.priceAdult !== undefined && (
+                {offer.type !== "packages" && offer.priceAdult !== undefined && (
                   <div className="p-4 bg-linear-to-r from-primary to-primary/80 text-primary-foreground">
                     <div className="flex items-baseline gap-2">
                       <span className="text-sm opacity-90">{t.offerDetails.reservationForm.fromPrice}</span>
@@ -713,7 +713,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                       </div>
                       <p className="text-[10px] text-muted-foreground">{t.offerDetails.reservationForm.finalPriceNote}</p>
                     </div>
-                  ) : (offer.priceAdult !== undefined || offer.priceChild !== undefined) && (
+                  ) : offer.type !== "packages" && (offer.priceAdult !== undefined || offer.priceChild !== undefined) && (
                     <div className="p-3 bg-muted/50 rounded-lg space-y-2">
                       {offer.priceAdult !== undefined && (
                         <div className="flex justify-between text-xs text-muted-foreground">
@@ -744,7 +744,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                   )}
 
                   <Button type="submit" className="w-full h-11 font-semibold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer">
-                    {t.offerDetails.reservationForm.reserveNow}
+                    {offer.type === "packages" ? "Request Custom Quote" : t.offerDetails.reservationForm.reserveNow}
                   </Button>
 
                   {/* Trust Badges */}

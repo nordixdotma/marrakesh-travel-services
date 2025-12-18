@@ -95,7 +95,7 @@ export default function FavoritesPage() {
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                       <div>
                         <p className="text-xs text-muted-foreground">{t.common.from}</p>
-                        <p className="font-semibold text-primary">${offer.priceAdult}</p>
+                        <p className="font-semibold text-primary">MAD {offer.priceAdult}</p>
                       </div>
                       <Link href={`/offers/${offer.id}`}>
                         <Button size="sm" variant="outline" className="gap-1">

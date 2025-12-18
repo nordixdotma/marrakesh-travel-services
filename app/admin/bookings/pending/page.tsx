@@ -17,7 +17,7 @@ const pendingBookings = [
     date: "2024-12-14",
     time: "08:00",
     guests: 4,
-    amount: "$340",
+    amount: "MAD 340",
     createdAt: "2024-12-10 14:30",
     notes: "Requested vegetarian lunch option",
   },
@@ -31,7 +31,7 @@ const pendingBookings = [
     date: "2024-12-20",
     time: "06:00",
     guests: 2,
-    amount: "$900",
+    amount: "MAD 900",
     createdAt: "2024-12-10 16:45",
     notes: "",
   },
@@ -45,7 +45,7 @@ const pendingBookings = [
     date: "2024-12-15",
     time: "11:30",
     guests: 3,
-    amount: "$45",
+    amount: "MAD 45",
     createdAt: "2024-12-11 09:15",
     notes: "Flight AA123 arriving at 11:00",
   },
@@ -87,7 +87,7 @@ export default function PendingBookingsPage() {
         <Card>
           <CardContent className="pt-6 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-              <span className="text-green-600 font-bold text-lg">$1,285</span>
+              <span className="text-green-600 font-bold text-lg">MAD 1,285</span>
             </div>
             <div>
               <div className="text-2xl font-bold">Total Value</div>

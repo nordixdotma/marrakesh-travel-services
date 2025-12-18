@@ -73,7 +73,7 @@ export default function BookingsPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-primary">${booking.price}</p>
+                    <p className="font-semibold text-primary">MAD {booking.price}</p>
                     <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
                       {t.users.bookings.confirmed}
                     </span>
@@ -125,7 +125,7 @@ export default function BookingsPage() {
                     <p className="text-sm text-muted-foreground">{booking.date}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${booking.price}</p>
+                    <p className="font-medium">MAD {booking.price}</p>
                     <span
                       className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
                         booking.status === "completed"

@@ -73,7 +73,7 @@ export default function OffersGrid({ offers }: OffersGridProps) {
           <Link
             key={offer.id}
             href={`/offers/${offer.id}`}
-            className="offer-card rounded-sm md:rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group block relative flex-col"
+            className="offer-card rounded-sm md:rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group flex flex-col relative h-full"
           >
             <div className="relative overflow-hidden h-52 md:h-56 lg:h-64">
               <Image
@@ -98,21 +98,21 @@ export default function OffersGrid({ offers }: OffersGridProps) {
               </button>
             </div>
 
-            <div className="p-2 sm:p-3 md:p-4 grow flex flex-col">
+            <div className="p-2 md:p-4 grow flex flex-col">
               <h3 className="text-sm sm:text-base md:text-lg font-semibold text-foreground mb-2 md:mb-2 line-clamp-2">{offer.title}</h3>
 
-              <p className="text-xs sm:text-sm text-muted-foreground mb-3 md:mb-3 line-clamp-2">{offer.description}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 md:mb-2 line-clamp-2">{offer.description}</p>
 
               {/* Show transfer route for transfers, availability dates for others */}
               {offer.type === "transfers" && offer.transferDetails ? (
-                <div className="text-[10px] sm:text-xs text-muted-foreground mb-2 md:mb-3 flex items-center gap-1">
+                <div className="text-[10px] sm:text-xs text-muted-foreground mb-2 md:mb-2 flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-primary shrink-0" />
                   <span className="truncate">{offer.transferDetails.from}</span>
                   <ArrowRight className="w-3 h-3 text-primary shrink-0" />
                   <span className="truncate">{offer.transferDetails.to}</span>
                 </div>
               ) : (
-                <div className="text-[10px] sm:text-xs text-muted-foreground mb-2 md:mb-3 flex items-center gap-1">
+                <div className="text-[10px] sm:text-xs text-muted-foreground mb-2 md:mb-1 flex items-center gap-1">
                   <span className="inline-block w-1 h-1 rounded-full bg-primary"></span>
                   {(t?.offerDetails?.availability ?? "Available") + ":"} {" "}
                   {new Date(offer.availabilityDates.startDate).toLocaleDateString(language || "en", {
@@ -132,7 +132,7 @@ export default function OffersGrid({ offers }: OffersGridProps) {
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-[10px] sm:text-xs text-primary-foreground opacity-90">{t?.common?.from ?? "From"}</p>
-                  <p className="text-sm md:text-base font-semibold text-primary-foreground">${offer.priceAdult}</p>
+                  <p className="text-sm md:text-base font-semibold text-primary-foreground">MAD {offer.priceAdult}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-primary-foreground opacity-90">{offer.type === "transfers" ? (t?.offerDetails?.perVehicle ?? "per vehicle") : (t?.common?.perPerson ?? "per person")}</p>

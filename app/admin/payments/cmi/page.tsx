@@ -51,7 +51,7 @@ export default function CMIPaymentsPage() {
             </div>
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Today&apos;s Revenue</p>
-              <p className="text-2xl font-bold">$3,450</p>
+              <p className="text-2xl font-bold">MAD 3,450</p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Success Rate</p>

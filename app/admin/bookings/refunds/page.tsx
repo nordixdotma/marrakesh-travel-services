@@ -12,7 +12,7 @@ const refunds = [
     bookingId: "BK004",
     customer: "Sarah Davis",
     service: "Hot Air Balloon Ride",
-    amount: "$360",
+    amount: "MAD 360",
     requestedAt: "2024-12-10 11:20",
     status: "completed",
     processedAt: "2024-12-10 14:30",
@@ -24,7 +24,7 @@ const refunds = [
     bookingId: "BK008",
     customer: "Tom Wilson",
     service: "Sahara Desert Tour",
-    amount: "$450",
+    amount: "MAD 450",
     requestedAt: "2024-12-09 08:30",
     status: "completed",
     processedAt: "2024-12-09 16:45",
@@ -36,7 +36,7 @@ const refunds = [
     bookingId: "BK009",
     customer: "Anna Lee",
     service: "Airport Transfer",
-    amount: "$35",
+    amount: "MAD 35",
     requestedAt: "2024-12-11 22:00",
     status: "pending",
     processedAt: null,
@@ -48,7 +48,7 @@ const refunds = [
     bookingId: "BK010",
     customer: "David Park",
     service: "City Tour",
-    amount: "$120",
+    amount: "MAD 120",
     requestedAt: "2024-12-11 10:00",
     status: "processing",
     processedAt: null,
@@ -107,7 +107,7 @@ export default function RefundsPage() {
               <DollarSign className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <div className="text-2xl font-bold">$4,250</div>
+               <div className="text-2xl font-bold">MAD 4,250</div>
               <p className="text-sm text-muted-foreground">This Month</p>
             </div>
           </CardContent>

@@ -42,7 +42,7 @@ const stats = [
   },
   {
     title: "Revenue",
-    value: "$45,678",
+    value: "MAD 45,678",
     change: 18.3,
     icon: DollarSign,
     color: "text-violet-600",
@@ -59,11 +59,11 @@ const stats = [
 ]
 
 const recentBookings = [
-  { id: "BK001", customer: "John Smith", tour: "Sahara Desert Adventure", status: "confirmed", amount: "$450" },
-  { id: "BK002", customer: "Emma Wilson", tour: "Marrakech City Tour", status: "pending", amount: "$120" },
-  { id: "BK003", customer: "Michael Brown", tour: "Atlas Mountains Trek", status: "confirmed", amount: "$280" },
-  { id: "BK004", customer: "Sarah Davis", tour: "Airport Transfer", status: "canceled", amount: "$45" },
-  { id: "BK005", customer: "James Johnson", tour: "Essaouira Day Trip", status: "confirmed", amount: "$180" },
+  { id: "BK001", customer: "John Smith", tour: "Sahara Desert Adventure", status: "confirmed", amount: "MAD 450" },
+  { id: "BK002", customer: "Emma Wilson", tour: "Marrakech City Tour", status: "pending", amount: "MAD 120" },
+  { id: "BK003", customer: "Michael Brown", tour: "Atlas Mountains Trek", status: "confirmed", amount: "MAD 280" },
+  { id: "BK004", customer: "Sarah Davis", tour: "Airport Transfer", status: "canceled", amount: "MAD 45" },
+  { id: "BK005", customer: "James Johnson", tour: "Essaouira Day Trip", status: "confirmed", amount: "MAD 180" },
 ]
 
 const alerts = [
@@ -73,10 +73,10 @@ const alerts = [
 ]
 
 const topTours = [
-  { name: "Sahara Desert 3-Day", bookings: 156, revenue: "$70.2K" },
-  { name: "Marrakech City Tour", bookings: 234, revenue: "$28.0K" },
-  { name: "Atlas Mountains Trip", bookings: 189, revenue: "$52.9K" },
-  { name: "Essaouira Beach Trip", bookings: 145, revenue: "$26.1K" },
+  { name: "Sahara Desert 3-Day", bookings: 156, revenue: "MAD 70.2K" },
+  { name: "Marrakech City Tour", bookings: 234, revenue: "MAD 28.0K" },
+  { name: "Atlas Mountains Trip", bookings: 189, revenue: "MAD 52.9K" },
+  { name: "Essaouira Beach Trip", bookings: 145, revenue: "MAD 26.1K" },
 ]
 
 export default function AdminDashboardPage() {

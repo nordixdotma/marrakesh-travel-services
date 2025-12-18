@@ -193,10 +193,10 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
               <DollarSign className="w-3 h-3" />
               {minPrice !== "" && maxPrice !== "" 
-                ? `$${minPrice} - $${maxPrice}` 
+                ? `MAD ${minPrice} - MAD ${maxPrice}` 
                 : minPrice !== "" 
-                  ? `${t.searchFilter.fromPrice} $${minPrice}` 
-                  : `${t.searchFilter.upToPrice} $${maxPrice}`}
+                  ? `${t.searchFilter.fromPrice} MAD ${minPrice}` 
+                  : `${t.searchFilter.upToPrice} MAD ${maxPrice}`}
               <button onClick={() => { setMinPrice(""); setMaxPrice(""); emit() }} className="ml-1 hover:bg-primary/20 rounded-full p-0.5">
                 <X className="w-3 h-3" />
               </button>
@@ -252,26 +252,26 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
                 </label>
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">MAD</span>
                     <input
                       type="number"
                       value={minPrice as any}
                       onChange={(e) => setMinPrice(e.target.value === "" ? "" : Number(e.target.value))}
                       onBlur={emit}
-                      className="w-full pl-7 pr-3 py-2 sm:py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      className="w-full pl-11 pr-3 py-2 sm:py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                       placeholder={t.searchFilter.minPrice}
                       min={0}
                     />
                   </div>
                   <span className="text-muted-foreground text-sm">–</span>
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">MAD</span>
                     <input
                       type="number"
                       value={maxPrice as any}
                       onChange={(e) => setMaxPrice(e.target.value === "" ? "" : Number(e.target.value))}
                       onBlur={emit}
-                      className="w-full pl-7 pr-3 py-2 sm:py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      className="w-full pl-11 pr-3 py-2 sm:py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                       placeholder={t.searchFilter.maxPrice}
                       min={0}
                     />

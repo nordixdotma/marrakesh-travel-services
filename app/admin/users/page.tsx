@@ -30,7 +30,7 @@ const users = [
     phone: "+1 234 567 8901",
     joinedAt: "Jan 15, 2024",
     bookings: 5,
-    totalSpent: "$2,150",
+    totalSpent: "MAD 2,150",
     status: "verified",
   },
   {
@@ -40,7 +40,7 @@ const users = [
     phone: "+1 987 654 3210",
     joinedAt: "Mar 22, 2024",
     bookings: 3,
-    totalSpent: "$890",
+    totalSpent: "MAD 890",
     status: "verified",
   },
   {
@@ -50,7 +50,7 @@ const users = [
     phone: "+44 789 123 4567",
     joinedAt: "Jun 10, 2024",
     bookings: 1,
-    totalSpent: "$45",
+    totalSpent: "MAD 45",
     status: "pending",
   },
   {
@@ -60,7 +60,7 @@ const users = [
     phone: "+33 612 345 678",
     joinedAt: "Aug 05, 2024",
     bookings: 2,
-    totalSpent: "$720",
+    totalSpent: "MAD 720",
     status: "verified",
   },
   {
@@ -70,7 +70,7 @@ const users = [
     phone: "+1 555 123 4567",
     joinedAt: "Sep 18, 2024",
     bookings: 4,
-    totalSpent: "$1,580",
+    totalSpent: "MAD 1,580",
     status: "suspended",
   },
 ]

@@ -253,7 +253,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold text-primary">${vehicle.price}</p>
+                            <p className="text-lg font-bold text-primary">MAD {vehicle.price}</p>
                             <p className="text-xs text-muted-foreground">{t.offerDetails.perVehicle}</p>
                           </div>
                         </div>
@@ -482,7 +482,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.adult}</span>
                         </div>
                         <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-bold text-foreground">${offer.priceAdult}</span>
+                          <span className="text-2xl font-bold text-foreground">MAD {offer.priceAdult}</span>
                           <span className="text-xs text-muted-foreground">{t.offerDetails.perPerson}</span>
                         </div>
                       </div>
@@ -494,7 +494,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.child}</span>
                         </div>
                         <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-bold text-foreground">${offer.priceChild}</span>
+                          <span className="text-2xl font-bold text-foreground">MAD {offer.priceChild}</span>
                           <span className="text-xs text-muted-foreground">{t.offerDetails.perChild}</span>
                         </div>
                       </div>
@@ -540,7 +540,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                   <div className="p-4 bg-linear-to-r from-primary to-primary/80 text-primary-foreground">
                     <div className="flex items-baseline gap-2">
                       <span className="text-sm opacity-90">{t.offerDetails.reservationForm.fromPrice}</span>
-                      <span className="text-3xl font-bold">${offer.priceAdult}</span>
+                      <span className="text-3xl font-bold">MAD {offer.priceAdult}</span>
                       <span className="text-sm opacity-90">{offer.type === "transfers" ? "/" + t.offerDetails.perVehicle.split(" ")[1] : t.offerDetails.perPerson}</span>
                     </div>
                   </div>
@@ -705,11 +705,11 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     <div className="p-3 bg-muted/50 rounded-lg space-y-2">
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>{t.offerDetails.reservationForm.transfer} ({formData.adults} {formData.adults > 1 ? t.offerDetails.reservationForm.passengers : t.offerDetails.reservationForm.passenger})</span>
-                        <span>{t.offerDetails.reservationForm.fromPrice} ${offer.priceAdult}</span>
+                        <span>{t.offerDetails.reservationForm.fromPrice} MAD {offer.priceAdult}</span>
                       </div>
                       <div className="flex justify-between font-semibold text-foreground pt-2 border-t border-border/50">
                         <span>{t.offerDetails.reservationForm.startingFrom}</span>
-                        <span className="text-lg text-primary">${offer.priceAdult}</span>
+                        <span className="text-lg text-primary">MAD {offer.priceAdult}</span>
                       </div>
                       <p className="text-[10px] text-muted-foreground">{t.offerDetails.reservationForm.finalPriceNote}</p>
                     </div>
@@ -717,14 +717,14 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     <div className="p-3 bg-muted/50 rounded-lg space-y-2">
                       {offer.priceAdult !== undefined && (
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{formData.adults} {t.offerDetails.reservationForm.adults} × ${offer.priceAdult}</span>
-                          <span>${formData.adults * offer.priceAdult}</span>
+                          <span>{formData.adults} {t.offerDetails.reservationForm.adults} × MAD {offer.priceAdult}</span>
+                          <span>MAD {formData.adults * offer.priceAdult}</span>
                         </div>
                       )}
                       {formData.children > 0 && offer.priceChild !== undefined && (
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{formData.children} {t.offerDetails.reservationForm.children} × ${offer.priceChild}</span>
-                          <span>${formData.children * offer.priceChild}</span>
+                          <span>{formData.children} {t.offerDetails.reservationForm.children} × MAD {offer.priceChild}</span>
+                          <span>MAD {formData.children * offer.priceChild}</span>
                         </div>
                       )}
                       {formData.infants > 0 && (
@@ -738,7 +738,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                       )}
                       <div className="flex justify-between font-semibold text-foreground pt-2 border-t border-border/50">
                         <span>{t.offerDetails.reservationForm.total}</span>
-                        <span className="text-lg text-primary">${totalPrice}</span>
+                        <span className="text-lg text-primary">MAD {totalPrice}</span>
                       </div>
                     </div>
                   )}

@@ -52,13 +52,13 @@ export default function PayPalPaymentsPage() {
             </div>
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Revenue</p>
-              <p className="text-2xl font-bold">$15,890</p>
+              <p className="text-2xl font-bold">MAD 15,890</p>
               <p className="text-xs text-muted-foreground">this month</p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">Fees Paid</p>
-              <p className="text-2xl font-bold">$476</p>
-              <p className="text-xs text-muted-foreground">2.9% + $0.30</p>
+              <p className="text-2xl font-bold">MAD 476</p>
+              <p className="text-xs text-muted-foreground">2.9% + MAD 0.30</p>
             </div>
           </div>
         </CardContent>

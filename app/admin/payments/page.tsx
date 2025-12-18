@@ -15,7 +15,7 @@ import {
 const stats = [
   {
     title: "Total Revenue",
-    value: "$45,678",
+    value: "MAD 45,678",
     change: 18.3,
     icon: DollarSign,
     color: "text-emerald-600",
@@ -31,7 +31,7 @@ const stats = [
   },
   {
     title: "Avg. Order",
-    value: "$156",
+    value: "MAD 156",
     change: 5.2,
     icon: TrendingUp,
     color: "text-violet-600",
@@ -48,17 +48,17 @@ const stats = [
 ]
 
 const recentTransactions = [
-  { id: "TXN001", customer: "John Smith", amount: "$450", method: "CMI", status: "completed", date: "Dec 11" },
-  { id: "TXN002", customer: "Emma Wilson", amount: "$340", method: "PayPal", status: "pending", date: "Dec 11" },
-  { id: "TXN003", customer: "Michael Brown", amount: "$45", method: "CMI", status: "completed", date: "Dec 10" },
-  { id: "TXN004", customer: "Sarah Davis", amount: "$360", method: "PayPal", status: "refunded", date: "Dec 10" },
-  { id: "TXN005", customer: "James Johnson", amount: "$600", method: "CMI", status: "completed", date: "Dec 09" },
+  { id: "TXN001", customer: "John Smith", amount: "MAD 450", method: "CMI", status: "completed", date: "Dec 11" },
+  { id: "TXN002", customer: "Emma Wilson", amount: "MAD 340", method: "PayPal", status: "pending", date: "Dec 11" },
+  { id: "TXN003", customer: "Michael Brown", amount: "MAD 45", method: "CMI", status: "completed", date: "Dec 10" },
+  { id: "TXN004", customer: "Sarah Davis", amount: "MAD 360", method: "PayPal", status: "refunded", date: "Dec 10" },
+  { id: "TXN005", customer: "James Johnson", amount: "MAD 600", method: "CMI", status: "completed", date: "Dec 09" },
 ]
 
 const paymentMethods = [
-  { name: "CMI", transactions: 756, revenue: "$28,450", percentage: 62 },
-  { name: "PayPal", transactions: 423, revenue: "$15,890", percentage: 35 },
-  { name: "Bank Transfer", transactions: 55, revenue: "$1,338", percentage: 3 },
+  { name: "CMI", transactions: 756, revenue: "MAD 28,450", percentage: 62 },
+  { name: "PayPal", transactions: 423, revenue: "MAD 15,890", percentage: 35 },
+  { name: "Bank Transfer", transactions: 55, revenue: "MAD 1,338", percentage: 3 },
 ]
 
 export default function PaymentsPage() {

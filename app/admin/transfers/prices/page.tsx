@@ -52,15 +52,14 @@ export default function TransferPricesPage() {
           <div className="grid gap-4 sm:grid-cols-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Currency</label>
-              <Select defaultValue="usd">
+              <Select defaultValue="mad">
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="usd">USD ($)</SelectItem>
+                  <SelectItem value="mad">MAD (DH)</SelectItem>
                   <SelectItem value="eur">EUR (€)</SelectItem>
                   <SelectItem value="gbp">GBP (£)</SelectItem>
-                  <SelectItem value="mad">MAD (DH)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -92,10 +91,10 @@ export default function TransferPricesPage() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Route</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Sedan ($)</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">SUV ($)</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Minivan ($)</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Luxury ($)</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Sedan (MAD)</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">SUV (MAD)</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Minivan (MAD)</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Luxury (MAD)</th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>

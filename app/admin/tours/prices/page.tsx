@@ -89,15 +89,14 @@ export default function TourPricesPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <label className="text-sm font-medium">Currency</label>
-              <Select defaultValue="usd">
+              <Select defaultValue="mad">
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="usd">USD ($)</SelectItem>
+                  <SelectItem value="mad">MAD (DH)</SelectItem>
                   <SelectItem value="eur">EUR (€)</SelectItem>
                   <SelectItem value="gbp">GBP (£)</SelectItem>
-                  <SelectItem value="mad">MAD (DH)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

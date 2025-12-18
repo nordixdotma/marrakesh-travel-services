@@ -15,14 +15,14 @@ import {
 } from "@/components/ui/select"
 
 const transactions = [
-  { id: "TXN001", bookingId: "BK001", customer: "John Smith", amount: "$450", method: "CMI", card: "•••• 4242", status: "completed", date: "2024-12-11 14:30" },
-  { id: "TXN002", bookingId: "BK002", customer: "Emma Wilson", amount: "$340", method: "PayPal", card: "PayPal", status: "completed", date: "2024-12-11 12:15" },
-  { id: "TXN003", bookingId: "BK003", customer: "Michael Brown", amount: "$45", method: "CMI", card: "•••• 5555", status: "completed", date: "2024-12-10 16:45" },
-  { id: "TXN004", bookingId: "BK004", customer: "Sarah Davis", amount: "$360", method: "PayPal", card: "PayPal", status: "refunded", date: "2024-12-10 11:20" },
-  { id: "TXN005", bookingId: "BK005", customer: "James Johnson", amount: "$600", method: "CMI", card: "•••• 1234", status: "completed", date: "2024-12-09 09:00" },
-  { id: "TXN006", bookingId: "BK006", customer: "Robert Chen", amount: "$900", method: "CMI", card: "•••• 9876", status: "pending", date: "2024-12-09 08:30" },
-  { id: "TXN007", bookingId: "BK007", customer: "Lisa Martinez", amount: "$45", method: "PayPal", card: "PayPal", status: "failed", date: "2024-12-08 22:00" },
-  { id: "TXN008", bookingId: "BK008", customer: "Tom Wilson", amount: "$450", method: "CMI", card: "•••• 3456", status: "completed", date: "2024-12-08 15:30" },
+  { id: "TXN001", bookingId: "BK001", customer: "John Smith", amount: "MAD 450", method: "CMI", card: "•••• 4242", status: "completed", date: "2024-12-11 14:30" },
+  { id: "TXN002", bookingId: "BK002", customer: "Emma Wilson", amount: "MAD 340", method: "PayPal", card: "PayPal", status: "completed", date: "2024-12-11 12:15" },
+  { id: "TXN003", bookingId: "BK003", customer: "Michael Brown", amount: "MAD 45", method: "CMI", card: "•••• 5555", status: "completed", date: "2024-12-10 16:45" },
+  { id: "TXN004", bookingId: "BK004", customer: "Sarah Davis", amount: "MAD 360", method: "PayPal", card: "PayPal", status: "refunded", date: "2024-12-10 11:20" },
+  { id: "TXN005", bookingId: "BK005", customer: "James Johnson", amount: "MAD 600", method: "CMI", card: "•••• 1234", status: "completed", date: "2024-12-09 09:00" },
+  { id: "TXN006", bookingId: "BK006", customer: "Robert Chen", amount: "MAD 900", method: "CMI", card: "•••• 9876", status: "pending", date: "2024-12-09 08:30" },
+  { id: "TXN007", bookingId: "BK007", customer: "Lisa Martinez", amount: "MAD 45", method: "PayPal", card: "PayPal", status: "failed", date: "2024-12-08 22:00" },
+  { id: "TXN008", bookingId: "BK008", customer: "Tom Wilson", amount: "MAD 450", method: "CMI", card: "•••• 3456", status: "completed", date: "2024-12-08 15:30" },
 ]
 
 export default function PaymentHistoryPage() {

@@ -72,12 +72,10 @@ export default function Hero() {
         setVideoLoaded(true)
       })
 
-      // Ensure autoplay, mute, and start time
+      // Ensure autoplay and mute are set
       player.setMuted(true)
-      player.setCurrentTime(39.4).then(() => {
-        player.play().catch(error => {
-          console.error("Autoplay prevented:", error)
-        })
+      player.play().catch(error => {
+        console.error("Autoplay prevented:", error)
       })
     }
 
@@ -109,7 +107,7 @@ export default function Hero() {
         <div className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}>
           <iframe
             ref={iframeRef}
-            src="https://player.vimeo.com/video/1148108674?badge=0&autopause=0&player_id=0&app_id=58479&autoplay=1&muted=1&loop=1&background=1#t=13s"
+            src="https://player.vimeo.com/video/1148108674?badge=0&autopause=0&player_id=0&app_id=58479&autoplay=1&muted=1&loop=1&background=1"
             className="absolute top-1/2 left-1/2 w-[177.78vh] h-[56.25vw] min-w-full min-h-full"
             style={{
               transform: "translate(-50%, -50%)",

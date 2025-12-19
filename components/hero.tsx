@@ -1,13 +1,7 @@
 "use client"
 
-import * as React from "react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { MapPin, Search, Compass, Check, ChevronsUpDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/components/language-provider"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   Command,
   CommandEmpty,
@@ -21,6 +15,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { Check, ChevronsUpDown, Compass, MapPin, Search } from "lucide-react"
+import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 const SERVICES = [
   { id: "tours", label: { en: "Tours", fr: "Circuits", es: "Circuitos" }, path: "/tours" },
@@ -89,7 +88,7 @@ export default function Hero() {
               transform: "translate(-50%, -50%)",
               pointerEvents: "none"
             }}
-            src="https://www.youtube-nocookie.com/embed/1XKaUV4dJFU?autoplay=1&mute=1&loop=1&playlist=1XKaUV4dJFU&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&start=0&end=150"
+            src="https://www.youtube-nocookie.com/embed/1XKaUV4dJFU?autoplay=1&mute=1&loop=1&playlist=1XKaUV4dJFU&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&start=13&end=150"
             title="Background video"
             frameBorder="0"
             allow="autoplay; encrypted-media"

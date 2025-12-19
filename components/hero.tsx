@@ -102,7 +102,7 @@ export default function Hero() {
       <div className="absolute inset-0 bg-black/30" />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col justify-center h-full px-4">
+      <div className="relative z-10 flex flex-col justify-end h-full px-4 pb-20">
         <div className="w-full max-w-5xl mx-auto space-y-6">
           
           {/* Main Search Bar */}

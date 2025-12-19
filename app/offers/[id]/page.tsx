@@ -744,7 +744,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                   )}
 
                   <Button type="submit" className="w-full h-11 font-semibold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer">
-                    {offer.type === "packages" ? "Request Custom Quote" : t.offerDetails.reservationForm.reserveNow}
+                    {offer.type === "packages" ? t.offerDetails.reservationForm.requestCustomQuote : t.offerDetails.reservationForm.reserveNow}
                   </Button>
 
                   {/* Trust Badges */}

@@ -97,29 +97,39 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
           className={cn(
             "w-full transition-all duration-300 overflow-hidden z-50 relative", 
             isUsersSection ? "bg-primary" : "bg-primary",
-            scrolled ? "h-0 opacity-0" : "h-10 opacity-100"
+            scrolled ? "h-0 opacity-0" : "h-[60px] sm:h-10 opacity-100"
           )}
         >
-          <Container className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 text-xs font-medium text-white/90">
-            <div className="flex items-center gap-6">
-              <a href="mailto:contact@marrakeshtravelservices.com" className="flex items-center gap-2 hover:text-white transition-colors">
-                <Mail className="h-3.5 w-3.5" />
-                <span>contact@marrakeshtravelservices.com</span>
-              </a>
-              <a href="tel:+212524375251" className="hidden sm:flex items-center gap-2 hover:text-white transition-colors">
+          <Container className="max-w-7xl mx-auto h-full flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-between px-4 text-[11px] sm:text-xs font-medium text-white/90 py-1.5 sm:py-0">
+            {/* Desktop: Phone & Email Left | Mobile: Row 1 - Phone */}
+            <div className="flex items-center justify-start gap-6 mb-1 sm:mb-0">
+              <a href="tel:+212524375251" className="flex items-center gap-2 hover:text-white transition-colors">
                 <Phone className="h-3.5 w-3.5" />
                 <span>+212 524 375 251</span>
               </a>
+              <a href="mailto:contact@marrakeshtravelservices.com" className="hidden sm:flex items-center gap-2 hover:text-white transition-colors">
+                <Mail className="h-3.5 w-3.5" />
+                <span>contact@marrakeshtravelservices.com</span>
+              </a>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="hidden sm:inline opacity-60">Follow us:</span>
-              <div className="flex items-center gap-3">
-                <a href="https://www.facebook.com/marrakeshtravelservices/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                  <Facebook className="h-4 w-4" />
-                </a>
-                <a href="https://www.instagram.com/marrakeshtravelservice/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                  <Instagram className="h-4 w-4" />
-                </a>
+
+            {/* Desktop: Socials Right | Mobile: Row 2 - Email & Socials */}
+            <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
+              <a href="mailto:contact@marrakeshtravelservices.com" className="flex sm:hidden items-center gap-2 hover:text-white transition-colors">
+                <Mail className="h-3.5 w-3.5" />
+                <span>contact@marrakeshtravelservices.com</span>
+              </a>
+              
+              <div className="flex items-center gap-4">
+                <span className="hidden md:inline opacity-60">Follow us:</span>
+                <div className="flex items-center gap-3">
+                  <a href="https://www.facebook.com/marrakeshtravelservices/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                  <a href="https://www.instagram.com/marrakeshtravelservice/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                </div>
               </div>
             </div>
           </Container>

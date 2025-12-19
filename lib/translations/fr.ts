@@ -175,6 +175,7 @@ export const fr: TranslationKeys = {
       startingFrom: "À partir de",
       finalPriceNote: "Le prix final dépend du véhicule sélectionné",
       reserveNow: "Réserver Maintenant",
+      requestCustomQuote: "Demander un Devis Personnalisé",
       secure: "Sécurisé",
       instantConfirm: "Confirmation instantanée",
       passenger: "passager",

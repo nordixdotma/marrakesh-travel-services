@@ -173,6 +173,7 @@ export const en = {
       startingFrom: "Starting from",
       finalPriceNote: "Final price depends on vehicle selection",
       reserveNow: "Reserve Now",
+      requestCustomQuote: "Request Custom Quote",
       secure: "Secure",
       instantConfirm: "Instant confirm",
       passenger: "passenger",

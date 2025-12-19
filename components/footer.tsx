@@ -14,6 +14,7 @@ export default function Footer() {
     { href: "/packages", label: t.header.packages },
     { href: "/transfers", label: t.header.transfers },
     { href: "/blog", label: "Blog" },
+    { href: "/affiliate", label: "Affiliate" },
   ]
 
   return (

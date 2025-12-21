@@ -124,8 +124,8 @@ export default function Hero() {
       <div className="absolute inset-0 bg-black/30" />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col justify-end h-full px-4 pb-20">
-        <div className="w-full max-w-5xl mx-auto space-y-6">
+      <div className="relative z-10 flex flex-col justify-end h-full pb-2">
+        <div className="w-full max-w-5xl mx-auto space-y-6 px-14 md:px-0">
           
           {/* Main Search Bar */}
           <div className="bg-white/20 md:bg-white/95 backdrop-blur-md rounded-md p-1.5 md:p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/20 flex flex-col md:flex-row items-stretch gap-2">
@@ -278,7 +278,7 @@ export default function Hero() {
         href="https://www.tripadvisor.com/Attraction_Review-g293734-d8514036-Reviews-Marrakesh_Travel_Services-Marrakech_Marrakech_Safi.html"
         target="_blank"
         rel="noopener noreferrer"
-        className="absolute bottom-4 left-4 z-20 hover:scale-110 transition-transform duration-300"
+        className="absolute bottom-2 left-2 z-20 hover:scale-110 transition-transform duration-300"
         aria-label="Visit our TripAdvisor page"
       >
         <Image

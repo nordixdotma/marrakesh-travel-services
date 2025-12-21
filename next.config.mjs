@@ -56,6 +56,19 @@ const nextConfig = {
         hostname: 'localhost',
         port: '3030',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+      },
+      {
+        protocol: 'http',
+        hostname: 'api.marrakeshtravelservices.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.marrakeshtravelservices.com',
+      },
     ],
   },
 }

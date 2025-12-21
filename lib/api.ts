@@ -241,6 +241,22 @@ export const adminApi = {
     const client = new ApiClient()
     return client.patch<{ message: string; package: any }>(`/admin/packages/${id}`, data)
   },
+  updateTour: async (id: string, data: any) => {
+    const client = new ApiClient()
+    return client.patch<{ message: string; tour: any }>(`/admin/tours/${id}`, data)
+  },
+  updateExcursion: async (id: string, data: any) => {
+    const client = new ApiClient()
+    return client.patch<{ message: string; excursion: any }>(`/admin/excursions/${id}`, data)
+  },
+  updateActivity: async (id: string, data: any) => {
+    const client = new ApiClient()
+    return client.patch<{ message: string; activity: any }>(`/admin/activities/${id}`, data)
+  },
+  updateTransfer: async (id: string, data: any) => {
+    const client = new ApiClient()
+    return client.patch<{ message: string; transfer: any }>(`/admin/transfers/${id}`, data)
+  },
   getTransfers: async (language: string = 'en') => {
     const client = new ApiClient()
     return client.get<{ transfers: any[] }>(`/admin/transfers?language=${language}`)

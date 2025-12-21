@@ -17,6 +17,7 @@ import {
   Car,
   Upload,
   Banknote,
+  AlertCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -200,7 +201,19 @@ const offerToFormData = (offer: Offer | undefined, type: OfferType): FormData =>
         excludedItems: offer.translations.es.excludedItems || [],
       } : createEmptyLanguageData(),
     },
-    transferDetails: offer.transferDetails,
+    // Extract transfer details if it's a transfer
+    transferDetails: type === 'transfers' ? (offer.transferDetails || {
+      from: '',
+      to: '',
+      duration: '',
+      distance: '',
+      vehicleOptions: [],
+    }) : undefined,
+    // Extract package details if it's a package
+    packageDetails: type === 'packages' ? {
+      duration: offer.detailedDescription?.duration || '',
+      includes: offer.includedItems || [],
+    } : undefined,
   }
 }
 
@@ -390,8 +403,15 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         
         if (offerType === 'packages') {
           await adminApi.updatePackage(formData.id, requestData)
+        } else if (offerType === 'tours') {
+          await adminApi.updateTour(formData.id, requestData)
+        } else if (offerType === 'excursions') {
+          await adminApi.updateExcursion(formData.id, requestData)
+        } else if (offerType === 'activities') {
+          await adminApi.updateActivity(formData.id, requestData)
+        } else if (offerType === 'transfers') {
+          await adminApi.updateTransfer(formData.id, requestData)
         } else {
-          // TODO: Implement update APIs for other offer types
           throw new Error(`Updating ${offerType} is not yet implemented`)
         }
         

@@ -144,10 +144,10 @@ export default function Hero() {
                       <Compass className="h-4 w-4 md:h-5 md:w-5 text-white md:text-primary" />
                     </div>
                     <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
-                      <span className="text-[10px] md:text-xs font-bold text-white/80 md:text-gray-500 uppercase tracking-wider">
+                      <span className="text-[9px] md:text-xs font-bold text-white/80 md:text-gray-500 uppercase tracking-wider">
                         {language === 'fr' ? 'Service' : language === 'es' ? 'Servicio' : 'Service'}
                       </span>
-                      <span className="text-sm md:text-base font-semibold text-white md:text-gray-900 truncate">
+                      <span className="text-xs md:text-base font-semibold text-white md:text-gray-900 truncate">
                         {activeService.label[language as keyof typeof activeService.label] || activeService.label.en}
                       </span>
                     </div>
@@ -204,10 +204,10 @@ export default function Hero() {
                       <MapPin className="h-4 w-4 md:h-5 md:w-5 text-white md:text-primary" />
                     </div>
                     <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
-                      <span className="text-[10px] md:text-xs font-bold text-white/80 md:text-gray-500 uppercase tracking-wider">
+                      <span className="text-[9px] md:text-xs font-bold text-white/80 md:text-gray-500 uppercase tracking-wider">
                         {language === 'fr' ? 'Ville de départ' : language === 'es' ? 'Ciudad de salida' : 'Departure City'}
                       </span>
-                      <span className="text-sm md:text-base font-semibold text-white md:text-gray-900 truncate">
+                      <span className="text-xs md:text-base font-semibold text-white md:text-gray-900 truncate">
                         {selectedCity}
                       </span>
                     </div>
@@ -258,7 +258,7 @@ export default function Hero() {
               <Button 
                 onClick={handleSearch}
                 size="lg"
-                className="w-full md:w-auto h-12 md:h-16 px-8 md:px-12 rounded-md bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 font-bold text-base md:text-lg group cursor-pointer"
+                className="w-full md:w-auto h-12 md:h-16 px-8 md:px-12 rounded-md bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 font-bold text-sm md:text-lg group cursor-pointer"
               >
                 <Search className="h-5 w-5 mr-0 md:mr-2 md:h-6 md:w-6 group-hover:scale-110 transition-transform" />
                 <span className="hidden md:inline">

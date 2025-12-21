@@ -53,16 +53,60 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [modalMessage, setModalMessage] = useState<string | undefined>()
 
   useEffect(() => {
-    // Check localStorage for existing user on mount
+    // Check localStorage for existing user and token on mount
     const storedUser = localStorage.getItem("user")
-    if (storedUser) {
+    const storedToken = localStorage.getItem("token")
+    
+    if (storedUser && storedToken) {
       try {
-        setUser(JSON.parse(storedUser))
-      } catch {
+        const userData = JSON.parse(storedUser)
+        setUser(userData)
+        console.log('✅ User loaded from localStorage:', userData.name)
+        console.log('✅ Token loaded from localStorage:', storedToken.substring(0, 20) + '...')
+      } catch (error) {
+        console.error('Error parsing stored user:', error)
         localStorage.removeItem("user")
+        localStorage.removeItem("token")
+      }
+    } else if (storedUser && !storedToken) {
+      // User exists but no token - clear user data
+      console.warn('⚠️ User found but no token, clearing user data')
+      localStorage.removeItem("user")
+      setUser(null)
+    } else if (!storedUser && storedToken) {
+      // Token exists but no user - clear token
+      console.warn('⚠️ Token found but no user, clearing token')
+      localStorage.removeItem("token")
+    } else {
+      console.log('ℹ️ No stored authentication data found')
+    }
+    
+    // Listen for storage events (when localStorage is modified in another tab/window)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token' || e.key === 'user') {
+        console.log('📦 Storage event detected:', e.key, e.newValue ? 'updated' : 'removed')
+        if (e.key === 'user' && e.newValue) {
+          try {
+            const userData = JSON.parse(e.newValue)
+            setUser(userData)
+            console.log('✅ User updated from storage event')
+          } catch (error) {
+            console.error('Error parsing user from storage event:', error)
+          }
+        } else if (e.key === 'user' && !e.newValue) {
+          setUser(null)
+          console.log('⚠️ User removed from storage event')
+        }
       }
     }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
     setIsLoading(false)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
   }, [])
 
   const login = (userData: User) => {
@@ -75,6 +119,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = () => {
     setUser(null)
     localStorage.removeItem("user")
+    localStorage.removeItem("token") // Also clear token on logout
   }
 
   const openLoginModal = (message?: string) => {

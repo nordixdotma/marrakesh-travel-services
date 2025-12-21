@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
@@ -8,28 +8,113 @@ import PageHero from "@/components/page-hero"
 import { Container } from "@/components/ui/container"
 import OffersGrid from "@/components/offers-grid"
 import SearchFilter, { type Filters } from "@/components/search-filter"
-import { toursOffers, excursionsOffers, activitiesOffers, packagesOffers, type Offer } from "@/lib/offers-data"
+import { type Offer } from "@/lib/offers-data"
 import { useLanguage } from "@/components/language-provider"
+import { offersApi, type ApiError } from "@/lib/api"
+import { Loader2 } from "lucide-react"
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 
 function ToursContent() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const cityParam = searchParams.get('city')
   
-  const allOffers: Offer[] = [...toursOffers, ...excursionsOffers, ...activitiesOffers, ...packagesOffers]
   const pageType = "tours"
+  const [allOffers, setAllOffers] = useState<Offer[]>([])
+  const [offers, setOffers] = useState<Offer[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const [offers, setOffers] = useState<Offer[]>(() => {
-    // Apply initial city filter if present
-    if (cityParam) {
-      return toursOffers.filter(o => o.departCity === cityParam)
+  // Fetch tours from backend
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const response = await offersApi.getOffers('TOURS', language)
+        
+        // Transform backend data to match frontend Offer format
+        const transformedTours: Offer[] = (response.offers || []).map((backendOffer: any) => {
+          const priceAdult = backendOffer.price_adult ? parseFloat(backendOffer.price_adult) : 0
+          const priceChild = backendOffer.price_child ? parseFloat(backendOffer.price_child) : 0
+          const availabilityStart = backendOffer.availability_start 
+            ? new Date(backendOffer.availability_start).toISOString().split('T')[0] 
+            : new Date().toISOString().split('T')[0]
+          const availabilityEnd = backendOffer.availability_end 
+            ? new Date(backendOffer.availability_end).toISOString().split('T')[0] 
+            : new Date().toISOString().split('T')[0]
+
+          // Handle image URL - use main_image from backend or placeholder
+          let mainImage = '/placeholder.svg'
+          if (backendOffer.main_image) {
+            // If it's already a full URL, use it as is
+            if (backendOffer.main_image.startsWith('http://') || backendOffer.main_image.startsWith('https://')) {
+              mainImage = backendOffer.main_image
+            } else if (backendOffer.main_image.startsWith('/')) {
+              // If it's a relative path, make it absolute to backend
+              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+              const baseUrl = apiBaseUrl.replace('/api/v1', '')
+              mainImage = `${baseUrl}${backendOffer.main_image}`
+            } else {
+              // If it's just a filename, construct the full path
+              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+              const baseUrl = apiBaseUrl.replace('/api/v1', '')
+              mainImage = `${baseUrl}/uploads/${backendOffer.main_image}`
+            }
+          }
+
+          return {
+            id: backendOffer.id,
+            type: 'tours' as const,
+            departCity: backendOffer.depart_city || 'Marrakech',
+            title: backendOffer.title || 'Untitled Tour',
+            description: backendOffer.description || '',
+            detailedDescription: {
+              overview: backendOffer.overview || '',
+              highlights: backendOffer.highlights || [],
+              sections: backendOffer.sections || [],
+              itinerary: [],
+              tips: [],
+              duration: backendOffer.tourDetails?.duration || '',
+              difficulty: backendOffer.tourDetails?.difficulty || '',
+              groupSize: backendOffer.tourDetails?.group_size || '',
+            },
+            mainImage: mainImage,
+            thumbnailImages: [],
+            video: backendOffer.video || '',
+            includedItems: backendOffer.included_items || [],
+            excludedItems: backendOffer.excluded_items || [],
+            priceAdult: priceAdult,
+            priceChild: priceChild,
+            availabilityDates: {
+              startDate: availabilityStart,
+              endDate: availabilityEnd,
+            },
+          }
+        })
+
+        setAllOffers(transformedTours)
+        
+        // Apply initial city filter if present
+        if (cityParam) {
+          setOffers(transformedTours.filter(o => o.departCity === cityParam))
+        } else {
+          setOffers(transformedTours)
+        }
+      } catch (err) {
+        const apiError = err as ApiError
+        setError(apiError.message || 'Failed to load tours')
+        console.error('Error fetching tours:', err)
+      } finally {
+        setIsLoading(false)
+      }
     }
-    return toursOffers
-  })
+
+    fetchTours()
+  }, [language, cityParam])
 
   const handleFilterChange = (filters: Filters) => {
     // Update URL with city parameter
@@ -87,7 +172,28 @@ function ToursContent() {
             }} 
           />
 
-          <OffersGrid offers={offers} />
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+              <p className="text-sm text-muted-foreground">Loading tours...</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <p className="text-sm text-destructive mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-sm text-primary hover:underline"
+              >
+                Try again
+              </button>
+            </div>
+          ) : offers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <p className="text-sm text-muted-foreground">No tours found</p>
+            </div>
+          ) : (
+            <OffersGrid offers={offers} />
+          )}
         </Container>
       </section>
 

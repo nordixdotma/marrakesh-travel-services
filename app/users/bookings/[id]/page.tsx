@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { notFound, useRouter } from "next/navigation"
 import { 
   ChevronLeft, 
   Calendar, 
@@ -15,106 +15,139 @@ import {
   MessageSquare, 
   CheckCircle2, 
   XCircle, 
-  AlertCircle 
+  AlertCircle,
+  Loader2
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { useLanguage } from "@/components/language-provider"
-
-// Mock bookings data - duplicated from users/bookings/page.tsx for demo purposes
-// Mock bookings data - duplicated from users/bookings/page.tsx for demo purposes
-// In a real app, this would be fetched from an API
-type BookingStatus = "upcoming" | "completed" | "cancelled"
-
-interface Booking {
-  id: string
-  title: string
-  type: string
-  date: string
-  time: string
-  location: string
-  status: BookingStatus
-  image: string
-  price: number
-  details: {
-    fullName: string
-    email: string
-    phone: string
-    adults: number
-    children: number
-    infants: number
-    message: string
-    bookingDate: string
-  }
-}
-
-const bookings: Booking[] = [
-  {
-    id: "bk-12345",
-    title: "Desert Sunset Camel Ride",
-    type: "activities", 
-    date: "2024-06-15",
-    time: "17:00",
-    location: "Agafay Desert",
-    status: "upcoming",
-    image: "/images/camel-ride.jpg",
-    price: 450,
-    details: {
-      fullName: "John Doe",
-      email: "john.doe@example.com",
-      phone: "+1 234 567 8900",
-      adults: 2,
-      children: 1,
-      infants: 0,
-      message: "We prefer a gentle camel if possible.",
-      bookingDate: "2024-05-20"
-    }
-  },
-  {
-    id: "bk-67890",
-    title: "Marrakech City Tour",
-    type: "tours",
-    date: "2024-04-10",
-    time: "09:00",
-    location: "Medina, Marrakech",
-    status: "completed",
-    image: "/images/city-tour.jpg",
-    price: 300,
-    details: {
-      fullName: "John Doe",
-      email: "john.doe@example.com",
-      phone: "+1 234 567 8900",
-      adults: 2,
-      children: 0,
-       infants: 0,
-      message: "",
-      bookingDate: "2024-04-01"
-    }
-  }
-]
+import { bookingApi, offersApi, userApi, type ApiError } from "@/lib/api"
+import { useAuth } from "@/components/login-modal"
+import { toast } from "sonner"
 
 interface BookingDetailsPageProps {
   params: Promise<{ id: string }>
 }
 
 export default function BookingDetailsPage({ params }: BookingDetailsPageProps) {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const { isLoggedIn, user } = useAuth()
+  const router = useRouter()
   const resolvedParams = use(params)
-  const booking = bookings.find((b) => b.id === resolvedParams.id)
+  const [booking, setBooking] = useState<any>(null)
+  const [offer, setOffer] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  if (!booking) {
-    notFound()
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push('/')
+      return
+    }
+
+    const fetchBooking = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        
+        // Check if token exists
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        if (!token) {
+          setError('Please log in to view booking details')
+          toast.error('Authentication required', {
+            description: 'Please log in to view booking details',
+          })
+          setIsLoading(false)
+          setTimeout(() => {
+            router.push('/users/bookings')
+          }, 2000)
+          return
+        }
+        
+        // Fetch booking details
+        const bookingResponse = await bookingApi.getBookingById(resolvedParams.id)
+        const bookingData = bookingResponse.booking
+        
+        // Fetch offer details
+        const offerResponse = await offersApi.getOfferById(bookingData.offer_id, language)
+        const offerData = offerResponse.offer
+        
+        // Fetch user profile for contact info
+        try {
+          const profileResponse = await userApi.getProfile()
+          setUserProfile(profileResponse.user)
+        } catch (err) {
+          console.warn('Could not fetch user profile:', err)
+          // Use user from auth context as fallback
+          setUserProfile(user)
+        }
+        
+        setBooking(bookingData)
+        setOffer(offerData)
+      } catch (err) {
+        const apiError = err as ApiError
+        const errorMessage = apiError.message || 'Failed to load booking'
+        setError(errorMessage)
+        console.error('Error fetching booking:', err)
+        
+        // If it's an authentication error, redirect to bookings page
+        if (errorMessage.includes('Authentication') || errorMessage.includes('User not found') || errorMessage.includes('Unauthorized')) {
+          toast.error('Session expired', {
+            description: 'Please log in again',
+          })
+          // Clear invalid token
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+        } else {
+          toast.error('Failed to load booking', {
+            description: errorMessage,
+          })
+        }
+        
+        setTimeout(() => {
+          router.push('/users/bookings')
+        }, 2000)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchBooking()
+  }, [resolvedParams.id, isLoggedIn, language, router])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
-  const getStatusBadge = (status: BookingStatus) => {
-    switch (status) {
-      case "upcoming":
+  if (error || !booking || !offer) {
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="flex flex-col items-center justify-center py-16">
+          <p className="text-destructive mb-4">{error || 'Booking not found'}</p>
+          <Button onClick={() => router.push('/users/bookings')} variant="outline">
+            Back to Bookings
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const getStatusBadge = (status: string) => {
+    const statusLower = status?.toLowerCase() || ''
+    switch (statusLower) {
+      case "confirmed":
+      case "pending":
         return (
           <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 gap-1 pl-1.5">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            {t.users?.bookingDetails?.status?.upcoming || "Upcoming"}
+            {statusLower === 'confirmed' ? (t.users?.bookingDetails?.status?.confirmed || "Confirmed") : (t.users?.bookingDetails?.status?.pending || "Pending")}
           </Badge>
         )
       case "completed":
@@ -136,6 +169,18 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
     }
   }
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+  }
+
+  // Get offer image
+  const offerImage = offer.images?.find((img: any) => img.type === 'MAIN')?.url || offer.main_image || '/placeholder.svg'
+  const offerTitle = offer.title || 'Untitled Offer'
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Back Button */}
@@ -152,11 +197,11 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
               {t.users?.bookingDetails?.pageTitle || "Booking Details"}
               <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
-                #{booking.id}
+                #{booking.id.substring(0, 8)}
               </span>
             </h1>
             <p className="text-muted-foreground text-sm mt-1">
-              {t.users?.bookingDetails?.bookedOn || "Booked on"} {new Date(booking.details.bookingDate).toLocaleDateString()}
+              {t.users?.bookingDetails?.bookedOn || "Booked on"} {formatDate(booking.created_at)}
             </p>
           </div>
           <div>{getStatusBadge(booking.status)}</div>
@@ -174,29 +219,38 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
             <CardContent>
               <div className="flex gap-4">
                 <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-muted">
-                  <img 
-                    src={booking.image} 
-                    alt={booking.title} 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = "/placeholder.svg"
-                    }}
-                  />
+                  {offerImage && offerImage.includes('localhost:3030') ? (
+                    <img 
+                      src={offerImage} 
+                      alt={offerTitle} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = "/placeholder.svg"
+                      }}
+                    />
+                  ) : (
+                    <img 
+                      src={offerImage || "/placeholder.svg"} 
+                      alt={offerTitle} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = "/placeholder.svg"
+                      }}
+                    />
+                  )}
                 </div>
                 <div className="flex-1 space-y-3">
-                  <h3 className="font-semibold text-lg">{booking.title}</h3>
+                  <h3 className="font-semibold text-lg">{offerTitle}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="w-4 h-4 text-primary" />
-                      <span>{booking.date}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Clock className="w-4 h-4 text-primary" />
-                      <span>{booking.time}</span>
+                      <span>{formatDate(booking.date)}</span>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <MapPin className="w-4 h-4 text-primary" />
-                      <span>{booking.location}</span>
+                      <span>{offer.depart_city || booking.depart_city || 'Marrakech'}</span>
                     </div>
                   </div>
                 </div>
@@ -223,15 +277,15 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                   <div className="space-y-1">
                     <span className="text-muted-foreground text-xs block">{t.users?.bookings?.reservationForm?.fullName || "Full Name"}</span>
-                    <span className="font-medium">{booking.details.fullName}</span>
+                    <span className="font-medium">{userProfile?.name || user?.name || 'N/A'}</span>
                   </div>
                   <div className="space-y-1">
                     <span className="text-muted-foreground text-xs block">{t.users?.bookings?.reservationForm?.email || "Email Address"}</span>
-                    <span className="font-medium">{booking.details.email}</span>
+                    <span className="font-medium">{userProfile?.email || user?.email || 'N/A'}</span>
                   </div>
                   <div className="space-y-1">
                     <span className="text-muted-foreground text-xs block">{t.users?.bookings?.reservationForm?.phone || "Phone Number"}</span>
-                    <span className="font-medium">{booking.details.phone}</span>
+                    <span className="font-medium">{userProfile?.phone || user?.phone || 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -247,37 +301,16 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
                 <div className="flex flex-wrap gap-4 text-sm">
                   <div className="bg-muted/50 px-3 py-2 rounded-md border border-border">
                     <span className="text-muted-foreground text-xs block">{t.offerDetails?.reservationForm?.adults || "Adults"}</span>
-                    <span className="font-medium block text-center">{booking.details.adults}</span>
+                    <span className="font-medium block text-center">{booking.adults || 0}</span>
                   </div>
-                  {booking.details.children > 0 && (
+                  {(booking.children || 0) > 0 && (
                     <div className="bg-muted/50 px-3 py-2 rounded-md border border-border">
                       <span className="text-muted-foreground text-xs block">{t.offerDetails?.reservationForm?.children || "Children"}</span>
-                      <span className="font-medium block text-center">{booking.details.children}</span>
-                    </div>
-                  )}
-                  {booking.details.infants > 0 && (
-                    <div className="bg-muted/50 px-3 py-2 rounded-md border border-border">
-                      <span className="text-muted-foreground text-xs block">{t.infant?.label || "Infants"}</span>
-                      <span className="font-medium block text-center">{booking.details.infants}</span>
+                      <span className="font-medium block text-center">{booking.children || 0}</span>
                     </div>
                   )}
                 </div>
               </div>
-
-              {booking.details.message && (
-                <>
-                  <Separator />
-                  <div>
-                    <h4 className="font-medium text-sm text-foreground mb-3 flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-primary" />
-                      {t.users?.bookingDetails?.specialRequests || "Special Requests / Message"}
-                    </h4>
-                    <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-md border border-border/50 italic">
-                      "{booking.details.message}"
-                    </p>
-                  </div>
-                </>
-              )}
             </CardContent>
           </Card>
         </div>
@@ -290,18 +323,22 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t.users?.bookingDetails?.pricePerPerson || "Price per person"}</span>
-                  <span>MAD {booking.price / booking.details.adults}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t.users?.bookingDetails?.totalPeople || "Total People"}</span>
-                  <span>{booking.details.adults + booking.details.children}</span>
-                </div>
+                {booking.adults > 0 && offer.priceAdult && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{booking.adults} {t.offerDetails?.reservationForm?.adults || "Adults"} × MAD {offer.priceAdult}</span>
+                    <span>MAD {booking.adults * parseFloat(offer.priceAdult)}</span>
+                  </div>
+                )}
+                {(booking.children || 0) > 0 && offer.priceChild && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{booking.children} {t.offerDetails?.reservationForm?.children || "Children"} × MAD {offer.priceChild}</span>
+                    <span>MAD {booking.children * parseFloat(offer.priceChild)}</span>
+                  </div>
+                )}
                 <Separator className="my-2" />
                 <div className="flex justify-between font-bold text-lg">
                   <span>{t.users?.bookingDetails?.total || "Total"}</span>
-                  <span className="text-primary">MAD {booking.price}</span>
+                  <span className="text-primary">MAD {parseFloat(booking.total_price) || 0}</span>
                 </div>
               </div>
 

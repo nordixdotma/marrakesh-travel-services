@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, use, useMemo } from "react"
-import { notFound } from "next/navigation"
-import { Calendar, Check, X, Play, ChevronLeft, ChevronRight, Users, User, Clock, MapPin, Shield, ChevronDown, Sparkles, Lightbulb, ListChecks, Info, Car, ArrowRight, Route, Baby } from "lucide-react"
+import { useState, use, useMemo, useEffect, useRef } from "react"
+import { notFound, useRouter } from "next/navigation"
+import { Calendar, Check, X, Play, ChevronLeft, ChevronRight, Users, User, Clock, MapPin, Shield, ChevronDown, Sparkles, Lightbulb, ListChecks, Info, Car, ArrowRight, Route, Baby, Loader2, Ticket, Phone, CheckCircle2 } from "lucide-react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
@@ -13,9 +13,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { getOfferById, getTranslatedOffer } from "@/lib/offers-data"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { type Offer } from "@/lib/offers-data"
 import { useAuth } from "@/components/login-modal"
 import { useLanguage } from "@/components/language-provider"
+import { offersApi, authApi, bookingApi, adminApi, userApi, type ApiError } from "@/lib/api"
 
 interface OfferDetailsPageProps {
   params: Promise<{ id: string }>
@@ -23,29 +25,445 @@ interface OfferDetailsPageProps {
 
 export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
   const resolvedParams = use(params)
-  const rawOffer = getOfferById(resolvedParams.id)
-  const { isLoggedIn, openLoginModal } = useAuth()
+  const router = useRouter()
+  const { isLoggedIn, openLoginModal, login, user } = useAuth()
   const { t, language } = useLanguage()
 
+  const [offer, setOffer] = useState<Offer | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
+  const [showSameDayDialog, setShowSameDayDialog] = useState(false)
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [bookingSuccessData, setBookingSuccessData] = useState<{ bookingReference?: string } | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [promoCodeDetails, setPromoCodeDetails] = useState<{
+    id: string;
+    code: string;
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+    discountValue: number;
+    minPurchase: number | null;
+    maxDiscount: number | null;
+    isValid: boolean;
+    error?: string;
+  } | null>(null)
+  const [isValidatingPromoCode, setIsValidatingPromoCode] = useState(false)
+  
+  // Initialize formData with user info if logged in
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
+    fullName: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
     date: "",
     adults: 1,
     children: 0,
     infants: 0,
     message: "",
+    promoCode: "",
   })
 
-  if (!rawOffer) {
-    notFound()
+  // Debounce timer for promo code validation (must be at top level with other hooks)
+  const promoCodeValidationTimer = useRef<NodeJS.Timeout | null>(null)
+
+  // Generate random password
+  const generateRandomPassword = () => {
+    const length = 12
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
+    let password = ""
+    for (let i = 0; i < length; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length))
+    }
+    return password
   }
 
-  // Get translated offer based on current language
-  const offer = useMemo(() => getTranslatedOffer(rawOffer, language), [rawOffer, language])
+  // Get promo code ID from code string
+  const getPromoCodeId = async (code: string): Promise<string | null> => {
+    try {
+      const response = await adminApi.getPromoCodes(100, 0)
+      const promoCode = response.promoCodes.find(
+        (pc: any) => pc.code.toUpperCase() === code.toUpperCase()
+      )
+      return promoCode ? promoCode.id : null
+    } catch (error) {
+      console.error('Error fetching promo codes:', error)
+      return null
+    }
+  }
+
+  // Validate and get promo code details
+  const validatePromoCode = async (code: string) => {
+    if (!code || !code.trim()) {
+      setPromoCodeDetails(null)
+      return
+    }
+
+    setIsValidatingPromoCode(true)
+    try {
+      const response = await adminApi.getPromoCodes(100, 0)
+      const promoCode = response.promoCodes.find(
+        (pc: any) => pc.code.toUpperCase() === code.toUpperCase()
+      )
+
+      if (!promoCode) {
+        setPromoCodeDetails({
+          id: '',
+          code: code.toUpperCase(),
+          discountType: 'PERCENTAGE',
+          discountValue: 0,
+          minPurchase: null,
+          maxDiscount: null,
+          isValid: false,
+          error: 'Promo code not found'
+        })
+        setIsValidatingPromoCode(false)
+        return
+      }
+
+      // Check if promo code is active
+      if (!promoCode.isActive) {
+        setPromoCodeDetails({
+          id: promoCode.id,
+          code: promoCode.code,
+          discountType: promoCode.discountType.toUpperCase() as 'PERCENTAGE' | 'FIXED_AMOUNT',
+          discountValue: promoCode.discountValue,
+          minPurchase: promoCode.minPurchase,
+          maxDiscount: promoCode.maxDiscount,
+          isValid: false,
+          error: 'Promo code is not active'
+        })
+        setIsValidatingPromoCode(false)
+        return
+      }
+
+      // Check validity dates
+      const now = new Date()
+      const validFrom = new Date(promoCode.validFrom)
+      const validTo = new Date(promoCode.validTo)
+
+      if (now < validFrom || now > validTo) {
+        setPromoCodeDetails({
+          id: promoCode.id,
+          code: promoCode.code,
+          discountType: promoCode.discountType.toUpperCase() as 'PERCENTAGE' | 'FIXED_AMOUNT',
+          discountValue: promoCode.discountValue,
+          minPurchase: promoCode.minPurchase,
+          maxDiscount: promoCode.maxDiscount,
+          isValid: false,
+          error: 'Promo code has expired or is not yet valid'
+        })
+        setIsValidatingPromoCode(false)
+        return
+      }
+
+      // Check usage limit
+      if (promoCode.usageLimit && promoCode.usedCount >= promoCode.usageLimit) {
+        setPromoCodeDetails({
+          id: promoCode.id,
+          code: promoCode.code,
+          discountType: promoCode.discountType.toUpperCase() as 'PERCENTAGE' | 'FIXED_AMOUNT',
+          discountValue: promoCode.discountValue,
+          minPurchase: promoCode.minPurchase,
+          maxDiscount: promoCode.maxDiscount,
+          isValid: false,
+          error: 'Promo code has reached its usage limit'
+        })
+        setIsValidatingPromoCode(false)
+        return
+      }
+
+      // Check if promo code is linked to this offer (if it has linked offers)
+      if (promoCode.offers && promoCode.offers.length > 0 && offer) {
+        const isLinkedToOffer = promoCode.offers.some(
+          (linkedOffer: any) => linkedOffer.id === offer.id
+        )
+        if (!isLinkedToOffer) {
+          setPromoCodeDetails({
+            id: promoCode.id,
+            code: promoCode.code,
+            discountType: promoCode.discountType.toUpperCase() as 'PERCENTAGE' | 'FIXED_AMOUNT',
+            discountValue: promoCode.discountValue,
+            minPurchase: promoCode.minPurchase,
+            maxDiscount: promoCode.maxDiscount,
+            isValid: false,
+            error: 'Promo code is not valid for this offer'
+          })
+          setIsValidatingPromoCode(false)
+          return
+        }
+      }
+
+      // Promo code is valid
+      setPromoCodeDetails({
+        id: promoCode.id,
+        code: promoCode.code,
+        discountType: promoCode.discountType.toUpperCase() as 'PERCENTAGE' | 'FIXED_AMOUNT',
+        discountValue: promoCode.discountValue,
+        minPurchase: promoCode.minPurchase,
+        maxDiscount: promoCode.maxDiscount,
+        isValid: true
+      })
+    } catch (error) {
+      console.error('Error validating promo code:', error)
+      setPromoCodeDetails({
+        id: '',
+        code: code.toUpperCase(),
+        discountType: 'PERCENTAGE',
+        discountValue: 0,
+        minPurchase: null,
+        maxDiscount: null,
+        isValid: false,
+        error: 'Error validating promo code'
+      })
+    } finally {
+      setIsValidatingPromoCode(false)
+    }
+  }
+
+  // Get today's date in YYYY-MM-DD format
+  const getTodayDate = () => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
+  }
+
+  // Check if current time is after 12 PM (noon)
+  const isAfterNoon = () => {
+    const now = new Date()
+    return now.getHours() >= 12 // After 12 PM (noon)
+  }
+
+  // Check if selected date is today
+  const isToday = (dateString: string) => {
+    return dateString === getTodayDate()
+  }
+
+  // Load user profile and pre-fill form when logged in
+  useEffect(() => {
+    const loadUserInfo = async () => {
+      if (isLoggedIn && user) {
+        try {
+          // Try to get latest user info from backend
+          const profileResponse = await userApi.getProfile()
+          const userProfile = profileResponse.user
+          
+          // Pre-fill form with user data
+          setFormData(prev => ({
+            ...prev,
+            fullName: userProfile.name || user.name || prev.fullName,
+            email: userProfile.email || user.email || prev.email,
+            phone: userProfile.phone || user.phone || prev.phone,
+          }))
+        } catch (error) {
+          // If API fails, use data from auth context
+          console.warn('Could not fetch user profile, using auth context data:', error)
+          setFormData(prev => ({
+            ...prev,
+            fullName: user.name || prev.fullName,
+            email: user.email || prev.email,
+            phone: user.phone || prev.phone,
+          }))
+        }
+      } else {
+        // Clear form if user logs out
+        setFormData(prev => ({
+          ...prev,
+          fullName: "",
+          email: "",
+          phone: "",
+        }))
+      }
+    }
+
+    loadUserInfo()
+  }, [isLoggedIn, user])
+
+  // Fetch offer from backend
+  useEffect(() => {
+    const fetchOffer = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const response = await offersApi.getOfferById(resolvedParams.id, language)
+        
+        // Transform backend data to match frontend Offer format
+        const backendOffer = response.offer
+        
+        // Extract pricing data
+        const priceAdult = backendOffer.pricing?.price_adult || backendOffer.price_adult
+        const priceChild = backendOffer.pricing?.price_child || backendOffer.price_child
+        const availabilityStart = backendOffer.pricing?.availability_start || backendOffer.availability_start
+        const availabilityEnd = backendOffer.pricing?.availability_end || backendOffer.availability_end
+        
+        // Extract main image from images array or use main_image field
+        const mainImageObj = backendOffer.images?.find((img: any) => img.type === 'MAIN')
+        let mainImage = mainImageObj?.url || backendOffer.main_image || '/placeholder.svg'
+        
+        // Handle image URL - convert to full URL if needed
+        if (mainImage && !mainImage.startsWith('http') && !mainImage.startsWith('/')) {
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+          const baseUrl = apiBaseUrl.replace('/api/v1', '')
+          mainImage = `${baseUrl}/uploads/${mainImage}`
+        } else if (mainImage && mainImage.startsWith('/') && !mainImage.startsWith('//')) {
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+          const baseUrl = apiBaseUrl.replace('/api/v1', '')
+          mainImage = `${baseUrl}${mainImage}`
+        }
+        
+        // Extract thumbnail images
+        const thumbnailImages = (backendOffer.images?.filter((img: any) => img.type === 'GALLERY').map((img: any) => {
+          let url = img.url
+          if (url && !url.startsWith('http') && !url.startsWith('/')) {
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+            const baseUrl = apiBaseUrl.replace('/api/v1', '')
+            url = `${baseUrl}/uploads/${url}`
+          } else if (url && url.startsWith('/') && !url.startsWith('//')) {
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+            const baseUrl = apiBaseUrl.replace('/api/v1', '')
+            url = `${baseUrl}${url}`
+          }
+          return url
+        }) || []).filter(Boolean)
+        
+        // Determine offer type
+        const offerType = backendOffer.type?.toLowerCase() || 'tours'
+        
+        // Build detailed description
+        const detailedDescription = {
+          overview: backendOffer.overview || '',
+          highlights: backendOffer.highlights || [],
+          sections: backendOffer.sections || [],
+          itinerary: [],
+          tips: [],
+          duration: backendOffer.tourDetails?.duration || backendOffer.excursionDetails?.duration || backendOffer.activityDetails?.duration || backendOffer.packageDetails?.duration || backendOffer.transferDetails?.duration || '',
+          difficulty: backendOffer.tourDetails?.difficulty || backendOffer.excursionDetails?.difficulty || '',
+          groupSize: backendOffer.tourDetails?.group_size || backendOffer.activityDetails?.group_size || '',
+        }
+        
+        // Build transfer details if it's a transfer
+        let transferDetails = undefined
+        if (offerType === 'transfers' && backendOffer.transferDetails) {
+          transferDetails = {
+            from: backendOffer.transferDetails.from_location || '',
+            to: backendOffer.transferDetails.to_location || '',
+            duration: backendOffer.transferDetails.duration || '',
+            distance: backendOffer.transferDetails.distance || '',
+            vehicleOptions: backendOffer.transferDetails.vehicle_options || [],
+          }
+        }
+        
+        const transformedOffer: Offer = {
+          id: backendOffer.id,
+          type: offerType as any,
+          title: backendOffer.title || 'Untitled Offer',
+          description: backendOffer.description || '',
+          departCity: backendOffer.depart_city || 'Marrakech',
+          priceAdult: priceAdult ? parseFloat(priceAdult) : 0,
+          priceChild: priceChild ? parseFloat(priceChild) : 0,
+          mainImage: mainImage,
+          thumbnailImages: thumbnailImages,
+          video: backendOffer.video || '',
+          availabilityDates: {
+            startDate: availabilityStart ? new Date(availabilityStart).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            endDate: availabilityEnd ? new Date(availabilityEnd).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          },
+          detailedDescription: detailedDescription,
+          includedItems: backendOffer.included_items || [],
+          excludedItems: backendOffer.excluded_items || [],
+          transferDetails: transferDetails,
+        }
+        
+        setOffer(transformedOffer)
+      } catch (err) {
+        const apiError = err as ApiError
+        setError(apiError.message || 'Failed to load offer')
+        console.error('Error fetching offer:', err)
+        // Redirect to 404 after a delay
+        setTimeout(() => {
+          notFound()
+        }, 2000)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchOffer()
+  }, [resolvedParams.id, language])
+
+  // Calculate total price with promo code discount (must be at top level with other hooks)
+  const calculateTotalPrice = useMemo(() => {
+    if (!offer) return { subtotal: 0, discount: 0, total: 0 }
+    
+    // Packages don't have pricing
+    if (offer.type === 'packages') {
+      return { subtotal: 0, discount: 0, total: 0 }
+    }
+    
+    const subtotal = formData.adults * (offer.priceAdult ?? 0) + formData.children * (offer.priceChild ?? 0)
+    
+    let discount = 0
+    if (promoCodeDetails?.isValid && subtotal > 0) {
+      // Check minimum purchase requirement
+      if (promoCodeDetails.minPurchase && subtotal < promoCodeDetails.minPurchase) {
+        // Don't apply discount if minimum purchase not met
+        return { subtotal, discount: 0, total: subtotal }
+      }
+      
+      if (promoCodeDetails.discountType === 'PERCENTAGE') {
+        discount = subtotal * (promoCodeDetails.discountValue / 100)
+        // Apply max discount limit if set
+        if (promoCodeDetails.maxDiscount) {
+          discount = Math.min(discount, promoCodeDetails.maxDiscount)
+        }
+      } else {
+        // FIXED_AMOUNT
+        discount = promoCodeDetails.discountValue
+      }
+      
+      // Ensure discount doesn't exceed subtotal
+      discount = Math.min(discount, subtotal)
+    }
+    
+    const total = Math.max(0, subtotal - discount)
+    
+    return { subtotal, discount, total }
+  }, [offer, formData.adults, formData.children, promoCodeDetails])
+
+  const totalPrice = calculateTotalPrice.total
+
+  if (isLoading) {
+    return (
+      <main className="w-full">
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Loading offer...</p>
+          </div>
+        </div>
+        <Footer />
+        <FloatingContact />
+      </main>
+    )
+  }
+
+  if (error || !offer) {
+    return (
+      <main className="w-full">
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-sm text-destructive">{error || 'Offer not found'}</p>
+            <Button onClick={() => router.back()} variant="outline">
+              Go Back
+            </Button>
+          </div>
+        </div>
+        <Footer />
+        <FloatingContact />
+      </main>
+    )
+  }
 
   const allImages = [offer.mainImage, ...offer.thumbnailImages]
 
@@ -61,29 +479,347 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
     
-    // Check if user is logged in
-    if (!isLoggedIn) {
-      openLoginModal("Please sign in to make a reservation")
-      return
+    // Special handling for date input
+    if (name === 'date' && value) {
+      // Check if the selected date is today and it's after 12 PM (noon)
+      if (isToday(value) && isAfterNoon()) {
+        // Show the same-day reservation dialog
+        setShowSameDayDialog(true)
+        // Don't update the date field
+        return
+      }
     }
     
-    // Handle form submission
-    console.log("Reservation request:", formData)
-    alert("Your reservation request has been submitted! We will contact you soon.")
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    
+    // Special handling for promo code - validate when changed (debounced)
+    if (name === 'promoCode') {
+      // Clear previous timer
+      if (promoCodeValidationTimer.current) {
+        clearTimeout(promoCodeValidationTimer.current)
+      }
+      
+      // Set new timer to validate after user stops typing
+      promoCodeValidationTimer.current = setTimeout(() => {
+        if (value && value.trim()) {
+          validatePromoCode(value.trim())
+        } else {
+          setPromoCodeDetails(null)
+        }
+      }, 500) // Wait 500ms after user stops typing
+    }
   }
 
-  const totalPrice = formData.adults * (offer.priceAdult ?? 0) + formData.children * (offer.priceChild ?? 0)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      // Validate required fields
+      if (!formData.fullName || !formData.email || !formData.phone || !formData.date) {
+        throw new Error('Please fill in all required fields')
+      }
+
+      // Check if user is already logged in
+      let userId: string
+      let token: string
+      let userData: any
+
+      if (isLoggedIn && user) {
+        // User is already logged in - use existing credentials
+        console.log('User is already logged in, using existing account:', user.id)
+        userId = user.id
+        token = localStorage.getItem('token') || ''
+        userData = user
+        
+        if (!token) {
+          throw new Error('Authentication token is missing. Please log in again.')
+        }
+        
+        console.log('✅ Using existing user account for booking')
+      } else {
+        // User is not logged in - register new account
+        // Generate random password
+        const randomPassword = generateRandomPassword()
+
+        try {
+          console.log('Registering new user...', { name: formData.fullName, email: formData.email, phone: formData.phone })
+          const registerResponse = await authApi.register(
+            formData.fullName,
+            formData.email,
+            formData.phone,
+            randomPassword
+          )
+          console.log('User registered successfully:', registerResponse.user.id)
+          userId = registerResponse.user.id
+          token = registerResponse.token
+          userData = registerResponse.user
+          
+          // Verify we got a valid token
+          if (!token || !userId) {
+            throw new Error('Registration succeeded but authentication token is missing')
+          }
+          
+          // Store token and user data IMMEDIATELY after registration
+          try {
+            // Check if localStorage is available
+            if (typeof window === 'undefined' || !window.localStorage) {
+              throw new Error('localStorage is not available')
+            }
+            
+            // Store token
+            localStorage.setItem('token', token)
+            console.log('✅ Token stored in localStorage:', token.substring(0, 20) + '...')
+            
+            // Store user data
+            localStorage.setItem('user', JSON.stringify(userData))
+            console.log('✅ User data stored:', { name: userData.name, email: userData.email, phone: userData.phone })
+            
+            // Verify token is actually stored (with retry)
+            let storedToken = localStorage.getItem('token')
+            let retries = 0
+            while ((!storedToken || storedToken !== token) && retries < 3) {
+              console.warn(`⚠️ Token verification failed, retry ${retries + 1}/3`)
+              // Try storing again
+              localStorage.setItem('token', token)
+              await new Promise(resolve => setTimeout(resolve, 50))
+              storedToken = localStorage.getItem('token')
+              retries++
+            }
+            
+            if (!storedToken || storedToken !== token) {
+              console.error('❌ Token storage verification failed after retries!', { 
+                stored: storedToken, 
+                expected: token,
+                storedLength: storedToken?.length,
+                expectedLength: token.length
+              })
+              throw new Error('Failed to store authentication token. Please try again.')
+            }
+            
+            console.log('✅ Token storage verified successfully')
+            console.log('✅ Token length:', token.length)
+            console.log('✅ Stored token length:', storedToken.length)
+            
+            // Also verify user data
+            const storedUser = localStorage.getItem('user')
+            if (!storedUser) {
+              console.error('❌ User data not stored!')
+              throw new Error('Failed to store user data. Please try again.')
+            }
+            console.log('✅ User data verified in localStorage')
+            
+          } catch (storageError: any) {
+            console.error('❌ localStorage error:', storageError)
+            throw new Error(`Failed to store authentication data: ${storageError.message}`)
+          }
+          
+          // Verify token can be decoded (for debugging)
+          let decodedUserId: string | null = null
+          try {
+            const tokenParts = token.split('.')
+            if (tokenParts.length === 3) {
+              const payload = JSON.parse(atob(tokenParts[1]))
+              decodedUserId = payload.userId
+              console.log('✅ Decoded token payload:', payload)
+              console.log('✅ Token userId:', payload.userId)
+              console.log('✅ Registered userId:', userId)
+              if (payload.userId !== userId) {
+                console.error('❌ Token userId mismatch!', { tokenUserId: payload.userId, registeredUserId: userId })
+              } else {
+                console.log('✅ Token userId matches registered userId')
+              }
+            }
+          } catch (e) {
+            console.warn('Could not decode token for debugging:', e)
+          }
+          
+          // Update auth state immediately
+          login(userData)
+          console.log('✅ Auth state updated')
+          
+          // Wait a bit longer to ensure database transaction is fully committed
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          // Verify user exists in database before proceeding (with retries)
+          if (decodedUserId) {
+            let userVerified = false
+            let verificationAttempts = 0
+            const maxAttempts = 3
+            
+            while (!userVerified && verificationAttempts < maxAttempts) {
+              try {
+                // Try to fetch user profile to verify user exists
+                const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'}/users/profile`, {
+                  method: 'GET',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                })
+                
+                if (verifyResponse.ok) {
+                  const verifyData = await verifyResponse.json()
+                  userVerified = true
+                  console.log('✅ User verified in database:', verifyData.user?.name || verifyData.user?.id)
+                  break
+                } else {
+                  const errorData = await verifyResponse.json().catch(() => ({}))
+                  verificationAttempts++
+                  console.warn(`⚠️ User verification attempt ${verificationAttempts}/${maxAttempts} failed:`, errorData.message || 'Unknown error')
+                  if (verificationAttempts < maxAttempts) {
+                    // Wait longer between retries
+                    await new Promise(resolve => setTimeout(resolve, 500))
+                  } else {
+                    console.error('❌ User verification failed after all attempts. User ID in token:', decodedUserId)
+                    console.error('❌ This might indicate a database issue. The booking will still be attempted.')
+                  }
+                }
+              } catch (verifyError: any) {
+                verificationAttempts++
+                console.warn(`⚠️ User verification error on attempt ${verificationAttempts}/${maxAttempts}:`, verifyError.message)
+                if (verificationAttempts < maxAttempts) {
+                  await new Promise(resolve => setTimeout(resolve, 500))
+                }
+              }
+            }
+          }
+        } catch (registerError: any) {
+          console.error('Registration error:', registerError)
+          // If user already exists, show error
+          if (registerError.message?.includes('already exists') || registerError.message?.includes('User already exists')) {
+            throw new Error('An account with this email or phone already exists. Please sign in first.')
+          }
+          throw new Error(registerError.message || 'Failed to create account. Please try again.')
+        }
+      }
+
+      // Get promo code ID if promo code is provided
+      let promoCodeId: string | null = null
+      if (formData.promoCode && formData.promoCode.trim()) {
+        promoCodeId = await getPromoCodeId(formData.promoCode.trim())
+        if (!promoCodeId) {
+          console.warn('Promo code not found, proceeding without discount')
+        }
+      }
+
+      // Calculate total price (packages don't have pricing, so totalPrice will be 0)
+      let totalPrice = offer.type === 'packages' ? 0 : (formData.adults * (offer.priceAdult ?? 0) + formData.children * (offer.priceChild ?? 0))
+
+      // Create booking
+      const bookingData: any = {
+        offerId: offer.id,
+        offerType: offer.type.toUpperCase(),
+        date: formData.date,
+        adults: formData.adults,
+        children: formData.children,
+      }
+
+      if (promoCodeId) {
+        bookingData.promoCodeId = promoCodeId
+      }
+
+      if (offer.type === 'transfers') {
+        bookingData.totalPrice = totalPrice
+      } else if (offer.type === 'packages') {
+        // Packages don't have fixed pricing, totalPrice is 0
+        bookingData.totalPrice = 0
+      }
+
+      // Verify token is still available before creating booking
+      const verifyToken = localStorage.getItem('token')
+      if (!verifyToken) {
+        console.error('❌ Token not found in localStorage before booking creation!')
+        console.error('❌ Available localStorage keys:', Object.keys(localStorage))
+        // Try to restore from the token variable
+        if (token) {
+          console.log('⚠️ Attempting to restore token from variable...')
+          localStorage.setItem('token', token)
+          const restoredToken = localStorage.getItem('token')
+          if (restoredToken) {
+            console.log('✅ Token restored successfully')
+          } else {
+            throw new Error('Authentication token is missing and could not be restored. Please try again.')
+          }
+        } else {
+          throw new Error('Authentication token is missing. Please try again.')
+        }
+      }
+      console.log('✅ Token verified before booking creation:', verifyToken.substring(0, 20) + '...')
+      console.log('✅ Full localStorage contents:', {
+        token: localStorage.getItem('token') ? 'Present' : 'Missing',
+        user: localStorage.getItem('user') ? 'Present' : 'Missing',
+        allKeys: Object.keys(localStorage)
+      })
+
+      // Create booking with the token explicitly passed
+      // Get fresh token from localStorage to ensure we have the latest
+      const freshToken = localStorage.getItem('token') || token
+      if (!freshToken) {
+        throw new Error('Authentication token is missing. Please try again.')
+      }
+      
+      console.log('Creating booking with data:', bookingData)
+      console.log('Using token:', freshToken.substring(0, 30) + '...')
+      const bookingResponse = await bookingApi.createBooking(bookingData, freshToken)
+      console.log('✅ Booking created successfully:', bookingResponse)
+
+      // Double-check token is still stored after booking
+      const finalTokenCheck = localStorage.getItem('token')
+      if (!finalTokenCheck) {
+        console.warn('⚠️ Token missing after booking creation, restoring...')
+        localStorage.setItem('token', freshToken)
+      }
+      
+      // Ensure user data is also still stored
+      const finalUserCheck = localStorage.getItem('user')
+      if (!finalUserCheck) {
+        console.warn('⚠️ User data missing after booking creation, restoring...')
+        localStorage.setItem('user', JSON.stringify(userData))
+      }
+
+      // Show success dialog
+      setBookingSuccessData({ bookingReference: bookingResponse.booking?.booking_reference })
+      setShowSuccessDialog(true)
+      
+      // Log final state
+      console.log('✅ Final localStorage state:', {
+        token: localStorage.getItem('token') ? 'Present' : 'Missing',
+        user: localStorage.getItem('user') ? 'Present' : 'Missing',
+        tokenPreview: localStorage.getItem('token')?.substring(0, 20) + '...',
+        allKeys: Object.keys(localStorage)
+      })
+      
+      // Optionally reset form
+      setFormData({
+        fullName: "",
+        email: "",
+        phone: "",
+        date: "",
+        adults: 1,
+        children: 0,
+        infants: 0,
+        message: "",
+        promoCode: "",
+      })
+    } catch (error: any) {
+      console.error('Error submitting reservation:', error)
+      setSubmitError(error.message || 'Failed to submit reservation. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <main className="w-full">
       <Header />
-      <PageHero title={offer.title} backgroundImage={offer.mainImage} />
+      <PageHero 
+        title={offer.title} 
+        backgroundImage={offer.mainImage} 
+        showOverlay={offer.type !== 'packages'}
+      />
 
       <section className="py-10 bg-gray-50">
         <Container className="max-w-7xl px-2 md:px-8">
@@ -103,11 +839,27 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     />
                   ) : (
                     <>
-                      <img
-                        src={allImages[selectedImageIndex] || "/placeholder.svg"}
-                        alt={offer.title}
-                        className="w-full h-full object-cover transition-opacity duration-300"
-                      />
+                      {allImages[selectedImageIndex] && allImages[selectedImageIndex].includes('localhost:3030') ? (
+                        <img
+                          src={allImages[selectedImageIndex] || "/placeholder.svg"}
+                          alt={offer.title}
+                          className="w-full h-full object-cover transition-opacity duration-300"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = '/placeholder.svg'
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={allImages[selectedImageIndex] || "/placeholder.svg"}
+                          alt={offer.title}
+                          className="w-full h-full object-cover transition-opacity duration-300"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = '/placeholder.svg'
+                          }}
+                        />
+                      )}
                       {/* Image Counter */}
                       <div className="absolute bottom-4 left-4 bg-black/60 text-white text-xs font-medium px-3 py-1.5 rounded-full backdrop-blur-sm">
                         {selectedImageIndex + 1} / {allImages.length}
@@ -146,11 +898,27 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                           : "ring-transparent hover:ring-muted-foreground/50 opacity-70 hover:opacity-100"
                       }`}
                     >
-                      <img
-                        src={img || "/placeholder.svg"}
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
+                      {img && img.includes('localhost:3030') ? (
+                        <img
+                          src={img || "/placeholder.svg"}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = '/placeholder.svg'
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={img || "/placeholder.svg"}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = '/placeholder.svg'
+                          }}
+                        />
+                      )}
                     </button>
                   ))}
                   {offer.video && (
@@ -470,8 +1238,8 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                 </div>
               )}
 
-              {/* Pricing Cards - Hide for transfers since vehicle options show pricing */}
-              {offer.type !== "transfers" && (offer.priceAdult !== undefined || offer.priceChild !== undefined) && (
+              {/* Pricing Cards - Hide for transfers and packages */}
+              {offer.type !== "transfers" && offer.type !== "packages" && (offer.priceAdult !== undefined || offer.priceChild !== undefined) && (
                 <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
                   <h3 className="font-semibold text-foreground mb-4">{t.offerDetails.pricing}</h3>
                   <div className="grid grid-cols-2 gap-3">
@@ -503,8 +1271,8 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                 </div>
               )}
 
-              {/* Availability - Hide availability dates section for transfers */}
-              {offer.type !== "transfers" && offer.availabilityDates?.startDate && offer.availabilityDates?.endDate && (
+              {/* Availability - Hide availability dates section for transfers and packages */}
+              {offer.type !== "transfers" && offer.type !== "packages" && offer.availabilityDates?.startDate && offer.availabilityDates?.endDate && (
                 <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
                   <h3 className="font-semibold text-foreground mb-3">{t.offerDetails.availability}</h3>
                   <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
@@ -602,8 +1370,8 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                         type="date"
                         value={formData.date}
                         onChange={handleInputChange}
-                        min={offer.availabilityDates?.startDate}
-                        max={offer.availabilityDates?.endDate}
+                        min={getTodayDate()}
+                        max={offer.type !== "packages" ? offer.availabilityDates?.endDate : undefined}
                         className="h-10 text-sm"
                         required
                       />
@@ -686,6 +1454,56 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     )}
                   </div>
 
+                  {/* Promo Code */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="promoCode" className="text-xs font-medium flex items-center gap-1.5">
+                      <Ticket size={12} className="text-primary" />
+                      {t.offerDetails?.reservationForm?.promoCode || "Promo Code"}
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="promoCode"
+                        name="promoCode"
+                        type="text"
+                        value={formData.promoCode}
+                        onChange={handleInputChange}
+                        placeholder={t.offerDetails?.reservationForm?.promoCodePlaceholder || "Enter promo code"}
+                        className={`h-10 text-sm font-mono uppercase pr-10 ${
+                          promoCodeDetails?.isValid 
+                            ? 'border-green-500 focus:border-green-500' 
+                            : promoCodeDetails && !promoCodeDetails.isValid 
+                            ? 'border-destructive focus:border-destructive' 
+                            : ''
+                        }`}
+                        maxLength={50}
+                      />
+                      {isValidatingPromoCode && (
+                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                      )}
+                      {promoCodeDetails?.isValid && !isValidatingPromoCode && (
+                        <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                      )}
+                      {promoCodeDetails && !promoCodeDetails.isValid && !isValidatingPromoCode && (
+                        <X className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
+                      )}
+                    </div>
+                    {promoCodeDetails?.error && (
+                      <p className="text-[10px] text-destructive">
+                        {promoCodeDetails.error}
+                      </p>
+                    )}
+                    {promoCodeDetails?.isValid && (
+                      <p className="text-[10px] text-green-600 font-medium">
+                        ✓ Promo code applied! You save {promoCodeDetails.discountType === 'PERCENTAGE' ? `${promoCodeDetails.discountValue}%` : `MAD ${promoCodeDetails.discountValue}`}
+                      </p>
+                    )}
+                    {!promoCodeDetails && !isValidatingPromoCode && (
+                      <p className="text-[10px] text-muted-foreground">
+                        {t.offerDetails?.reservationForm?.promoCodeHint || "Have a discount code? Enter it here"}
+                      </p>
+                    )}
+                  </div>
+
                   {/* Special Requests */}
                   <div className="space-y-1.5">
                     <Label htmlFor="message" className="text-xs font-medium">{offer.type === "transfers" ? t.offerDetails.reservationForm.pickupDetails : t.offerDetails.reservationForm.specialRequests}</Label>
@@ -736,15 +1554,59 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                           <span className="text-green-600 font-medium">{t.infant?.free || "FREE"}</span>
                         </div>
                       )}
+                      {promoCodeDetails && (
+                        <>
+                          {promoCodeDetails.isValid ? (
+                            <>
+                              <div className="flex justify-between text-xs text-muted-foreground pt-2 border-t border-border/50">
+                                <span className="flex items-center gap-1">
+                                  <Ticket size={10} className="text-primary" />
+                                  Subtotal
+                                </span>
+                                <span>MAD {calculateTotalPrice.subtotal.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-xs text-green-600 font-medium">
+                                <span>Discount ({promoCodeDetails.discountType === 'PERCENTAGE' ? `${promoCodeDetails.discountValue}%` : `MAD ${promoCodeDetails.discountValue}`})</span>
+                                <span>- MAD {calculateTotalPrice.discount.toFixed(2)}</span>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex justify-between text-xs text-destructive pt-2 border-t border-border/50">
+                              <span>{promoCodeDetails.error || 'Invalid promo code'}</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {isValidatingPromoCode && (
+                        <div className="flex justify-between text-xs text-muted-foreground pt-2 border-t border-border/50">
+                          <span>Validating promo code...</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-semibold text-foreground pt-2 border-t border-border/50">
                         <span>{t.offerDetails.reservationForm.total}</span>
-                        <span className="text-lg text-primary">MAD {totalPrice}</span>
+                        <span className="text-lg text-primary">MAD {totalPrice.toFixed(2)}</span>
                       </div>
                     </div>
                   )}
 
-                  <Button type="submit" className="w-full h-11 font-semibold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer">
-                    {offer.type === "packages" ? t.offerDetails.reservationForm.requestCustomQuote : t.offerDetails.reservationForm.reserveNow}
+                  {submitError && (
+                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                      <p className="text-sm text-destructive">{submitError}</p>
+                    </div>
+                  )}
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 font-semibold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      offer.type === "packages" ? t.offerDetails.reservationForm.requestCustomQuote : t.offerDetails.reservationForm.reserveNow
+                    )}
                   </Button>
 
                   {/* Trust Badges */}
@@ -767,6 +1629,101 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
       <Footer />
       <FloatingContact />
+
+      {/* Same-Day Reservation Dialog */}
+      <Dialog open={showSameDayDialog} onOpenChange={setShowSameDayDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone className="h-5 w-5 text-primary" />
+              Same-Day Reservation
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              Reservations for the same day must be made by phone call. Please contact us directly to complete your booking.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+              <div className="p-2 rounded-full bg-primary/10">
+                <Phone className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Call us now</p>
+                <a 
+                  href="tel:+212524375251" 
+                  className="text-lg font-semibold text-primary hover:underline"
+                >
+                  +212 524 375 251
+                </a>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowSameDayDialog(false)}
+              className="w-full sm:w-auto"
+            >
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                window.location.href = 'tel:+212524375251'
+              }}
+              className="w-full sm:w-auto gap-2"
+            >
+              <Phone className="h-4 w-4" />
+              Call Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Booking Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="p-3 rounded-full bg-green-500/10">
+                <CheckCircle2 className="h-12 w-12 text-green-500" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-2xl">
+              Reservation Successful!
+            </DialogTitle>
+            <DialogDescription className="text-center pt-2 text-base">
+              Your reservation has been submitted successfully!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <span className="text-muted-foreground">Booking Submitted</span>
+              </div>
+            </div>
+            {bookingSuccessData?.bookingReference && (
+              <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                <p className="text-xs text-muted-foreground mb-1">Booking Reference</p>
+                <p className="text-sm font-mono font-semibold text-foreground">{bookingSuccessData.bookingReference}</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setShowSuccessDialog(false)
+                // Optionally scroll to top or reset view
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+              className="w-full gap-2"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Got it!
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }

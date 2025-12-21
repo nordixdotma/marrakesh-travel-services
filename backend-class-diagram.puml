@@ -1,0 +1,465 @@
+@startuml Backend Class Diagram - Marrakesh Travel Services
+
+!define PRIMARY_COLOR #2563eb
+!define SECONDARY_COLOR #7c3aed
+
+skinparam class {
+    BackgroundColor white
+    BorderColor black
+    ArrowColor PRIMARY_COLOR
+    AttributeFontSize 10
+    MethodFontSize 10
+}
+
+skinparam package {
+    BackgroundColor lightblue
+    BorderColor black
+}
+
+package "Core Entities" {
+    class User {
+        +id: UUID
+        +name: String
+        +email: String?
+        +phone: String?
+        +password: String
+        +role: UserRole
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        +isActive: Boolean
+        --
+        +authenticate(): Boolean
+        +updateProfile(): void
+        +changePassword(): void
+    }
+
+    class Admin {
+        +id: UUID
+        +username: String
+        +password: String
+        +email: String
+        +role: AdminRole
+        +lastLogin: DateTime?
+        +createdAt: DateTime
+        --
+        +authenticate(): Boolean
+        +hasPermission(permission: String): Boolean
+    }
+
+    abstract class Offer {
+        +id: UUID
+        +type: OfferType
+        +departCity: String
+        +title: Map<String, String>
+        +description: Map<String, String>
+        +mainImage: String
+        +video: String?
+        +isActive: Boolean
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        --
+        +getTranslation(language: String): OfferTranslation
+        {abstract} +calculatePrice(adults: Integer, children: Integer): Decimal
+    }
+    
+    class PricedOffer {
+        +priceAdult: Decimal
+        +priceChild: Decimal
+        +availabilityStart: Date
+        +availabilityEnd: Date
+        --
+        +checkAvailability(date: Date): Boolean
+    }
+
+    class Tour {
+        +duration: String
+        +difficulty: String
+        +groupSize: String
+    }
+
+    class Excursion {
+        +duration: String
+        +difficulty: String
+    }
+
+    class Activity {
+        +duration: String
+        +groupSize: String
+    }
+
+    class Transfer {
+        +from: String
+        +to: String
+        +duration: String
+        +distance: String?
+        +vehicleOptions: JSON
+        --
+        Note: Transfers don't have fixed prices
+        Note: Prices are in vehicleOptions
+        Note: No availability dates
+    }
+
+    class Package {
+        +includes: String[]
+        +duration: String
+    }
+
+    class Booking {
+        +id: UUID
+        +userId: UUID
+        +offerId: UUID
+        +offerType: String
+        +date: Date
+        +adults: Integer
+        +children: Integer
+        +totalPrice: Decimal
+        +status: BookingStatus
+        +affiliateId: UUID?
+        +affiliateVisitId: UUID?
+        +promoCodeId: UUID?
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        --
+        +calculateTotal(): Decimal
+        +confirm(): void
+        +cancel(): void
+        +createCommissionIfAffiliate(): void
+    }
+
+    class Payment {
+        +id: UUID
+        +bookingId: UUID
+        +amount: Decimal
+        +currency: String
+        +method: String
+        +status: PaymentStatus
+        +transactionId: String
+        +createdAt: DateTime
+        --
+        +process(): Boolean
+        +refund(): Boolean
+    }
+
+    class Review {
+        +id: UUID
+        +userId: UUID
+        +offerId: UUID
+        +offerType: String
+        +rating: Integer
+        +comment: String
+        +status: ReviewStatus
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        --
+        +approve(): void
+        +reject(): void
+    }
+
+    class Favorite {
+        +id: UUID
+        +userId: UUID
+        +offerId: UUID
+        +offerType: String
+        +createdAt: DateTime
+    }
+}
+
+package "Affiliate System" {
+    class Affiliate {
+        +id: UUID
+        +userId: UUID
+        +affiliateCode: String
+        +name: String
+        +email: String
+        +commissionRate: Decimal
+        +totalClicks: Integer
+        +totalConversions: Integer
+        +totalCommission: Decimal
+        +status: Status
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        --
+        +generateLink(baseUrl: String): AffiliateLink
+        +calculateCommission(bookingAmount: Decimal): Decimal
+        +getStats(): Stats
+    }
+
+    class AffiliateLink {
+        +id: UUID
+        +affiliateId: UUID
+        +name: String
+        +url: String
+        +clicks: Integer
+        +conversions: Integer
+        +createdAt: DateTime
+        --
+        +trackClick(): void
+        +trackConversion(): void
+    }
+
+    class AffiliateVisit {
+        +id: UUID
+        +affiliateLinkId: UUID
+        +sessionId: String
+        +ipAddress: String?
+        +userAgent: String?
+        +converted: Boolean
+        +convertedAt: DateTime?
+        +createdAt: DateTime
+        --
+        +markAsConverted(): void
+    }
+
+    class AffiliateCommission {
+        +id: UUID
+        +affiliateId: UUID
+        +bookingId: UUID
+        +affiliateVisitId: UUID?
+        +amount: Decimal
+        +commissionTypeSnapshot: String
+        +commissionValueSnapshot: Decimal
+        +bookingTotalSnapshot: Decimal
+        +status: CommissionStatus
+        +paidAt: DateTime?
+        +createdAt: DateTime
+        --
+        +markAsPaid(): void
+        +calculateFromSnapshot(): Decimal
+    }
+}
+
+package "Promotions" {
+    class PromoCode {
+        +id: UUID
+        +code: String
+        +discountType: DiscountType
+        +discountValue: Decimal
+        +minPurchase: Decimal?
+        +maxDiscount: Decimal?
+        +validFrom: DateTime
+        +validTo: DateTime
+        +usageLimit: Integer?
+        +usedCount: Integer
+        +isActive: Boolean
+        +createdAt: DateTime
+        --
+        +validate(amount: Decimal, date: Date): Boolean
+        +apply(amount: Decimal): Decimal
+        +incrementUsage(): void
+    }
+}
+
+package "Content Management" {
+    class OfferTranslation {
+        +id: UUID
+        +offerId: UUID
+        +language: String
+        +title: String
+        +description: String
+        +overview: String
+        +highlights: String[]
+        +sections: JSON
+        +includedItems: String[]
+        +excludedItems: String[]
+    }
+
+    class OfferImage {
+        +id: UUID
+        +offerId: UUID
+        +url: String
+        +type: ImageType
+        +order: Integer
+        +createdAt: DateTime
+    }
+
+    class BlogPost {
+        +id: UUID
+        +title: Map<String, String>
+        +content: Map<String, String>
+        +author: String
+        +mainImage: String
+        +publishDate: DateTime
+        +isPublished: Boolean
+        +createdAt: DateTime
+        +updatedAt: DateTime
+    }
+}
+
+package "Notifications" {
+    class Notification {
+        +id: UUID
+        +userId: UUID?
+        +affiliateId: UUID?
+        +type: String
+        +title: String
+        +message: String
+        +isRead: Boolean
+        +createdAt: DateTime
+        --
+        +markAsRead(): void
+    }
+}
+
+' Enumerations
+enum UserRole {
+    CUSTOMER
+    ADMIN
+    AFFILIATE
+}
+
+enum OfferType {
+    TOURS
+    EXCURSIONS
+    ACTIVITIES
+    TRANSFERS
+    PACKAGES
+}
+
+enum BookingStatus {
+    PENDING
+    CONFIRMED
+    COMPLETED
+    CANCELLED
+}
+
+enum PaymentStatus {
+    PENDING
+    COMPLETED
+    FAILED
+    REFUNDED
+}
+
+enum ReviewStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
+enum CommissionStatus {
+    PENDING
+    PAID
+    CANCELLED
+}
+
+enum DiscountType {
+    PERCENTAGE
+    FIXED_AMOUNT
+}
+
+enum ImageType {
+    MAIN
+    THUMBNAIL
+    GALLERY
+}
+
+enum AdminRole {
+    SUPER_ADMIN
+    ADMIN
+    MODERATOR
+}
+
+' Relationships - Core Entities
+User ||--o{ Booking : "makes"
+User ||--o{ Review : "writes"
+User ||--o{ Favorite : "has"
+User ||--o| Affiliate : "can be"
+User ||--o| Admin : "can be"
+
+Offer ||--o{ Booking : "booked as"
+Offer ||--o{ Review : "reviewed in"
+Offer ||--o{ Favorite : "favorited as"
+Offer ||--o{ OfferTranslation : "has"
+Offer ||--o{ OfferImage : "has"
+
+Offer <|-- PricedOffer
+PricedOffer <|-- Tour
+PricedOffer <|-- Excursion
+PricedOffer <|-- Activity
+PricedOffer <|-- Package
+Offer <|-- Transfer
+
+Booking ||--|| Payment : "has"
+Booking }o--o| Affiliate : "referred by"
+Booking }o--o| AffiliateVisit : "attributed to"
+Booking }o--o| PromoCode : "uses"
+Booking ||--o| AffiliateCommission : "generates (on confirm)"
+
+' Relationships - Affiliate System
+Affiliate ||--o{ AffiliateLink : "owns"
+Affiliate ||--o{ AffiliateCommission : "earns"
+Affiliate ||--o{ Notification : "receives"
+AffiliateLink ||--o{ AffiliateVisit : "tracks"
+AffiliateVisit ||--o| AffiliateCommission : "converts to"
+
+' Relationships - Notifications
+User ||--o{ Notification : "receives"
+
+' Relationships - Content
+BlogPost ..> User : "author"
+
+note right of Booking
+    Business Rules:
+    - Must have a User
+    - Must reference an Offer
+    - Can have optional Affiliate
+    - Can have optional AffiliateVisit (attribution)
+    - Can have optional PromoCode
+    - Must have a Payment
+    - Commission created ONLY on confirm()
+    - Not created on draft/pending status
+end note
+
+note right of Affiliate
+    Business Rules:
+    - Must be linked to User account
+    - Generates unique affiliate codes
+    - Tracks clicks and conversions
+    - Earns commissions on bookings
+end note
+
+note right of AffiliateCommission
+    Business Rules:
+    - Created ONLY when booking is confirmed
+    - Contains snapshots of commission rules
+    - commissionTypeSnapshot: "percentage" or "fixed"
+    - commissionValueSnapshot: value at time of booking
+    - bookingTotalSnapshot: total booking amount
+    - Prevents changes to past commissions
+    - Links to AffiliateVisit for attribution
+end note
+
+note right of AffiliateVisit
+    Business Rules:
+    - Created on each affiliate link click
+    - Tracks session for attribution
+    - Marked as converted when booking confirmed
+    - Links booking to specific click/visit
+    - Enables accurate conversion tracking
+end note
+
+note right of Offer
+    Business Rules:
+    - Supports multiple languages
+    - Has multiple images
+    - Can be of different types
+    - Transfer type doesn't have prices/availability
+    - Other types inherit from PricedOffer
+end note
+
+note right of Transfer
+    Business Rules:
+    - No fixed prices (prices in vehicleOptions)
+    - No availability dates
+    - Always available
+    - Prices vary by vehicle type
+end note
+
+note right of Review
+    Business Rules:
+    - Must be approved before display
+    - Linked to both User and Offer
+    - Has ratings (1-5 stars)
+end note
+
+@enduml
+

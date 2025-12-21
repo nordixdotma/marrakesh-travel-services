@@ -1,85 +1,200 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CalendarDays, MapPin, Clock, ChevronRight } from "lucide-react"
+import { CalendarDays, MapPin, Clock, ChevronRight, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useLanguage } from "@/components/language-provider"
-
-// Mock bookings data - in a real app this would come from an API
-type BookingStatus = "upcoming" | "completed" | "cancelled"
+import { bookingApi, type ApiError } from "@/lib/api"
+import { useAuth } from "@/components/login-modal"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 interface Booking {
   id: string
-  title: string
-  type: string
+  offer_id: string
+  offer_type: string
   date: string
-  time: string
-  location: string
-  status: BookingStatus
-  image: string
-  price: number
-  details: {
-    fullName: string
-    email: string
-    phone: string
-    adults: number
-    children: number
-    infants: number
-    message: string
-    bookingDate: string
-  }
+  adults: number
+  children: number
+  total_price: number
+  status: string
+  created_at: string
+  offerTitle?: string
+  offerImage?: string
+  depart_city?: string
 }
 
-const bookings: Booking[] = [
-  {
-    id: "bk-12345",
-    title: "Desert Sunset Camel Ride",
-    type: "activities", 
-    date: "2024-06-15",
-    time: "17:00",
-    location: "Agafay Desert",
-    status: "upcoming",
-    image: "/images/camel-ride.jpg",
-    price: 450,
-    details: {
-      fullName: "John Doe",
-      email: "john.doe@example.com",
-      phone: "+1 234 567 8900",
-      adults: 2,
-      children: 1,
-      infants: 0,
-      message: "We prefer a gentle camel if possible.",
-      bookingDate: "2024-05-20"
+export default function BookingsPage() {
+  const { t, language } = useLanguage()
+  const { isLoggedIn, user, login } = useAuth()
+  const router = useRouter()
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Check for token and user in localStorage first
+    const checkAuth = () => {
+      if (typeof window === 'undefined') return false
+      
+      const token = localStorage.getItem('token')
+      const storedUser = localStorage.getItem('user')
+      
+      // If we have token and user in localStorage but auth context doesn't have user, update it
+      if (token && storedUser && !user) {
+        try {
+          const userData = JSON.parse(storedUser)
+          login(userData) // Update auth context
+          return true
+        } catch (e) {
+          console.error('Error parsing stored user:', e)
+          localStorage.removeItem('user')
+          localStorage.removeItem('token')
+          return false
+        }
+      }
+      
+      return !!(token && (user || storedUser))
     }
-  },
-  {
-    id: "bk-67890",
-    title: "Marrakech City Tour",
-    type: "tours",
-    date: "2024-04-10",
-    time: "09:00",
-    location: "Medina, Marrakech",
-    status: "completed",
-    image: "/images/city-tour.jpg",
-    price: 300,
-    details: {
-      fullName: "John Doe",
-      email: "john.doe@example.com",
-      phone: "+1 234 567 8900",
-      adults: 2,
-      children: 0,
-       infants: 0,
-      message: "",
-      bookingDate: "2024-04-01"
+
+    const isAuthenticated = checkAuth()
+    
+    if (!isAuthenticated) {
+      setError('Please log in to view your bookings')
+      toast.error('Authentication required', {
+        description: 'Please log in to view your bookings',
+      })
+      setIsLoading(false)
+      // Don't redirect immediately, let user see the error
+      return
+    }
+
+    const fetchBookings = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        
+        // Get token from localStorage
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        if (!token) {
+          setError('Please log in to view your bookings')
+          toast.error('Authentication required', {
+            description: 'Please log in to view your bookings',
+          })
+          setIsLoading(false)
+          return
+        }
+        
+        console.log('✅ Token found, fetching bookings...')
+        
+        const response = await bookingApi.getBookings(undefined, language)
+        
+        // Transform backend data
+        const transformedBookings: Booking[] = (response.bookings || []).map((booking: any) => ({
+          id: booking.id,
+          offer_id: booking.offer_id,
+          offer_type: booking.offer_type || booking.type,
+          date: booking.date,
+          adults: booking.adults || 0,
+          children: booking.children || 0,
+          total_price: parseFloat(booking.total_price) || 0,
+          status: booking.status?.toLowerCase() || 'pending',
+          created_at: booking.created_at,
+          offerTitle: booking.offerTitle || booking.title || 'Untitled Offer',
+          offerImage: booking.offerImage || booking.main_image || '/placeholder.svg',
+          depart_city: booking.depart_city || 'Marrakech',
+        }))
+        
+        setBookings(transformedBookings)
+      } catch (err) {
+        const apiError = err as ApiError
+        const errorMessage = apiError.message || 'Failed to load bookings'
+        setError(errorMessage)
+        console.error('Error fetching bookings:', err)
+        
+        // If it's an authentication error, redirect to home
+        if (errorMessage.includes('Authentication') || errorMessage.includes('User not found') || errorMessage.includes('Unauthorized')) {
+          toast.error('Session expired', {
+            description: 'Please log in again',
+          })
+          // Clear invalid token
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          setTimeout(() => {
+            router.push('/')
+          }, 2000)
+        } else {
+          toast.error('Failed to load bookings', {
+            description: errorMessage,
+          })
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchBookings()
+  }, [isLoggedIn, language, router, user, login])
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+  }
+
+  const getStatusBadge = (status: string) => {
+    const statusLower = status.toLowerCase()
+    if (statusLower === 'confirmed') {
+      return { label: t.users.bookings.confirmed, className: "bg-green-100 text-green-700" }
+    } else if (statusLower === 'completed') {
+      return { label: "Completed", className: "bg-gray-100 text-gray-600" }
+    } else if (statusLower === 'cancelled') {
+      return { label: "Cancelled", className: "bg-red-100 text-red-600" }
+    } else {
+      return { label: "Pending", className: "bg-yellow-100 text-yellow-700" }
     }
   }
-]
 
-export default function BookingsPage() {
-  const { t } = useLanguage()
-  const upcomingBookings = bookings.filter((b) => b.status === "upcoming")
-  const pastBookings = bookings.filter((b) => b.status === "completed" || b.status === "cancelled")
+  const isUpcoming = (booking: Booking) => {
+    const bookingDate = new Date(booking.date)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return bookingDate >= today && booking.status !== 'cancelled' && booking.status !== 'completed'
+  }
+
+  const upcomingBookings = bookings.filter(isUpcoming)
+  const pastBookings = bookings.filter((b) => !isUpcoming(b))
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{t.users.bookings.pageTitle}</h1>
+          <p className="text-muted-foreground">{t.users.bookings.pageDescription}</p>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -108,36 +223,51 @@ export default function BookingsPage() {
                 >
                   <div className="flex items-center gap-4 p-4 rounded-lg border border-border group-hover:border-primary/50 transition-all bg-card hover:shadow-sm">
                     <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-muted">
-                      <img
-                        src={booking.image}
-                        alt={booking.title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg"
-                        }}
-                      />
+                      {booking.offerImage && booking.offerImage.includes('localhost:3030') ? (
+                        <img
+                          src={booking.offerImage}
+                          alt={booking.offerTitle}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = "/placeholder.svg"
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={booking.offerImage || "/placeholder.svg"}
+                          alt={booking.offerTitle}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = "/placeholder.svg"
+                          }}
+                        />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">{booking.title}</p>
+                      <p className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">{booking.offerTitle}</p>
                       <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <CalendarDays className="h-3.5 w-3.5" />
-                          {booking.date}
+                          {formatDate(booking.date)}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {booking.time}
+                          <MapPin className="h-3.5 w-3.5" />
+                          {booking.depart_city}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {booking.location}
+                        <span>{booking.adults} {booking.adults === 1 ? 'Adult' : 'Adults'}</span>
+                        {booking.children > 0 && (
+                          <span>, {booking.children} {booking.children === 1 ? 'Child' : 'Children'}</span>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-primary">MAD {booking.price}</p>
-                      <span className="inline-flex px-2 py-0.5 mt-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                        {t.users.bookings.confirmed}
+                      <p className="font-semibold text-primary">MAD {booking.total_price}</p>
+                      <span className={`inline-flex px-2 py-0.5 mt-1 text-xs font-medium rounded-full ${getStatusBadge(booking.status).className}`}>
+                        {getStatusBadge(booking.status).label}
                       </span>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -179,29 +309,36 @@ export default function BookingsPage() {
                 >
                   <div className="flex items-center gap-4 p-4 rounded-lg border border-border opacity-75 hover:opacity-100 transition-all hover:border-primary/50 hover:shadow-sm">
                     <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 grayscale group-hover:grayscale-0 transition-all">
-                      <img
-                        src={booking.image}
-                        alt={booking.title}
-                        className="w-full h-full object-cover"
-                         onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg"
-                        }}
-                      />
+                      {booking.offerImage && booking.offerImage.includes('localhost:3030') ? (
+                        <img
+                          src={booking.offerImage}
+                          alt={booking.offerTitle}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = "/placeholder.svg"
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={booking.offerImage || "/placeholder.svg"}
+                          alt={booking.offerTitle}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = "/placeholder.svg"
+                          }}
+                        />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">{booking.title}</p>
-                      <p className="text-sm text-muted-foreground">{booking.date}</p>
+                      <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">{booking.offerTitle}</p>
+                      <p className="text-sm text-muted-foreground">{formatDate(booking.date)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">MAD {booking.price}</p>
-                      <span
-                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
-                          booking.status === "completed"
-                            ? "bg-gray-100 text-gray-600"
-                            : "bg-red-100 text-red-600"
-                        }`}
-                      >
-                        {booking.status === "completed" ? "Completed" : "Cancelled"}
+                      <p className="font-medium">MAD {booking.total_price}</p>
+                      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getStatusBadge(booking.status).className}`}>
+                        {getStatusBadge(booking.status).label}
                       </span>
                     </div>
                   </div>

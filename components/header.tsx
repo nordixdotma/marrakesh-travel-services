@@ -230,17 +230,6 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
                 </Link>
 
-                <Link
-                  href="/about"
-                  className={cn(
-                    "text-sm font-medium transition-all duration-300 relative group font-trajan-pro uppercase tracking-wider hover:text-secondary",
-                    pathname === "/about" ? "text-secondary" : "text-white"
-                  )}
-                >
-                  {t.header.about}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
-                </Link>
-
                 {/* Services Dropdown - Premium Grid */}
                 <div 
                   className="relative services-dropdown-container group"
@@ -300,6 +289,17 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                     )}
                   </AnimatePresence>
                 </div>
+
+                <Link
+                  href="/about"
+                  className={cn(
+                    "text-sm font-medium transition-all duration-300 relative group font-trajan-pro uppercase tracking-wider hover:text-secondary",
+                    pathname === "/about" ? "text-secondary" : "text-white"
+                  )}
+                >
+                  {t.header.about}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
+                </Link>
 
                 <Link
                   href="/contact"
@@ -464,29 +464,11 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                         </Link>
                       </motion.div>
 
-                      <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 }}
-                      >
-                        <Link
-                          href="/about"
-                          className={cn(
-                            "flex items-center py-3 px-4 rounded-lg transition-all duration-200 text-sm font-medium tracking-wide group",
-                            pathname === "/about" ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-50 hover:text-primary"
-                          )}
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          <span className="flex-1">{t.header.about}</span>
-                          <ChevronRight className={cn("h-4 w-4 transition-transform duration-200", pathname === "/about" ? "text-white/70" : "text-gray-400")} />
-                        </Link>
-                      </motion.div>
-
                       {/* Mobile Services Accordion */}
                       <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.15 }}
+                        transition={{ delay: 0.1 }}
                       >
                         <div className="rounded-lg overflow-hidden">
                           <button
@@ -537,25 +519,25 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                       <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
+                        transition={{ delay: 0.15 }}
                       >
                         <Link
-                          href="/blog"
+                          href="/about"
                           className={cn(
                             "flex items-center py-3 px-4 rounded-lg transition-all duration-200 text-sm font-medium tracking-wide group",
-                            pathname === "/blog" ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-50 hover:text-primary"
+                            pathname === "/about" ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-50 hover:text-primary"
                           )}
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          <span className="flex-1">{t.header.blog}</span>
-                          <ChevronRight className={cn("h-4 w-4 transition-transform duration-200", pathname === "/blog" ? "text-white/70" : "text-gray-400")} />
+                          <span className="flex-1">{t.header.about}</span>
+                          <ChevronRight className={cn("h-4 w-4 transition-transform duration-200", pathname === "/about" ? "text-white/70" : "text-gray-400")} />
                         </Link>
                       </motion.div>
 
                       <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.25 }}
+                        transition={{ delay: 0.2 }}
                       >
                         <Link
                           href="/contact"

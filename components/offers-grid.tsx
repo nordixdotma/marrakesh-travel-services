@@ -8,6 +8,8 @@ import type { Offer } from "@/lib/offers-data"
 import { getTranslatedOffer } from "@/lib/offers-data"
 import { useAuth } from "@/components/login-modal"
 import { useLanguage } from "@/components/language-provider"
+import { userApi } from "@/lib/api"
+import { toast } from "sonner"
 
 interface OffersGridProps {
   offers: Offer[]
@@ -15,6 +17,7 @@ interface OffersGridProps {
 
 export default function OffersGrid({ offers }: OffersGridProps) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
+  const [isToggling, setIsToggling] = useState<string | null>(null)
   const { isLoggedIn, openLoginModal } = useAuth()
   const { language, t } = useLanguage()
 
@@ -23,19 +26,75 @@ export default function OffersGrid({ offers }: OffersGridProps) {
     return offers.map(offer => getTranslatedOffer(offer, language))
   }, [offers, language])
 
-  // Load favorites from localStorage on mount
+  // Load favorites from backend API on mount and sync localStorage favorites
   useEffect(() => {
-    const storedFavorites = localStorage.getItem("favorites")
-    if (storedFavorites) {
+    const loadFavorites = async () => {
+      if (!isLoggedIn) {
+        // Fallback to localStorage if not logged in
+        const storedFavorites = localStorage.getItem("favorites")
+        if (storedFavorites) {
+          try {
+            setFavorites(new Set(JSON.parse(storedFavorites)))
+          } catch {
+            localStorage.removeItem("favorites")
+          }
+        }
+        return
+      }
+
       try {
-        setFavorites(new Set(JSON.parse(storedFavorites)))
-      } catch {
-        localStorage.removeItem("favorites")
+        // Get favorites from backend
+        const response = await userApi.getFavorites(language)
+        const backendFavoriteIds = new Set((response.favorites || []).map((fav: any) => fav.id))
+        setFavorites(backendFavoriteIds)
+        
+        // Sync localStorage favorites to backend (if any exist and we have offers)
+        const storedFavorites = localStorage.getItem("favorites")
+        if (storedFavorites && offers.length > 0) {
+          try {
+            const localFavoriteIds = JSON.parse(storedFavorites) as string[]
+            // Find offers that are in localStorage but not in backend
+            for (const offerId of localFavoriteIds) {
+              if (!backendFavoriteIds.has(offerId)) {
+                // Find the offer to get its type
+                const offer = offers.find(o => o.id === offerId)
+                if (offer) {
+                  try {
+                    await userApi.addFavorite(offerId, offer.type.toUpperCase())
+                    console.log('✅ Synced favorite to backend:', offerId)
+                    backendFavoriteIds.add(offerId)
+                  } catch (syncError) {
+                    console.warn('Failed to sync favorite:', offerId, syncError)
+                  }
+                }
+              }
+            }
+            // Update state with synced favorites
+            setFavorites(backendFavoriteIds)
+            // Clear localStorage favorites after syncing
+            localStorage.removeItem("favorites")
+          } catch (e) {
+            console.warn('Error syncing localStorage favorites:', e)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading favorites:', error)
+        // Fallback to localStorage on error
+        const storedFavorites = localStorage.getItem("favorites")
+        if (storedFavorites) {
+          try {
+            setFavorites(new Set(JSON.parse(storedFavorites)))
+          } catch {
+            localStorage.removeItem("favorites")
+          }
+        }
       }
     }
-  }, [])
 
-  const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
+    loadFavorites()
+  }, [isLoggedIn, language, offers])
+
+  const toggleFavorite = async (e: React.MouseEvent, offerId: string, offerType: string) => {
     e.preventDefault()
     e.stopPropagation()
 
@@ -45,15 +104,42 @@ export default function OffersGrid({ offers }: OffersGridProps) {
       return
     }
 
-    const newFavorites = new Set(favorites)
-    if (newFavorites.has(offerId)) {
-      newFavorites.delete(offerId)
-    } else {
-      newFavorites.add(offerId)
+    const isFavorite = favorites.has(offerId)
+    setIsToggling(offerId)
+
+    try {
+      if (isFavorite) {
+        // Remove from favorites
+        await userApi.removeFavorite(offerId)
+        const newFavorites = new Set(favorites)
+        newFavorites.delete(offerId)
+        setFavorites(newFavorites)
+        toast.success('Removed from favorites')
+      } else {
+        // Add to favorites
+        await userApi.addFavorite(offerId, offerType.toUpperCase())
+        const newFavorites = new Set(favorites)
+        newFavorites.add(offerId)
+        setFavorites(newFavorites)
+        toast.success('Added to favorites')
+      }
+      
+      // Dispatch event to notify profile page to refresh stats
+      window.dispatchEvent(new Event('favorites-updated'))
+    } catch (error: any) {
+      console.error('Error toggling favorite:', error)
+      toast.error(error.message || 'Failed to update favorite')
+      // Revert UI change on error
+      const newFavorites = new Set(favorites)
+      if (isFavorite) {
+        newFavorites.add(offerId)
+      } else {
+        newFavorites.delete(offerId)
+      }
+      setFavorites(newFavorites)
+    } finally {
+      setIsToggling(null)
     }
-    setFavorites(newFavorites)
-    // Save to localStorage
-    localStorage.setItem("favorites", JSON.stringify([...newFavorites]))
   }
 
   return (
@@ -76,24 +162,41 @@ export default function OffersGrid({ offers }: OffersGridProps) {
             className="offer-card rounded-sm md:rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group flex flex-col relative h-full"
           >
             <div className="relative overflow-hidden h-52 md:h-56 lg:h-64">
-              <Image
-                src={offer.mainImage || "/placeholder.svg"}
-                alt={offer.title}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+              {offer.mainImage && offer.mainImage.includes('localhost:3030') ? (
+                <img
+                  src={offer.mainImage || "/placeholder.svg"}
+                  alt={offer.title}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.src = '/placeholder.svg'
+                  }}
+                />
+              ) : (
+                <Image
+                  src={offer.mainImage || "/placeholder.svg"}
+                  alt={offer.title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.src = '/placeholder.svg'
+                  }}
+                />
+              )}
               <button
-                onClick={(e) => toggleFavorite(e, offer.id)}
-                className="absolute top-2 right-2 md:top-3 md:right-3 bg-background/80 hover:bg-background rounded-full p-1.5 md:p-2 transition-all duration-200 backdrop-blur-sm transform hover:scale-105 active:scale-95 cursor-pointer"
-                aria-label="Add to favorites"
+                onClick={(e) => toggleFavorite(e, offer.id, offer.type)}
+                disabled={isToggling === offer.id}
+                className="absolute top-2 right-2 md:top-3 md:right-3 bg-background/80 hover:bg-background rounded-full p-1.5 md:p-2 transition-all duration-200 backdrop-blur-sm transform hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={favorites.has(offer.id) ? "Remove from favorites" : "Add to favorites"}
               >
                 <Heart
                   className={`w-4 h-4 md:w-5 md:h-5 transform transition-transform duration-200 ${
                     favorites.has(offer.id)
                       ? "scale-110 fill-red-500 text-red-500"
                       : "text-foreground"
-                  }`}
+                  } ${isToggling === offer.id ? "animate-pulse" : ""}`}
                 />
               </button>
             </div>

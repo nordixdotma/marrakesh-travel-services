@@ -1,0 +1,452 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+
+export interface ApiError {
+  message: string
+  error?: string
+}
+
+export class ApiClient {
+  private baseUrl: string
+
+  constructor(baseUrl: string = API_BASE_URL) {
+    this.baseUrl = baseUrl
+  }
+
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`
+    
+    // Determine which token to use based on endpoint
+    // Admin endpoints use admin_token, user endpoints use token
+    let token: string | null = null
+    if (typeof window !== 'undefined') {
+      const isAdminEndpoint = endpoint.startsWith('/admin')
+      if (isAdminEndpoint) {
+        token = localStorage.getItem('admin_token')
+      } else {
+        // For user endpoints, ONLY use user token, never admin token
+        token = localStorage.getItem('token')
+      }
+    }
+    
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    }
+
+    // Add authorization header if token exists
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+      // Debug logging for token
+      if (process.env.NODE_ENV === 'development') {
+        const tokenType = endpoint.startsWith('/admin') ? 'admin_token' : 'token'
+        console.log(`🔑 Using ${tokenType} for ${endpoint}:`, token.substring(0, 20) + '...')
+        
+        // Decode token to verify it has the right structure
+        try {
+          const tokenParts = token.split('.')
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]))
+            if (endpoint.startsWith('/admin')) {
+              console.log(`   Token payload:`, { adminId: payload.adminId, role: payload.role })
+            } else {
+              console.log(`   Token payload:`, { userId: payload.userId, role: payload.role })
+            }
+          }
+        } catch (e) {
+          // Ignore decode errors
+        }
+      }
+    } else {
+      console.warn(`⚠️ No token found for request to ${endpoint}`)
+    }
+
+    const config: RequestInit = {
+      ...options,
+      headers,
+    }
+
+    try {
+      const response = await fetch(url, config)
+      
+      // Handle non-JSON responses
+      const contentType = response.headers.get('content-type')
+      if (!contentType?.includes('application/json')) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        return {} as T
+      }
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        // If it's a 401 and we have a token, log it for debugging
+        if (response.status === 401 && token) {
+          try {
+            const tokenParts = token.split('.')
+            if (tokenParts.length === 3) {
+              const payload = JSON.parse(atob(tokenParts[1]))
+              console.error('❌ 401 Unauthorized with token:', {
+                userId: payload.userId,
+                role: payload.role,
+                endpoint: endpoint,
+                errorMessage: data.message
+              })
+            }
+          } catch (e) {
+            console.error('Could not decode token for debugging:', e)
+          }
+        }
+        
+        const error: ApiError = {
+          message: data.message || 'An error occurred',
+          error: data.error,
+        }
+        throw error
+      }
+
+      return data
+    } catch (error) {
+      if (error instanceof Error) {
+        throw { message: error.message } as ApiError
+      }
+      throw error
+    }
+  }
+
+  async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'GET' })
+  }
+
+  async post<T>(endpoint: string, data?: any, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  }
+
+  async patch<T>(endpoint: string, data?: any, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  }
+
+  async delete<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'DELETE',
+    })
+  }
+
+  async patch<T>(endpoint: string, data?: any, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  }
+
+  async put<T>(endpoint: string, data?: any, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  }
+
+  async delete<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'DELETE' })
+  }
+}
+
+// Auth API methods
+export const authApi = {
+  adminLogin: async (username: string, password: string) => {
+    const client = new ApiClient()
+    return client.post<{
+      message: string
+      token: string
+      admin: {
+        id: string
+        username: string
+        email: string
+        role: string
+      }
+    }>('/auth/admin/login', { username, password })
+  },
+  register: async (name: string, email: string, phone: string, password: string) => {
+    const client = new ApiClient()
+    return client.post<{
+      message: string
+      token: string
+      user: {
+        id: string
+        name: string
+        email: string | null
+        phone: string | null
+        role: string
+      }
+    }>('/auth/register', { name, email, phone, password })
+  },
+}
+
+// Offers API methods
+export const offersApi = {
+  getOffers: async (type?: string, language: string = 'en') => {
+    const client = new ApiClient()
+    const params = new URLSearchParams()
+    if (type) params.append('type', type)
+    params.append('language', language)
+    return client.get<{ offers: any[] }>(`/offers?${params.toString()}`)
+  },
+  getOfferById: async (id: string, language: string = 'en') => {
+    const client = new ApiClient()
+    return client.get<{ offer: any }>(`/offers/${id}?language=${language}`)
+  },
+}
+
+// Admin API methods
+export const adminApi = {
+  createTour: async (data: any) => {
+    const client = new ApiClient()
+    return client.post<{ message: string; tour: any }>('/admin/tours', data)
+  },
+  createExcursion: async (data: any) => {
+    const client = new ApiClient()
+    return client.post<{ message: string; excursion: any }>('/admin/excursions', data)
+  },
+  createActivity: async (data: any) => {
+    const client = new ApiClient()
+    return client.post<{ message: string; activity: any }>('/admin/activities', data)
+  },
+  createTransfer: async (data: any) => {
+    const client = new ApiClient()
+    return client.post<{ message: string; transfer: any }>('/admin/transfers', data)
+  },
+  createPackage: async (data: any) => {
+    const client = new ApiClient()
+    return client.post<{ message: string; package: any }>('/admin/packages', data)
+  },
+  updatePackage: async (id: string, data: any) => {
+    const client = new ApiClient()
+    return client.patch<{ message: string; package: any }>(`/admin/packages/${id}`, data)
+  },
+  getTransfers: async (language: string = 'en') => {
+    const client = new ApiClient()
+    return client.get<{ transfers: any[] }>(`/admin/transfers?language=${language}`)
+  },
+  getPackages: async (language: string = 'en') => {
+    const client = new ApiClient()
+    return client.get<{ packages: any[] }>(`/admin/packages?language=${language}`)
+  },
+  getBookings: async (status?: string, limit: number = 100, offset: number = 0) => {
+    const client = new ApiClient()
+    const params = new URLSearchParams()
+    if (status) params.append('status', status.toUpperCase())
+    params.append('limit', limit.toString())
+    params.append('offset', offset.toString())
+    return client.get<{ bookings: any[] }>(`/admin/bookings?${params.toString()}`)
+  },
+  getPayments: async (status?: string, limit: number = 100, offset: number = 0) => {
+    const client = new ApiClient()
+    const params = new URLSearchParams()
+    if (status) params.append('status', status.toUpperCase())
+    params.append('limit', limit.toString())
+    params.append('offset', offset.toString())
+    return client.get<{ payments: any[] }>(`/admin/payments?${params.toString()}`)
+  },
+  getUsers: async (limit: number = 100, offset: number = 0) => {
+    const client = new ApiClient()
+    const params = new URLSearchParams()
+    params.append('limit', limit.toString())
+    params.append('offset', offset.toString())
+    return client.get<{ users: any[] }>(`/admin/users?${params.toString()}`)
+  },
+  getReviews: async (status?: string, limit: number = 100, offset: number = 0) => {
+    const client = new ApiClient()
+    const params = new URLSearchParams()
+    if (status) params.append('status', status.toUpperCase())
+    params.append('limit', limit.toString())
+    params.append('offset', offset.toString())
+    return client.get<{ reviews: any[] }>(`/admin/reviews?${params.toString()}`)
+  },
+  getAffiliates: async (status?: string, limit: number = 100, offset: number = 0) => {
+    const client = new ApiClient()
+    const params = new URLSearchParams()
+    if (status) params.append('status', status.toUpperCase())
+    params.append('limit', limit.toString())
+    params.append('offset', offset.toString())
+    return client.get<{ affiliates: any[] }>(`/admin/affiliates?${params.toString()}`)
+  },
+  getPromoCodes: async (limit: number = 100, offset: number = 0) => {
+    const client = new ApiClient()
+    const params = new URLSearchParams()
+    params.append('limit', limit.toString())
+    params.append('offset', offset.toString())
+    return client.get<{ promoCodes: any[] }>(`/admin/promo-codes?${params.toString()}`)
+  },
+  createPromoCode: async (data: any) => {
+    const client = new ApiClient()
+    return client.post<{ message: string; promoCode: any }>('/admin/promo-codes', data)
+  },
+  getPromoCodes: async (limit: number = 100, offset: number = 0) => {
+    const client = new ApiClient()
+    const params = new URLSearchParams()
+    params.append('limit', limit.toString())
+    params.append('offset', offset.toString())
+    return client.get<{ promoCodes: any[] }>(`/admin/promo-codes?${params.toString()}`)
+  },
+}
+
+// Booking API methods
+export const bookingApi = {
+  createBooking: async (data: {
+    offerId: string
+    offerType: string
+    date: string
+    adults: number
+    children: number
+    promoCodeId?: string
+    totalPrice?: number
+  }, token?: string) => {
+    const url = `${API_BASE_URL}/bookings`
+    
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    }
+    
+    // Use provided token or get from localStorage
+    const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('token') : null)
+    
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`
+    }
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      const error: ApiError = {
+        message: errorData.message || 'Failed to create booking',
+        error: errorData.error,
+      }
+      throw error
+    }
+    
+    return response.json() as Promise<{
+      message: string
+      booking: any
+    }>
+  },
+  getBookings: async (status?: string, language: string = 'en', limit: number = 50, offset: number = 0) => {
+    const client = new ApiClient()
+    const params = new URLSearchParams()
+    if (status) params.append('status', status.toUpperCase())
+    params.append('language', language)
+    params.append('limit', limit.toString())
+    params.append('offset', offset.toString())
+    return client.get<{ bookings: any[] }>(`/bookings?${params.toString()}`)
+  },
+  getBookingById: async (id: string) => {
+    const client = new ApiClient()
+    return client.get<{ booking: any }>(`/bookings/${id}`)
+  },
+}
+
+// User API methods
+export const userApi = {
+  getProfile: async () => {
+    const client = new ApiClient()
+    return client.get<{ user: any }>('/users/profile')
+  },
+  updateProfile: async (data: { name?: string; email?: string; phone?: string }) => {
+    const client = new ApiClient()
+    return client.patch<{ message: string; user: any }>('/users/profile', data)
+  },
+  getFavorites: async (language: string = 'en') => {
+    const client = new ApiClient()
+    return client.get<{ favorites: any[] }>(`/users/favorites?language=${language}`)
+  },
+  addFavorite: async (offerId: string, offerType: string) => {
+    const client = new ApiClient()
+    return client.post<{ message: string; favorite: any }>('/users/favorites', { offerId, offerType })
+  },
+  removeFavorite: async (offerId: string) => {
+    const client = new ApiClient()
+    return client.delete<{ message: string }>(`/users/favorites/${offerId}`)
+  },
+}
+
+// Upload API methods
+export const uploadApi = {
+  uploadFile: async (file: File): Promise<string> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
+    
+    if (!token) {
+      throw new Error('Authentication required')
+    }
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch(`${API_BASE_URL}/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to upload file')
+    }
+
+    const data = await response.json()
+    return data.url
+  },
+
+  uploadFiles: async (files: File[]): Promise<string[]> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
+    
+    if (!token) {
+      throw new Error('Authentication required')
+    }
+
+    const formData = new FormData()
+    files.forEach(file => {
+      formData.append('files', file)
+    })
+
+    const response = await fetch(`${API_BASE_URL}/upload/multiple`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to upload files')
+    }
+
+    const data = await response.json()
+    return data.files.map((f: any) => f.url)
+  },
+}
+
+// Export default client instance
+export const apiClient = new ApiClient()
+export default apiClient
+

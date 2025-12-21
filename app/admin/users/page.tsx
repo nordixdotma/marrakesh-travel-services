@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   Users,
@@ -10,16 +10,53 @@ import {
   Phone,
   Calendar,
   CalendarCheck,
+  Loader2,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { users } from "@/lib/admin-data"
+import { adminApi } from "@/lib/api"
+import { toast } from "sonner"
+
+interface User {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+  role: string
+  isActive: boolean
+  createdAt: string
+  bookingsCount: number
+}
 
 export default function AdminUsersPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await adminApi.getUsers()
+        setUsers(response.users || [])
+      } catch (err: any) {
+        console.error('Error fetching users:', err)
+        setError(err.message || 'Failed to load users')
+        toast.error('Failed to load users', {
+          description: err.message || 'Please try again later',
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUsers()
+  }, [])
 
   const filteredUsers = useMemo(() => {
     return users
@@ -34,7 +71,7 @@ export default function AdminUsersPage() {
         )
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [searchQuery])
+  }, [searchQuery, users])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -46,6 +83,31 @@ export default function AdminUsersPage() {
 
   const handleViewDetails = (id: string) => {
     router.push(`/admin/users/${id}`)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="border-destructive/50 bg-destructive/10 rounded-sm">
+        <CardContent className="flex flex-col items-center justify-center py-16">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+            <Users className="h-8 w-8 text-destructive" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading users</h3>
+          <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (

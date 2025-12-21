@@ -4,8 +4,10 @@ import { useSearchParams } from "next/navigation"
 import { useState, useEffect, Suspense } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { OfferForm } from "@/components/admin/offer-form"
-import { excursionsOffers } from "@/lib/offers-data"
+import { offersApi, ApiError } from "@/lib/api"
+import { Card, CardContent } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
+import type { Offer } from "@/lib/offers-data"
 
 function ExcursionsDetailContent() {
   const params = useParams()
@@ -18,16 +20,92 @@ function ExcursionsDetailContent() {
   const [mode, setMode] = useState<"view" | "edit" | "add">(
     isNew ? "add" : (modeParam === "edit" ? "edit" : "view")
   )
+  const [offer, setOffer] = useState<Offer | undefined>(undefined)
+  const [isLoading, setIsLoading] = useState(!isNew)
+  const [error, setError] = useState<string | null>(null)
 
-  // Find the offer if editing/viewing
-  const offer = isNew ? undefined : excursionsOffers.find(o => o.id === id)
-
-  // If not new and offer not found, redirect back
+  // Fetch offer from backend if not new
   useEffect(() => {
-    if (!isNew && !offer) {
-      router.push("/admin/excursions")
+    if (isNew) {
+      setIsLoading(false)
+      return
     }
-  }, [isNew, offer, router])
+
+    const fetchOffer = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const response = await offersApi.getOfferById(id, 'en')
+        
+        // Transform backend data to match frontend Offer format
+        const backendOffer = response.offer
+        
+        console.log('Backend excursion:', backendOffer)
+        console.log('Backend images:', backendOffer.images)
+        console.log('Backend main_image:', backendOffer.main_image)
+        console.log('Backend pricing:', backendOffer.pricing)
+        
+        // Extract pricing data
+        const priceAdult = backendOffer.pricing?.price_adult || backendOffer.price_adult
+        const priceChild = backendOffer.pricing?.price_child || backendOffer.price_child
+        const availabilityStart = backendOffer.pricing?.availability_start || backendOffer.availability_start
+        const availabilityEnd = backendOffer.pricing?.availability_end || backendOffer.availability_end
+        
+        // Extract main image from images array or use main_image field
+        const mainImageObj = backendOffer.images?.find((img: any) => img.type === 'MAIN')
+        const mainImage = mainImageObj?.url || backendOffer.main_image || '/placeholder.jpg'
+        
+        // Extract thumbnail images
+        const thumbnailImages = backendOffer.images?.filter((img: any) => img.type === 'GALLERY').map((img: any) => img.url) || []
+        
+        console.log('Extracted mainImage:', mainImage)
+        console.log('Extracted thumbnailImages:', thumbnailImages)
+        
+        const transformedOffer: Offer = {
+          id: backendOffer.id,
+          type: 'excursions',
+          title: backendOffer.title || 'Untitled Excursion',
+          description: backendOffer.description || '',
+          departCity: backendOffer.depart_city,
+          priceAdult: priceAdult ? parseFloat(priceAdult) : 0,
+          priceChild: priceChild ? parseFloat(priceChild) : 0,
+          mainImage: mainImage,
+          thumbnailImages: thumbnailImages,
+          video: backendOffer.video || '',
+          availabilityDates: {
+            startDate: availabilityStart ? new Date(availabilityStart).toISOString().split('T')[0] : '',
+            endDate: availabilityEnd ? new Date(availabilityEnd).toISOString().split('T')[0] : '',
+          },
+          detailedDescription: {
+            overview: backendOffer.overview || '',
+            highlights: backendOffer.highlights || [],
+            sections: backendOffer.sections || [],
+            itinerary: [],
+            tips: [],
+            duration: backendOffer.excursionDetails?.duration || '',
+            difficulty: backendOffer.excursionDetails?.difficulty || '',
+            groupSize: '',
+          },
+          includedItems: backendOffer.included_items || [],
+          excludedItems: backendOffer.excluded_items || [],
+        }
+        
+        setOffer(transformedOffer)
+      } catch (err) {
+        const apiError = err as ApiError
+        setError(apiError.message || 'Failed to load excursion')
+        console.error('Error fetching excursion:', err)
+        // Redirect back if excursion not found
+        setTimeout(() => {
+          router.push("/admin/excursions")
+        }, 2000)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchOffer()
+  }, [id, isNew, router])
 
   // Update mode when URL changes
   useEffect(() => {
@@ -43,6 +121,26 @@ function ExcursionsDetailContent() {
     } else if (newMode === "view") {
       router.push(`/admin/excursions/${id}?mode=view`)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="border-destructive/50 bg-destructive/10 rounded-sm m-6">
+        <CardContent className="flex flex-col items-center justify-center py-16">
+          <p className="text-sm font-medium text-destructive mb-2">Error loading excursion</p>
+          <p className="text-xs text-destructive/80">{error}</p>
+          <p className="text-xs text-muted-foreground mt-4">Redirecting back...</p>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (!isNew && !offer) {

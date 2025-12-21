@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Star,
   Search,
@@ -11,6 +11,7 @@ import {
   Clock,
   User,
   Package,
+  Loader2,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -23,20 +24,57 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { reviews } from "@/lib/admin-data"
+import { adminApi } from "@/lib/api"
+import { toast } from "sonner"
 
 type ReviewStatus = "all" | "pending" | "approved" | "rejected"
+
+interface Review {
+  id: string
+  userId: string
+  offerId: string
+  offerType: string
+  offerTitle: string
+  userName: string
+  userEmail?: string
+  rating: number
+  comment: string
+  status: string
+  createdAt: string
+}
 
 export default function AdminReviewsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<ReviewStatus>("all")
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const status = statusFilter !== "all" ? statusFilter : undefined
+        const response = await adminApi.getReviews(status)
+        setReviews(response.reviews || [])
+      } catch (err: any) {
+        console.error('Error fetching reviews:', err)
+        setError(err.message || 'Failed to load reviews')
+        toast.error('Failed to load reviews', {
+          description: err.message || 'Please try again later',
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchReviews()
+  }, [statusFilter])
 
   const filteredReviews = useMemo(() => {
     return reviews
       .filter((review) => {
-        // Status filter
-        if (statusFilter !== "all" && review.status !== statusFilter) return false
-
         // Search filter
         if (searchQuery.trim()) {
           const query = searchQuery.toLowerCase()
@@ -49,7 +87,7 @@ export default function AdminReviewsPage() {
         return true
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [searchQuery, statusFilter])
+  }, [searchQuery, reviews])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -90,19 +128,47 @@ export default function AdminReviewsPage() {
   }
 
   const handleApprove = (id: string) => {
-    alert(`Review ${id} approved! (Demo)`)
+    // TODO: Implement approve API call
+    toast.info('Approve functionality coming soon')
   }
 
   const handleReject = (id: string) => {
     if (confirm("Are you sure you want to reject this review?")) {
-      alert(`Review ${id} rejected! (Demo)`)
+      // TODO: Implement reject API call
+      toast.info('Reject functionality coming soon')
     }
   }
 
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this review?")) {
-      alert(`Review ${id} deleted! (Demo)`)
+      // TODO: Implement delete API call
+      toast.info('Delete functionality coming soon')
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="border-destructive/50 bg-destructive/10 rounded-sm">
+        <CardContent className="flex flex-col items-center justify-center py-16">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+            <Star className="h-8 w-8 text-destructive" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading reviews</h3>
+          <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -161,8 +227,8 @@ export default function AdminReviewsPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">{review.userName}</h3>
-                          <Badge variant="secondary" className={getStatusColor(review.status)}>
-                            {review.status}
+                          <Badge variant="secondary" className={getStatusColor(review.status.toLowerCase())}>
+                            {review.status.toLowerCase()}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -199,7 +265,7 @@ export default function AdminReviewsPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 pt-2">
-                    {review.status === "pending" && (
+                    {review.status.toLowerCase() === "pending" && (
                       <>
                         <Button
                           size="sm"

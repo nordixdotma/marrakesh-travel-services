@@ -74,8 +74,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const checkAuth = () => {
+      const token = localStorage.getItem("admin_token")
       const authStatus = localStorage.getItem("admin_authenticated")
-      setIsAuthenticated(authStatus === "true")
+      // Check both token and auth status for backward compatibility
+      setIsAuthenticated(!!(token && authStatus === "true"))
       setIsLoading(false)
     }
     
@@ -83,14 +85,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     
     // Listen for storage changes (for when login happens in another tab)
     const handleStorageChange = () => {
+      const token = localStorage.getItem("admin_token")
       const authStatus = localStorage.getItem("admin_authenticated")
-      setIsAuthenticated(authStatus === "true")
+      setIsAuthenticated(!!(token && authStatus === "true"))
     }
     
     // Listen for custom auth change event (for same-tab login)
     const handleAuthChange = () => {
+      const token = localStorage.getItem("admin_token")
       const authStatus = localStorage.getItem("admin_authenticated")
-      setIsAuthenticated(authStatus === "true")
+      setIsAuthenticated(!!(token && authStatus === "true"))
     }
     
     window.addEventListener("storage", handleStorageChange)
@@ -103,8 +107,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Re-check auth when pathname changes (handles navigation after login)
   useEffect(() => {
+    const token = localStorage.getItem("admin_token")
     const authStatus = localStorage.getItem("admin_authenticated")
-    if (authStatus === "true" && !isAuthenticated) {
+    if (token && authStatus === "true" && !isAuthenticated) {
       setIsAuthenticated(true)
     }
   }, [pathname, isAuthenticated])
@@ -118,6 +123,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const logout = () => {
     setIsAuthenticated(false)
     localStorage.removeItem("admin_authenticated")
+    localStorage.removeItem("admin_token")
+    localStorage.removeItem("admin_info")
     router.push("/admin/login")
   }
 

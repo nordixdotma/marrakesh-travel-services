@@ -31,6 +31,31 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'th.bing.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'i0.wp.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i1.wp.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i2.wp.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.wp.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.wordpress.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3030',
+      },
     ],
   },
 }

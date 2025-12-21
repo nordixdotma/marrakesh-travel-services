@@ -1,26 +1,81 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Activity, Plus, Search, Eye, Pencil, Trash2, MapPin } from "lucide-react"
+import { Activity, Plus, Search, Eye, Pencil, Trash2, MapPin, Loader2, AlertCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { activitiesOffers } from "@/lib/offers-data"
+import { offersApi, ApiError } from "@/lib/api"
+
+interface ActivityItem {
+  id: string
+  type: string
+  depart_city: string
+  main_image?: string
+  title?: string
+  priceAdult?: number
+  priceChild?: number
+  activityDetails?: {
+    duration?: string
+    group_size?: string
+  }
+}
 
 export default function AdminActivitiesPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
+  const [activities, setActivities] = useState<ActivityItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const response = await offersApi.getOffers('ACTIVITIES', 'en')
+        
+        // Transform backend data to match frontend format
+        const transformedActivities = response.offers.map((offer: any) => {
+          // Extract main image from images array or use main_image field
+          const mainImageObj = offer.images?.find((img: any) => img.type === 'MAIN')
+          const mainImage = mainImageObj?.url || offer.main_image || '/placeholder.jpg'
+          
+          return {
+            id: offer.id,
+            type: offer.type,
+            depart_city: offer.depart_city,
+            main_image: mainImage,
+            title: offer.title || 'Untitled Activity',
+            priceAdult: offer.price_adult ? parseFloat(offer.price_adult) : undefined,
+            priceChild: offer.price_child ? parseFloat(offer.price_child) : undefined,
+            activityDetails: offer.activityDetails,
+          }
+        })
+        
+        setActivities(transformedActivities)
+      } catch (err) {
+        const apiError = err as ApiError
+        setError(apiError.message || 'Failed to load activities')
+        console.error('Error fetching activities:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchActivities()
+  }, [])
 
   const filteredOffers = useMemo(() => {
-    if (!searchQuery.trim()) return activitiesOffers
-    return activitiesOffers.filter(
+    if (!searchQuery.trim()) return activities
+    return activities.filter(
       (offer) =>
-        offer.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        offer.departCity.toLowerCase().includes(searchQuery.toLowerCase())
+        (offer.title?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
+        offer.depart_city.toLowerCase().includes(searchQuery.toLowerCase())
     )
-  }, [searchQuery])
+  }, [searchQuery, activities])
 
   const handleCreate = () => {
     router.push("/admin/activities/new")
@@ -34,10 +89,17 @@ export default function AdminActivitiesPage() {
     router.push(`/admin/activities/${id}?mode=edit`)
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this activity?")) {
-      // In a real app, this would delete from a backend
-      alert(`Deleted activity: ${id}`)
+      try {
+        // TODO: Implement delete API endpoint
+        // await offersApi.deleteOffer(id)
+        setActivities(activities.filter(activity => activity.id !== id))
+        alert(`Activity deleted successfully`)
+      } catch (err) {
+        const apiError = err as ApiError
+        alert(apiError.message || 'Failed to delete activity')
+      }
     }
   }
 
@@ -48,7 +110,7 @@ export default function AdminActivitiesPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Activities</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your activities. {activitiesOffers.length} total activities.
+            Manage your activities. {isLoading ? 'Loading...' : `${activities.length} total activities.`}
           </p>
         </div>
         <Button onClick={handleCreate} className="gap-2 rounded-sm">
@@ -68,8 +130,31 @@ export default function AdminActivitiesPage() {
         />
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <Card className="border-destructive/50 bg-destructive/10 rounded-sm">
+          <CardContent className="flex items-center gap-3 p-4">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            <div>
+              <p className="text-sm font-medium text-destructive">Error loading activities</p>
+              <p className="text-xs text-destructive/80">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <Card className="border-dashed rounded-sm bg-white">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-sm text-muted-foreground">Loading activities...</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Offers List */}
-      {filteredOffers.length > 0 ? (
+      {!isLoading && !error && filteredOffers.length > 0 && (
         <div className="space-y-3">
           {filteredOffers.map((offer) => (
             <div
@@ -78,25 +163,44 @@ export default function AdminActivitiesPage() {
             >
               {/* Thumbnail */}
               <div className="relative w-20 h-14 shrink-0 overflow-hidden rounded-sm">
-                <Image
-                  src={offer.mainImage}
-                  alt={offer.title}
-                  fill
-                  className="object-cover"
-                />
+                {offer.main_image && offer.main_image.includes('localhost:3030') ? (
+                  <img
+                    src={offer.main_image}
+                    alt={offer.title || 'Activity'}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.src = '/placeholder.jpg'
+                    }}
+                  />
+                ) : (
+                  <Image
+                    src={offer.main_image || '/placeholder.jpg'}
+                    alt={offer.title || 'Activity'}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.src = '/placeholder.jpg'
+                    }}
+                  />
+                )}
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-sm truncate">{offer.title}</h3>
+                <h3 className="font-medium text-sm truncate">{offer.title || 'Untitled Activity'}</h3>
                 <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
-                    {offer.departCity}
+                    {offer.depart_city}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="font-medium">{offer.priceAdult} MAD</span>/adult
-                  </div>
+                  {offer.priceAdult !== undefined && (
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">{offer.priceAdult} MAD</span>/adult
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -130,7 +234,10 @@ export default function AdminActivitiesPage() {
             </div>
           ))}
         </div>
-      ) : (
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !error && filteredOffers.length === 0 && (
         <Card className="border-dashed rounded-sm bg-white">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">

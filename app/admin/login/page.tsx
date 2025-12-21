@@ -2,13 +2,11 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff, Lock, User } from "lucide-react"
+import { Eye, EyeOff, Lock, User, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
-
-const VALID_USERNAME = "marrakeshtravel"
-const VALID_PASSWORD = "marrakesh2025"
+import { authApi, ApiError } from "@/lib/api"
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState("")
@@ -23,16 +21,22 @@ export default function AdminLoginPage() {
     setError("")
     setIsLoading(true)
 
-    await new Promise((resolve) => setTimeout(resolve, 400))
-
-    if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+    try {
+      const response = await authApi.adminLogin(username, password)
+      
+      // Store token and admin info
+      localStorage.setItem("admin_token", response.token)
       localStorage.setItem("admin_authenticated", "true")
+      localStorage.setItem("admin_info", JSON.stringify(response.admin))
+      
       // Dispatch custom event to notify layout of auth change
       window.dispatchEvent(new Event("admin-auth-change"))
+      
       // Use replace to prevent back button from going back to login
       router.replace("/admin/dashboard")
-    } else {
-      setError("Invalid username or password")
+    } catch (err) {
+      const apiError = err as ApiError
+      setError(apiError.message || "Invalid username or password")
       setIsLoading(false)
     }
   }
@@ -106,8 +110,9 @@ export default function AdminLoginPage() {
             </div>
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-sm">
-                {error}
+              <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-sm">
+                <AlertCircle className="h-4 w-4" />
+                <span>{error}</span>
               </div>
             )}
 

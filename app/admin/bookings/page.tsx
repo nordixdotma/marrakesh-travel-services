@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
 import {
   CalendarCheck,
@@ -9,6 +9,7 @@ import {
   Filter,
   Clock,
   Users,
+  Loader2,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -21,20 +22,59 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { bookings } from "@/lib/admin-data"
+import { adminApi } from "@/lib/api"
+import { toast } from "sonner"
 
 type BookingStatus = "all" | "pending" | "confirmed" | "completed" | "cancelled"
+
+interface Booking {
+  id: string
+  offerId: string
+  offerType: string
+  offerTitle: string
+  customerName: string
+  customerEmail: string
+  customerPhone?: string
+  date: string
+  adults: number
+  children: number
+  totalPrice: number
+  status: string
+  createdAt: string
+}
 
 export default function AdminBookingsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<BookingStatus>("all")
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const status = statusFilter !== "all" ? statusFilter : undefined
+        const response = await adminApi.getBookings(status)
+        setBookings(response.bookings || [])
+      } catch (err: any) {
+        console.error('Error fetching bookings:', err)
+        setError(err.message || 'Failed to load bookings')
+        toast.error('Failed to load bookings', {
+          description: err.message || 'Please try again later',
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBookings()
+  }, [statusFilter])
 
   const filteredBookings = useMemo(() => {
     return bookings
       .filter((booking) => {
-        // Status filter
-        if (statusFilter !== "all" && booking.status !== statusFilter) return false
-
         // Search filter
         if (searchQuery.trim()) {
           const query = searchQuery.toLowerCase()
@@ -48,7 +88,7 @@ export default function AdminBookingsPage() {
         return true
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [searchQuery, statusFilter])
+  }, [searchQuery, bookings])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -82,6 +122,31 @@ export default function AdminBookingsPage() {
       packages: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
     }
     return colors[type] || "bg-gray-100 text-gray-700"
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="border-destructive/50 bg-destructive/10 rounded-sm">
+        <CardContent className="flex flex-col items-center justify-center py-16">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+            <CalendarCheck className="h-8 w-8 text-destructive" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading bookings</h3>
+          <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -169,8 +234,8 @@ export default function AdminBookingsPage() {
                         {formatDate(booking.createdAt)}
                       </p>
                     </div>
-                    <Badge variant="secondary" className={getStatusColor(booking.status)}>
-                      {booking.status}
+                    <Badge variant="secondary" className={getStatusColor(booking.status.toLowerCase())}>
+                      {booking.status.toLowerCase()}
                     </Badge>
                     <Link href={`/admin/bookings/${booking.id}`}>
                       <Button variant="outline" size="sm" className="gap-1 rounded-sm">

@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/components/login-modal";
 import { LanguageProvider } from "@/components/language-provider";
 import CookieBanner from "@/components/cookie-banner";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -317,6 +318,7 @@ export default function RootLayout({
           <AuthProvider>{children}</AuthProvider>
           <CookieBanner />
         </LanguageProvider>
+        <Toaster />
         <Analytics />
       </body>
     </html>

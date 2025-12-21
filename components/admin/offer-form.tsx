@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import {
@@ -26,6 +26,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Offer, OfferType } from "@/lib/offers-data"
+import { adminApi } from "@/lib/api"
+import { toast } from "sonner"
 
 type FormMode = "view" | "edit" | "add"
 type Language = "en" | "fr" | "es"
@@ -70,6 +72,11 @@ interface FormData {
     distance?: string
     vehicleOptions: { type: string; capacity: string; price: number; features: string[] }[]
   }
+  // Package-specific
+  packageDetails?: {
+    duration: string
+    includes: string[]
+  }
 }
 
 interface OfferFormProps {
@@ -94,7 +101,7 @@ const createEmptyLanguageData = (): LanguageData => ({
 
 const offerToFormData = (offer: Offer | undefined, type: OfferType): FormData => {
   if (!offer) {
-    return {
+    const baseData = {
       id: "",
       type,
       departCity: "",
@@ -113,6 +120,33 @@ const offerToFormData = (offer: Offer | undefined, type: OfferType): FormData =>
         es: createEmptyLanguageData(),
       },
     }
+    
+    // Add transfer details if creating a transfer
+    if (type === 'transfers') {
+      return {
+        ...baseData,
+        transferDetails: {
+          from: "",
+          to: "",
+          duration: "",
+          distance: "",
+          vehicleOptions: [],
+        },
+      }
+    }
+    
+    // Add package details if creating a package
+    if (type === 'packages') {
+      return {
+        ...baseData,
+        packageDetails: {
+          duration: "",
+          includes: [],
+        },
+      }
+    }
+    
+    return baseData
   }
 
   // Convert offer to form data
@@ -177,10 +211,26 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
 
   const [formData, setFormData] = useState<FormData>(offerToFormData(offer, offerType))
   
+  // Update formData when offer changes (for when data is loaded asynchronously)
+  useEffect(() => {
+    if (offer) {
+      console.log('OfferForm: Updating formData with offer:', offer)
+      const newFormData = offerToFormData(offer, offerType)
+      console.log('OfferForm: New formData:', newFormData)
+      console.log('OfferForm: Main image in formData:', newFormData.mainImage)
+      setFormData(newFormData)
+    }
+  }, [offer, offerType])
+  
   // File input refs
   const mainImageRef = useRef<HTMLInputElement>(null)
   const thumbnailInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLInputElement>(null)
+  
+  // Upload states
+  const [uploadingMainImage, setUploadingMainImage] = useState(false)
+  const [uploadingThumbnails, setUploadingThumbnails] = useState(false)
+  const [uploadingVideo, setUploadingVideo] = useState(false)
 
   const getOfferTypeName = () => {
     switch (offerType) {
@@ -193,10 +243,177 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
     }
   }
 
-  const handleSave = () => {
-    console.log("Saving offer:", formData)
-    alert(`${isAddMode ? "Created" : "Updated"} ${getOfferTypeName()} successfully!`)
-    router.push(backUrl)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  const handleSave = async () => {
+    if (isViewMode) return
+
+    setIsSaving(true)
+    setSaveError(null)
+
+    try {
+      // Validate required fields based on offer type
+      if (offerType === 'transfers') {
+        // Transfers don't need pricing/availability, but need transfer details
+        if (!formData.departCity || !formData.transferDetails?.from || !formData.transferDetails?.to) {
+          throw new Error('Please fill in all required fields (Departure City, From Location, To Location)')
+        }
+      } else if (offerType === 'packages') {
+        // Packages don't need pricing/availability
+        if (!formData.departCity) {
+          throw new Error('Please fill in all required fields (Departure City)')
+        }
+      } else {
+        // Other offer types need pricing and availability
+        if (!formData.departCity || !formData.priceAdult || !formData.priceChild) {
+          throw new Error('Please fill in all required fields (Departure City, Adult Price, Child Price)')
+        }
+
+        if (!formData.availabilityDates.startDate || !formData.availabilityDates.endDate) {
+          throw new Error('Please select availability dates')
+        }
+      }
+
+      // Prepare translations array
+      const translations = ['en', 'fr', 'es'].map(lang => {
+        const langData = formData.languages[lang as Language]
+        return {
+          language: lang,
+          title: langData.title || '',
+          description: langData.description || '',
+          overview: langData.overview || '',
+          highlights: langData.highlights.filter(h => h.trim()),
+          sections: langData.sections.filter(s => s.title.trim() || s.content.trim()),
+          includedItems: langData.includedItems.filter(i => i.trim()),
+          excludedItems: langData.excludedItems.filter(e => e.trim()),
+        }
+      }).filter(t => t.title.trim()) // Only include translations with titles
+
+      // Prepare images array
+      const images = []
+      
+      // Include main image if it's a valid URL
+      if (formData.mainImage && formData.mainImage.startsWith('http')) {
+        images.push({
+          url: formData.mainImage,
+          type: 'MAIN',
+          order: 0,
+        })
+      }
+      
+      // Include thumbnail images that are valid URLs
+      formData.thumbnailImages.forEach((url, index) => {
+        if (url && url.startsWith('http')) {
+          images.push({
+            url,
+            type: 'GALLERY',
+            order: index + 1,
+          })
+        }
+      })
+
+      // Prepare request data based on offer type
+      let requestData: any = {
+        departCity: formData.departCity,
+        mainImage: formData.mainImage || null,
+        video: formData.video || null,
+        translations,
+        images,
+      }
+
+      // Add type-specific fields
+      if (offerType === 'tours') {
+        requestData.priceAdult = formData.priceAdult
+        requestData.priceChild = formData.priceChild
+        requestData.availabilityStart = formData.availabilityDates.startDate
+        requestData.availabilityEnd = formData.availabilityDates.endDate
+        requestData.duration = formData.duration || null
+        requestData.difficulty = formData.difficulty || null
+        requestData.groupSize = formData.groupSize || null
+      } else if (offerType === 'excursions') {
+        requestData.priceAdult = formData.priceAdult
+        requestData.priceChild = formData.priceChild
+        requestData.availabilityStart = formData.availabilityDates.startDate
+        requestData.availabilityEnd = formData.availabilityDates.endDate
+        requestData.duration = formData.duration || null
+        requestData.difficulty = formData.difficulty || null
+      } else if (offerType === 'activities') {
+        requestData.priceAdult = formData.priceAdult
+        requestData.priceChild = formData.priceChild
+        requestData.availabilityStart = formData.availabilityDates.startDate
+        requestData.availabilityEnd = formData.availabilityDates.endDate
+        requestData.duration = formData.duration || null
+        requestData.groupSize = formData.groupSize || null
+      } else if (offerType === 'transfers') {
+        // Transfers have different structure - no pricing/availability, but transfer details
+        requestData.fromLocation = formData.transferDetails?.from || ''
+        requestData.toLocation = formData.transferDetails?.to || ''
+        requestData.duration = formData.transferDetails?.duration || null
+        requestData.distance = formData.transferDetails?.distance || null
+        requestData.vehicleOptions = formData.transferDetails?.vehicleOptions || []
+      } else if (offerType === 'packages') {
+        // Packages don't have pricing/availability, only package-specific fields
+        requestData.duration = formData.packageDetails?.duration || formData.duration || null
+        // Use includedItems from English translation as includes for packages
+        requestData.includes = formData.packageDetails?.includes || formData.languages.en.includedItems || []
+      }
+
+      // Call appropriate API based on offer type
+      if (isAddMode) {
+        if (offerType === 'tours') {
+          await adminApi.createTour(requestData)
+        } else if (offerType === 'excursions') {
+          await adminApi.createExcursion(requestData)
+        } else if (offerType === 'activities') {
+          await adminApi.createActivity(requestData)
+        } else if (offerType === 'transfers') {
+          await adminApi.createTransfer(requestData)
+        } else if (offerType === 'packages') {
+          await adminApi.createPackage(requestData)
+        } else {
+          throw new Error(`Creating ${offerType} is not yet implemented`)
+        }
+        
+        toast.success(`${getOfferTypeName()} created successfully!`, {
+          description: "The tour has been added to your catalog.",
+          duration: 3000,
+        })
+        setTimeout(() => {
+          router.push(backUrl)
+        }, 500)
+      } else {
+        // Update existing offer
+        if (!formData.id) {
+          throw new Error('Offer ID is required for update')
+        }
+        
+        if (offerType === 'packages') {
+          await adminApi.updatePackage(formData.id, requestData)
+        } else {
+          // TODO: Implement update APIs for other offer types
+          throw new Error(`Updating ${offerType} is not yet implemented`)
+        }
+        
+        toast.success(`${getOfferTypeName()} updated successfully!`, {
+          description: "Your changes have been saved.",
+          duration: 3000,
+        })
+        setTimeout(() => {
+          router.push(backUrl)
+        }, 500)
+      }
+    } catch (error: any) {
+      console.error('Error saving offer:', error)
+      const errorMessage = error.message || 'Failed to save offer. Please try again.'
+      setSaveError(errorMessage)
+      toast.error('Failed to save', {
+        description: errorMessage,
+        duration: 5000,
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleDelete = () => {
@@ -220,27 +437,70 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
   }
 
   // File upload handlers
-  const handleMainImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const url = URL.createObjectURL(file)
+    if (!file) return
+
+    try {
+      setUploadingMainImage(true)
+      const { uploadApi } = await import('@/lib/api')
+      const url = await uploadApi.uploadFile(file)
       setFormData(prev => ({ ...prev, mainImage: url }))
+    } catch (error: any) {
+      console.error('Error uploading main image:', error)
+      toast.error('Upload failed', {
+        description: error.message || 'Failed to upload image',
+      })
+    } finally {
+      setUploadingMainImage(false)
+      if (mainImageRef.current) {
+        mainImageRef.current.value = ''
+      }
     }
   }
 
-  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (files) {
-      const urls = Array.from(files).map(file => URL.createObjectURL(file))
+    if (!files || files.length === 0) return
+
+    try {
+      setUploadingThumbnails(true)
+      const { uploadApi } = await import('@/lib/api')
+      const fileArray = Array.from(files)
+      const urls = await uploadApi.uploadFiles(fileArray)
       setFormData(prev => ({ ...prev, thumbnailImages: [...prev.thumbnailImages, ...urls] }))
+    } catch (error: any) {
+      console.error('Error uploading thumbnails:', error)
+      toast.error('Upload failed', {
+        description: error.message || 'Failed to upload images',
+      })
+    } finally {
+      setUploadingThumbnails(false)
+      if (thumbnailInputRef.current) {
+        thumbnailInputRef.current.value = ''
+      }
     }
   }
 
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const url = URL.createObjectURL(file)
+    if (!file) return
+
+    try {
+      setUploadingVideo(true)
+      const { uploadApi } = await import('@/lib/api')
+      const url = await uploadApi.uploadFile(file)
       setFormData(prev => ({ ...prev, video: url }))
+    } catch (error: any) {
+      console.error('Error uploading video:', error)
+      toast.error('Upload failed', {
+        description: error.message || 'Failed to upload video',
+      })
+    } finally {
+      setUploadingVideo(false)
+      if (videoRef.current) {
+        videoRef.current.value = ''
+      }
     }
   }
 
@@ -481,15 +741,88 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         {/* Shared fields only in English tab */}
         {isEnglish && (
           <>
-            <Card className="rounded-sm bg-white">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Location & Duration
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
+            {/* Location & Duration - Show for all except transfers (transfers have their own section) */}
+            {offerType !== 'transfers' && (
+              <Card className="rounded-sm bg-white">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Location & Duration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Departure City</Label>
+                      <Input
+                        value={formData.departCity}
+                        onChange={(e) => setFormData(prev => ({ ...prev, departCity: e.target.value }))}
+                        disabled={isViewMode}
+                        placeholder="e.g., Marrakech"
+                        className="rounded-sm bg-gray-50"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Duration</Label>
+                      <Input
+                        value={offerType === 'packages' ? (formData.packageDetails?.duration || formData.duration) : formData.duration}
+                        onChange={(e) => {
+                          if (offerType === 'packages') {
+                            setFormData(prev => ({
+                              ...prev,
+                              packageDetails: {
+                                ...(prev.packageDetails || { includes: [] }),
+                                duration: e.target.value
+                              }
+                            }))
+                          } else {
+                            setFormData(prev => ({ ...prev, duration: e.target.value }))
+                          }
+                        }}
+                        disabled={isViewMode}
+                        placeholder={offerType === 'packages' ? "e.g., 4 days" : "e.g., 4-5 hours"}
+                        className="rounded-sm bg-gray-50"
+                      />
+                    </div>
+                  </div>
+                  {offerType !== 'packages' && (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Difficulty</Label>
+                        <Input
+                          value={formData.difficulty}
+                          onChange={(e) => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
+                          disabled={isViewMode}
+                          placeholder="e.g., Easy, Moderate"
+                          className="rounded-sm bg-gray-50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Group Size</Label>
+                        <Input
+                          value={formData.groupSize}
+                          onChange={(e) => setFormData(prev => ({ ...prev, groupSize: e.target.value }))}
+                          disabled={isViewMode}
+                          placeholder="e.g., 2-12 people"
+                          className="rounded-sm bg-gray-50"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Departure City only for transfers */}
+            {offerType === 'transfers' && (
+              <Card className="rounded-sm bg-white">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Location
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label>Departure City</Label>
                     <Input
@@ -500,115 +833,89 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                       className="rounded-sm bg-gray-50"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Duration</Label>
-                    <Input
-                      value={formData.duration}
-                      onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
-                      disabled={isViewMode}
-                      placeholder="e.g., 4-5 hours"
-                      className="rounded-sm bg-gray-50"
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Difficulty</Label>
-                    <Input
-                      value={formData.difficulty}
-                      onChange={(e) => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
-                      disabled={isViewMode}
-                      placeholder="e.g., Easy, Moderate"
-                      className="rounded-sm bg-gray-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Group Size</Label>
-                    <Input
-                      value={formData.groupSize}
-                      onChange={(e) => setFormData(prev => ({ ...prev, groupSize: e.target.value }))}
-                      disabled={isViewMode}
-                      placeholder="e.g., 2-12 people"
-                      className="rounded-sm bg-gray-50"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
-            <Card className="rounded-sm bg-white">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Banknote className="h-5 w-5" />
-                  Pricing (MAD)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Adult Price (MAD)</Label>
-                    <Input
-                      type="number"
-                      value={formData.priceAdult}
-                      onChange={(e) => setFormData(prev => ({ ...prev, priceAdult: Number(e.target.value) }))}
-                      disabled={isViewMode}
-                      placeholder="0"
-                      className="rounded-sm bg-gray-50"
-                    />
+            {/* Pricing - Hide for transfers (they use vehicle options) and packages */}
+            {offerType !== 'transfers' && offerType !== 'packages' && (
+              <Card className="rounded-sm bg-white">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Banknote className="h-5 w-5" />
+                    Pricing (MAD)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Adult Price (MAD)</Label>
+                      <Input
+                        type="number"
+                        value={formData.priceAdult}
+                        onChange={(e) => setFormData(prev => ({ ...prev, priceAdult: Number(e.target.value) }))}
+                        disabled={isViewMode}
+                        placeholder="0"
+                        className="rounded-sm bg-gray-50"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Child Price (MAD)</Label>
+                      <Input
+                        type="number"
+                        value={formData.priceChild}
+                        onChange={(e) => setFormData(prev => ({ ...prev, priceChild: Number(e.target.value) }))}
+                        disabled={isViewMode}
+                        placeholder="0"
+                        className="rounded-sm bg-gray-50"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Child Price (MAD)</Label>
-                    <Input
-                      type="number"
-                      value={formData.priceChild}
-                      onChange={(e) => setFormData(prev => ({ ...prev, priceChild: Number(e.target.value) }))}
-                      disabled={isViewMode}
-                      placeholder="0"
-                      className="rounded-sm bg-gray-50"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
-            <Card className="rounded-sm bg-white">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Availability
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Start Date</Label>
-                    <Input
-                      type="date"
-                      value={formData.availabilityDates.startDate}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        availabilityDates: { ...prev.availabilityDates, startDate: e.target.value }
-                      }))}
-                      disabled={isViewMode}
-                      className="rounded-sm bg-gray-50"
-                    />
+            {/* Availability - Hide for transfers (they're always available) and packages */}
+            {offerType !== 'transfers' && offerType !== 'packages' && (
+              <Card className="rounded-sm bg-white">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Availability
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Start Date</Label>
+                      <Input
+                        type="date"
+                        value={formData.availabilityDates.startDate}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          availabilityDates: { ...prev.availabilityDates, startDate: e.target.value }
+                        }))}
+                        disabled={isViewMode}
+                        className="rounded-sm bg-gray-50"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>End Date</Label>
+                      <Input
+                        type="date"
+                        value={formData.availabilityDates.endDate}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          availabilityDates: { ...prev.availabilityDates, endDate: e.target.value }
+                        }))}
+                        disabled={isViewMode}
+                        className="rounded-sm bg-gray-50"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>End Date</Label>
-                    <Input
-                      type="date"
-                      value={formData.availabilityDates.endDate}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        availabilityDates: { ...prev.availabilityDates, endDate: e.target.value }
-                      }))}
-                      disabled={isViewMode}
-                      className="rounded-sm bg-gray-50"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
 
@@ -834,26 +1141,76 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   accept="image/*"
                   className="hidden"
                   onChange={handleMainImageUpload}
+                  disabled={isViewMode || uploadingMainImage}
                 />
                 {!isViewMode && (
-                  <Button variant="outline" onClick={() => mainImageRef.current?.click()} className="gap-2 rounded-sm">
-                    <Upload className="h-4 w-4" />
-                    Upload Main Image
+                  <Button 
+                    variant="outline" 
+                    onClick={() => mainImageRef.current?.click()} 
+                    className="gap-2 rounded-sm"
+                    disabled={uploadingMainImage}
+                  >
+                    {uploadingMainImage ? (
+                      <>
+                        <span className="h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4" />
+                        Upload Main Image
+                      </>
+                    )}
                   </Button>
                 )}
-                {formData.mainImage && (
-                  <div className="relative w-full h-48 rounded-sm overflow-hidden border">
-                    <Image src={formData.mainImage} alt="Main image preview" fill className="object-cover" />
+                {formData.mainImage ? (
+                  <div className="relative w-full h-48 rounded-sm overflow-hidden border bg-muted">
+                    {formData.mainImage.includes('localhost:3030') ? (
+                      <img 
+                        src={formData.mainImage} 
+                        alt="Main image preview" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('Image load error:', formData.mainImage)
+                          const target = e.target as HTMLImageElement
+                          target.src = '/placeholder.jpg'
+                        }}
+                        onLoad={() => {
+                          console.log('Image loaded successfully:', formData.mainImage)
+                        }}
+                      />
+                    ) : formData.mainImage.startsWith('http') || formData.mainImage.startsWith('/') ? (
+                      <Image 
+                        src={formData.mainImage} 
+                        alt="Main image preview" 
+                        fill 
+                        className="object-cover"
+                        unoptimized
+                        onError={(e) => {
+                          console.error('Image load error:', formData.mainImage)
+                          const target = e.target as HTMLImageElement
+                          target.src = '/placeholder.jpg'
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <p className="text-sm text-muted-foreground">Image URL: {formData.mainImage}</p>
+                      </div>
+                    )}
                     {!isViewMode && (
                       <Button
                         variant="destructive"
                         size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 rounded-sm"
+                        className="absolute top-2 right-2 h-8 w-8 rounded-sm z-10"
                         onClick={() => setFormData(prev => ({ ...prev, mainImage: "" }))}
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     )}
+                  </div>
+                ) : (
+                  <div className="w-full h-48 rounded-sm border border-dashed bg-muted/50 flex items-center justify-center">
+                    <p className="text-sm text-muted-foreground">No main image</p>
                   </div>
                 )}
               </CardContent>
@@ -874,23 +1231,66 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   multiple
                   className="hidden"
                   onChange={handleThumbnailUpload}
+                  disabled={isViewMode || uploadingThumbnails}
                 />
                 {!isViewMode && (
-                  <Button variant="outline" onClick={() => thumbnailInputRef.current?.click()} className="gap-2 rounded-sm">
-                    <Upload className="h-4 w-4" />
-                    Upload Thumbnails
+                  <Button 
+                    variant="outline" 
+                    onClick={() => thumbnailInputRef.current?.click()} 
+                    className="gap-2 rounded-sm"
+                    disabled={uploadingThumbnails}
+                  >
+                    {uploadingThumbnails ? (
+                      <>
+                        <span className="h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4" />
+                        Upload Thumbnails
+                      </>
+                    )}
                   </Button>
                 )}
                 {formData.thumbnailImages.length > 0 && (
                   <div className="grid grid-cols-3 gap-4">
                     {formData.thumbnailImages.map((url, index) => (
-                      <div key={index} className="relative h-24 rounded-sm overflow-hidden border">
-                        <Image src={url} alt={`Thumbnail ${index + 1}`} fill className="object-cover" />
+                      <div key={index} className="relative h-24 rounded-sm overflow-hidden border bg-muted">
+                        {url && url.startsWith('http') ? (
+                          url.includes('localhost:3030') ? (
+                            <img 
+                              src={url} 
+                              alt={`Thumbnail ${index + 1}`} 
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.src = '/placeholder.jpg'
+                              }}
+                            />
+                          ) : (
+                            <Image 
+                              src={url} 
+                              alt={`Thumbnail ${index + 1}`} 
+                              fill 
+                              className="object-cover"
+                              unoptimized
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.src = '/placeholder.jpg'
+                              }}
+                            />
+                          )
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <p className="text-xs text-muted-foreground">Invalid</p>
+                          </div>
+                        )}
                         {!isViewMode && (
                           <Button
                             variant="destructive"
                             size="icon"
-                            className="absolute top-1 right-1 h-6 w-6 rounded-sm"
+                            className="absolute top-1 right-1 h-6 w-6 rounded-sm z-10"
                             onClick={() => removeThumbnail(index)}
                           >
                             <X className="h-3 w-3" />
@@ -917,17 +1317,32 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   accept="video/*"
                   className="hidden"
                   onChange={handleVideoUpload}
+                  disabled={isViewMode || uploadingVideo}
                 />
                 {!isViewMode && (
-                  <Button variant="outline" onClick={() => videoRef.current?.click()} className="gap-2 rounded-sm">
-                    <Upload className="h-4 w-4" />
-                    Upload Video
+                  <Button 
+                    variant="outline" 
+                    onClick={() => videoRef.current?.click()} 
+                    className="gap-2 rounded-sm"
+                    disabled={uploadingVideo}
+                  >
+                    {uploadingVideo ? (
+                      <>
+                        <span className="h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4" />
+                        Upload Video
+                      </>
+                    )}
                   </Button>
                 )}
                 {formData.video && (
                   <div className="flex items-center gap-2 p-3 border rounded-sm">
                     <Video className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm flex-1 truncate">Video uploaded</span>
+                    <span className="text-sm flex-1 truncate">{formData.video}</span>
                     {!isViewMode && (
                       <Button
                         variant="ghost"
@@ -1116,14 +1531,36 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
               <Button variant="outline" onClick={handleCancel} className="rounded-sm bg-gray-50">
                 Cancel
               </Button>
-              <Button onClick={handleSave} className="gap-2 rounded-sm">
-                <Save className="h-4 w-4" />
-                {isAddMode ? "Create" : "Save Changes"}
+              <Button onClick={handleSave} className="gap-2 rounded-sm" disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <span className="h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
+                    {isAddMode ? "Creating..." : "Saving..."}
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    {isAddMode ? "Create" : "Save Changes"}
+                  </>
+                )}
               </Button>
             </>
           )}
         </div>
       </div>
+
+      {/* Error Message */}
+      {saveError && (
+        <Card className="border-destructive/50 bg-destructive/10 rounded-sm">
+          <CardContent className="flex items-center gap-3 p-4">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            <div>
+              <p className="text-sm font-medium text-destructive">Error saving offer</p>
+              <p className="text-xs text-destructive/80">{saveError}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Language Tabs */}
       <Tabs defaultValue="en" className="space-y-6">

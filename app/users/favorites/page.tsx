@@ -50,11 +50,11 @@ export default function FavoritesPage() {
           // Handle image URL
           let mainImage = fav.mainImage || '/placeholder.svg'
           if (mainImage && !mainImage.startsWith('http') && !mainImage.startsWith('/')) {
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
             const baseUrl = apiBaseUrl.replace('/api/v1', '')
             mainImage = `${baseUrl}/uploads/${mainImage}`
           } else if (mainImage && mainImage.startsWith('/') && !mainImage.startsWith('//')) {
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
             const baseUrl = apiBaseUrl.replace('/api/v1', '')
             mainImage = `${baseUrl}${mainImage}`
           }

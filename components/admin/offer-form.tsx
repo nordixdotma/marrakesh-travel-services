@@ -1165,7 +1165,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                 )}
                 {formData.mainImage ? (
                   <div className="relative w-full h-48 rounded-sm overflow-hidden border bg-muted">
-                    {formData.mainImage.includes('localhost:3030') ? (
+                    {formData.mainImage.includes('api.marrakeshtravelservices.com') ? (
                       <img 
                         src={formData.mainImage} 
                         alt="Main image preview" 
@@ -1258,7 +1258,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                     {formData.thumbnailImages.map((url, index) => (
                       <div key={index} className="relative h-24 rounded-sm overflow-hidden border bg-muted">
                         {url && url.startsWith('http') ? (
-                          url.includes('localhost:3030') ? (
+                          url.includes('api.marrakeshtravelservices.com') ? (
                             <img 
                               src={url} 
                               alt={`Thumbnail ${index + 1}`} 

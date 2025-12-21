@@ -139,11 +139,11 @@ export default function AdminPackagesPage() {
             // Handle image URL - convert to full URL if needed
             let mainImage = pkg.mainImage || pkg.main_image || '/placeholder.jpg'
             if (mainImage && mainImage !== '/placeholder.jpg' && !mainImage.startsWith('http') && !mainImage.startsWith('/')) {
-              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
               const baseUrl = apiBaseUrl.replace('/api/v1', '')
               mainImage = `${baseUrl}/uploads/${mainImage}`
             } else if (mainImage && mainImage.startsWith('/') && !mainImage.startsWith('//') && !mainImage.startsWith('/uploads') && mainImage !== '/placeholder.jpg') {
-              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
               const baseUrl = apiBaseUrl.replace('/api/v1', '')
               mainImage = `${baseUrl}${mainImage}`
             }
@@ -157,7 +157,7 @@ export default function AdminPackagesPage() {
                 {/* Thumbnail */}
                 <div className="relative w-20 h-14 shrink-0 overflow-hidden rounded-sm bg-muted">
                   {mainImage && mainImage !== '/placeholder.jpg' ? (
-                    mainImage.includes('localhost:3030') || mainImage.startsWith('/uploads') ? (
+                    mainImage.includes('api.marrakeshtravelservices.com') || mainImage.startsWith('/uploads') ? (
                       <img
                         src={mainImage}
                         alt={title}

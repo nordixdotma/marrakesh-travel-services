@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
@@ -8,26 +8,120 @@ import PageHero from "@/components/page-hero"
 import OffersGrid from "@/components/offers-grid"
 import { Container } from "@/components/ui/container"
 import { useLanguage } from "@/components/language-provider"
-import { toursOffers, excursionsOffers, activitiesOffers, packagesOffers, transfersOffers, type Offer } from "@/lib/offers-data"
+import { type Offer } from "@/lib/offers-data"
+import { offersApi, type ApiError } from "@/lib/api"
+import { Loader2 } from "lucide-react"
 import SearchFilter, { type Filters } from "@/components/search-filter"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 
 function TransfersContent() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const cityParam = searchParams.get('city')
-
-  const allOffers: Offer[] = [...toursOffers, ...excursionsOffers, ...activitiesOffers, ...packagesOffers, ...transfersOffers]
+  
   const pageType = "transfers"
+  const [allOffers, setAllOffers] = useState<Offer[]>([])
+  const [offers, setOffers] = useState<Offer[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const [offers, setOffers] = useState<Offer[]>(() => {
-    if (cityParam) {
-      return transfersOffers.filter(o => o.departCity === cityParam)
+  // Fetch transfers from backend
+  useEffect(() => {
+    const fetchTransfers = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const response = await offersApi.getOffers('TRANSFERS', language)
+        
+        // Transform backend data to match frontend Offer format
+        const transformedTransfers: Offer[] = (response.offers || []).map((backendOffer: any) => {
+          // Transfers don't have pricing or availability dates
+          const availabilityStart = new Date().toISOString().split('T')[0]
+          const availabilityEnd = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 1 year from now
+
+          // Handle image URL - use main_image from backend or placeholder
+          let mainImage = '/placeholder.svg'
+          if (backendOffer.main_image) {
+            // If it's already a full URL, use it as is
+            if (backendOffer.main_image.startsWith('http://') || backendOffer.main_image.startsWith('https://')) {
+              mainImage = backendOffer.main_image
+            } else if (backendOffer.main_image.startsWith('/')) {
+              // If it's a relative path, make it absolute to backend
+              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
+              const baseUrl = apiBaseUrl.replace('/api/v1', '')
+              mainImage = `${baseUrl}${backendOffer.main_image}`
+            } else {
+              // If it's just a filename, construct the full path
+              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
+              const baseUrl = apiBaseUrl.replace('/api/v1', '')
+              mainImage = `${baseUrl}/uploads/${backendOffer.main_image}`
+            }
+          }
+
+          return {
+            id: backendOffer.id,
+            type: 'transfers' as const,
+            departCity: backendOffer.depart_city || 'Marrakech',
+            title: backendOffer.title || 'Untitled Transfer',
+            description: backendOffer.description || '',
+            detailedDescription: {
+              overview: backendOffer.overview || '',
+              highlights: backendOffer.highlights || [],
+              sections: backendOffer.sections || [],
+              itinerary: [],
+              tips: [],
+              duration: backendOffer.transferDetails?.duration || '',
+              difficulty: '',
+              groupSize: '',
+            },
+            mainImage: mainImage,
+            thumbnailImages: [],
+            video: backendOffer.video || '',
+            includedItems: backendOffer.included_items || [],
+            excludedItems: backendOffer.excluded_items || [],
+            priceAdult: 0, // Transfers don't have fixed pricing
+            priceChild: 0,
+            availabilityDates: {
+              startDate: availabilityStart,
+              endDate: availabilityEnd,
+            },
+            // Transfer-specific fields
+            transferDetails: {
+              from: backendOffer.transferDetails?.from_location || '',
+              to: backendOffer.transferDetails?.to_location || '',
+              duration: backendOffer.transferDetails?.duration || '',
+              distance: backendOffer.transferDetails?.distance || '',
+              vehicleOptions: Array.isArray(backendOffer.transferDetails?.vehicle_options) 
+                ? backendOffer.transferDetails.vehicle_options 
+                : (typeof backendOffer.transferDetails?.vehicle_options === 'string' 
+                    ? JSON.parse(backendOffer.transferDetails.vehicle_options) 
+                    : []),
+            },
+          }
+        })
+
+        setAllOffers(transformedTransfers)
+        
+        // Apply city filter if present
+        if (cityParam) {
+          setOffers(transformedTransfers.filter(o => o.departCity === cityParam))
+        } else {
+          setOffers(transformedTransfers)
+        }
+      } catch (err) {
+        const apiError = err as ApiError
+        const errorMessage = apiError.message || 'Failed to load transfers'
+        setError(errorMessage)
+        console.error('Error fetching transfers:', err)
+      } finally {
+        setIsLoading(false)
+      }
     }
-    return transfersOffers
-  })
+
+    fetchTransfers()
+  }, [language, cityParam])
 
   const handleFilterChange = (filters: Filters) => {
     // Update URL with city parameter
@@ -44,8 +138,9 @@ function TransfersContent() {
       const categoryToMatch = filters.category && filters.category !== "all" ? filters.category : pageType
       if (o.type !== categoryToMatch) return false
 
-      if (filters.minPrice != null && o.priceAdult < filters.minPrice) return false
-      if (filters.maxPrice != null && o.priceAdult > filters.maxPrice) return false
+      // Transfers don't have pricing, so skip price filters
+      // if (filters.minPrice != null && o.priceAdult < filters.minPrice) return false
+      // if (filters.maxPrice != null && o.priceAdult > filters.maxPrice) return false
 
       if (filters.departureCity && filters.departureCity !== "all") {
         if (o.departCity !== filters.departureCity) return false
@@ -56,17 +151,60 @@ function TransfersContent() {
         if (!hay.includes(filters.theme.toLowerCase())) return false
       }
 
-      if (filters.availableOn) {
-        const d = new Date(filters.availableOn)
-        const start = new Date(o.availabilityDates.startDate)
-        const end = new Date(o.availabilityDates.endDate)
-        if (d < start || d > end) return false
-      }
+      // Transfers are always available, so skip availability filter
+      // if (filters.availableOn) {
+      //   const d = new Date(filters.availableOn)
+      //   const start = new Date(o.availabilityDates.startDate)
+      //   const end = new Date(o.availabilityDates.endDate)
+      //   if (d < start || d > end) return false
+      // }
 
       return true
     })
 
     setOffers(filtered)
+  }
+
+  if (isLoading) {
+    return (
+      <main className="w-full">
+        <Header />
+        <PageHero
+          title={t.pageHero.transfers}
+          backgroundImage="https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        />
+        <section className="py-12 bg-gray-50">
+          <Container className="max-w-6xl px-2 md:px-4">
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          </Container>
+        </section>
+        <Footer />
+        <FloatingContact />
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="w-full">
+        <Header />
+        <PageHero
+          title={t.pageHero.transfers}
+          backgroundImage="https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        />
+        <section className="py-12 bg-gray-50">
+          <Container className="max-w-6xl px-2 md:px-4">
+            <div className="flex items-center justify-center py-20">
+              <p className="text-destructive">{error}</p>
+            </div>
+          </Container>
+        </section>
+        <Footer />
+        <FloatingContact />
+      </main>
+    )
   }
 
   return (

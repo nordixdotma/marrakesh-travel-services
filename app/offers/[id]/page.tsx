@@ -2,7 +2,7 @@
 
 import { useState, use, useMemo, useEffect, useRef } from "react"
 import { notFound, useRouter } from "next/navigation"
-import { Calendar, Check, X, Play, ChevronLeft, ChevronRight, Users, User, Clock, MapPin, Shield, ChevronDown, Sparkles, Lightbulb, ListChecks, Info, Car, ArrowRight, Route, Baby, Loader2, Ticket, Phone, CheckCircle2 } from "lucide-react"
+import { Calendar, Check, X, Play, ChevronLeft, ChevronRight, Users, User, Clock, MapPin, Shield, ChevronDown, Sparkles, Lightbulb, ListChecks, Info, Car, ArrowRight, Route, Baby, Loader2, Ticket, Phone, CheckCircle2, CreditCard } from "lucide-react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { type Offer } from "@/lib/offers-data"
 import { useAuth } from "@/components/login-modal"
 import { useLanguage } from "@/components/language-provider"
-import { offersApi, authApi, bookingApi, adminApi, userApi, type ApiError } from "@/lib/api"
+import { offersApi, authApi, bookingApi, adminApi, userApi, paymentApi, type ApiError } from "@/lib/api"
 
 interface OfferDetailsPageProps {
   params: Promise<{ id: string }>
@@ -35,8 +35,11 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
   const [showSameDayDialog, setShowSameDayDialog] = useState(false)
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [bookingSuccessData, setBookingSuccessData] = useState<{ bookingReference?: string } | null>(null)
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'paypal' | 'card' | null>(null)
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [promoCodeDetails, setPromoCodeDetails] = useState<{
@@ -297,28 +300,57 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
         
         // Extract main image from images array or use main_image field
         const mainImageObj = backendOffer.images?.find((img: any) => img.type === 'MAIN')
-        let mainImage = mainImageObj?.url || backendOffer.main_image || '/placeholder.svg'
+        let mainImage = mainImageObj?.url || backendOffer.main_image || null
         
         // Handle image URL - convert to full URL if needed
-        if (mainImage && !mainImage.startsWith('http') && !mainImage.startsWith('/')) {
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
-          const baseUrl = apiBaseUrl.replace('/api/v1', '')
-          mainImage = `${baseUrl}/uploads/${mainImage}`
-        } else if (mainImage && mainImage.startsWith('/') && !mainImage.startsWith('//')) {
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
-          const baseUrl = apiBaseUrl.replace('/api/v1', '')
-          mainImage = `${baseUrl}${mainImage}`
+        if (mainImage) {
+          // If it's already a full URL, use it as is
+          if (mainImage.startsWith('http://') || mainImage.startsWith('https://')) {
+            // Already a full URL, use as is
+          } 
+          // If it starts with /uploads, prepend the base URL
+          else if (mainImage.startsWith('/uploads/')) {
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
+            const baseUrl = apiBaseUrl.replace('/api/v1', '')
+            mainImage = `${baseUrl}${mainImage}`
+          }
+          // If it's a relative path starting with /, prepend the base URL
+          else if (mainImage.startsWith('/') && !mainImage.startsWith('//')) {
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
+            const baseUrl = apiBaseUrl.replace('/api/v1', '')
+            mainImage = `${baseUrl}${mainImage}`
+          }
+          // If it's just a filename, prepend /uploads/
+          else {
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
+            const baseUrl = apiBaseUrl.replace('/api/v1', '')
+            mainImage = `${baseUrl}/uploads/${mainImage}`
+          }
+        } else {
+          // No image found, use placeholder
+          mainImage = '/placeholder.jpg'
+        }
+        
+        // Debug logging
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📸 Main image extraction:', {
+            hasImages: !!backendOffer.images,
+            imagesCount: backendOffer.images?.length || 0,
+            mainImageObj: mainImageObj,
+            main_image: backendOffer.main_image,
+            finalMainImage: mainImage
+          })
         }
         
         // Extract thumbnail images
         const thumbnailImages = (backendOffer.images?.filter((img: any) => img.type === 'GALLERY').map((img: any) => {
           let url = img.url
           if (url && !url.startsWith('http') && !url.startsWith('/')) {
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
             const baseUrl = apiBaseUrl.replace('/api/v1', '')
             url = `${baseUrl}/uploads/${url}`
           } else if (url && url.startsWith('/') && !url.startsWith('//')) {
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
             const baseUrl = apiBaseUrl.replace('/api/v1', '')
             url = `${baseUrl}${url}`
           }
@@ -652,7 +684,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
             while (!userVerified && verificationAttempts < maxAttempts) {
               try {
                 // Try to fetch user profile to verify user exists
-                const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'}/users/profile`, {
+                const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'}/users/profile`, {
                   method: 'GET',
                   headers: {
                     'Authorization': `Bearer ${token}`,
@@ -780,9 +812,11 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
         localStorage.setItem('user', JSON.stringify(userData))
       }
 
-      // Show success dialog
+      // Store booking data for payment dialog
       setBookingSuccessData({ bookingReference: bookingResponse.booking?.booking_reference })
-      setShowSuccessDialog(true)
+      
+      // Show payment dialog instead of success dialog
+      setShowPaymentDialog(true)
       
       // Log final state
       console.log('✅ Final localStorage state:', {
@@ -839,7 +873,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     />
                   ) : (
                     <>
-                      {allImages[selectedImageIndex] && allImages[selectedImageIndex].includes('localhost:3030') ? (
+                      {allImages[selectedImageIndex] && allImages[selectedImageIndex].includes('api.marrakeshtravelservices.com') ? (
                         <img
                           src={allImages[selectedImageIndex] || "/placeholder.svg"}
                           alt={offer.title}
@@ -898,7 +932,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                           : "ring-transparent hover:ring-muted-foreground/50 opacity-70 hover:opacity-100"
                       }`}
                     >
-                      {img && img.includes('localhost:3030') ? (
+                      {img && img.includes('api.marrakeshtravelservices.com') ? (
                         <img
                           src={img || "/placeholder.svg"}
                           alt={`Thumbnail ${index + 1}`}
@@ -1674,6 +1708,229 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
             >
               <Phone className="h-4 w-4" />
               Call Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">
+              Select Payment Method
+            </DialogTitle>
+            <DialogDescription className="text-center pt-2 text-base">
+              Choose your preferred payment method to complete your booking
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            {/* PayPal Option */}
+            <button
+              onClick={() => setSelectedPaymentMethod('paypal')}
+              className={`w-full p-4 rounded-lg border-2 transition-all ${
+                selectedPaymentMethod === 'paypal'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${
+                  selectedPaymentMethod === 'paypal' ? 'bg-primary/10' : 'bg-muted'
+                }`}>
+                  <CreditCard className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-foreground">PayPal</p>
+                  <p className="text-xs text-muted-foreground">Pay securely with PayPal</p>
+                </div>
+                {selectedPaymentMethod === 'paypal' && (
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                )}
+              </div>
+            </button>
+
+            {/* Card Payment Option */}
+            <button
+              onClick={() => setSelectedPaymentMethod('card')}
+              className={`w-full p-4 rounded-lg border-2 transition-all ${
+                selectedPaymentMethod === 'card'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${
+                  selectedPaymentMethod === 'card' ? 'bg-primary/10' : 'bg-muted'
+                }`}>
+                  <CreditCard className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-foreground">Credit/Debit Card</p>
+                  <p className="text-xs text-muted-foreground">Pay with Visa, Mastercard, or other cards</p>
+                </div>
+                {selectedPaymentMethod === 'card' && (
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                )}
+              </div>
+            </button>
+
+            {/* Price Summary */}
+            {offer && (
+              <div className="p-4 bg-muted/50 rounded-lg space-y-2 mt-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Amount</span>
+                  <span className="font-semibold text-foreground">
+                    {offer.type === 'packages' 
+                      ? 'Custom Quote' 
+                      : `MAD ${calculateTotalPrice.total.toFixed(2)}`
+                    }
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPaymentDialog(false)
+                setSelectedPaymentMethod(null)
+              }}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!selectedPaymentMethod || !offer) {
+                  return
+                }
+                
+                setIsProcessingPayment(true)
+                
+                try {
+                  const totalAmount = offer.type === 'packages' ? 0 : calculateTotalPrice.total
+                  
+                  if (selectedPaymentMethod === 'paypal') {
+                    try {
+                      // Create PayPal order via backend
+                      const returnUrl = `${window.location.origin}/payment/success?bookingRef=${bookingSuccessData?.bookingReference || ''}`
+                      const cancelUrl = `${window.location.origin}/payment/cancel?bookingRef=${bookingSuccessData?.bookingReference || ''}`
+                      
+                      const paypalOrder = await paymentApi.createPayPalOrder({
+                        amount: totalAmount,
+                        currency: 'USD',
+                        bookingReference: bookingSuccessData?.bookingReference || undefined,
+                        returnUrl,
+                        cancelUrl,
+                      })
+                      
+                      // Open PayPal approval URL in a new tab/window
+                      const paypalWindow = window.open(paypalOrder.approvalUrl, '_blank', 'noopener,noreferrer')
+                      
+                      if (!paypalWindow) {
+                        // If popup was blocked, fallback to same window redirect
+                        window.location.href = paypalOrder.approvalUrl
+                      } else {
+                        // Close payment dialog after opening PayPal
+                        setShowPaymentDialog(false)
+                        setSelectedPaymentMethod(null)
+                        setIsProcessingPayment(false)
+                      }
+                    } catch (paypalError: any) {
+                      console.error('PayPal order creation error:', paypalError)
+                      setIsProcessingPayment(false)
+                      setSubmitError(paypalError.message || 'Failed to create PayPal payment. Please try again.')
+                    }
+                  } else if (selectedPaymentMethod === 'card') {
+                    // Generate CMI hash from backend
+                    const orderId = bookingSuccessData?.bookingReference || `ORDER_${Date.now()}`
+                    const randomNumber = Date.now().toString()
+                    const amount = totalAmount.toFixed(2)
+                    const okUrl = `${window.location.origin}/payment/success?bookingRef=${orderId}`
+                    const failUrl = `${window.location.origin}/payment/failed?bookingRef=${orderId}`
+                    
+                    try {
+                      // Get hash from backend
+                      const hashResponse = await paymentApi.generateCMIHash({
+                        clientid: '600000560',
+                        username: 'marraskeshts_a',
+                        oid: orderId,
+                        amount: amount,
+                        okUrl: okUrl,
+                        failUrl: failUrl,
+                        rnd: randomNumber,
+                      })
+                      
+                      // Create and submit CMI payment form
+                      const cmiForm = document.createElement('form')
+                      cmiForm.method = 'POST'
+                      cmiForm.action = 'https://payment.cmi.co.ma/fim/est3Dgate' // CMI payment gateway URL
+                      cmiForm.target = '_blank'
+                      
+                      // CMI required fields
+                      const formData: Record<string, string> = {
+                        clientid: '600000560', // Merchant ID
+                        username: 'marraskeshts_a', // Username
+                        storetype: '3D_PAY_HOSTING',
+                        hashAlgorithm: 'ver3',
+                        currency: '504', // MAD currency code
+                        oid: orderId,
+                        amount: amount,
+                        okUrl: okUrl,
+                        failUrl: failUrl,
+                        rnd: randomNumber,
+                        hash: hashResponse.hash, // Security hash from backend
+                      }
+                      
+                      // Create hidden inputs for form
+                      Object.entries(formData).forEach(([key, value]) => {
+                        const input = document.createElement('input')
+                        input.type = 'hidden'
+                        input.name = key
+                        input.value = value
+                        cmiForm.appendChild(input)
+                      })
+                      
+                      // Add form to body, submit, then remove
+                      document.body.appendChild(cmiForm)
+                      cmiForm.submit()
+                      document.body.removeChild(cmiForm)
+                      
+                      // Close payment dialog and show success dialog after a short delay
+                      setTimeout(() => {
+                        setShowPaymentDialog(false)
+                        setShowSuccessDialog(true)
+                        setSelectedPaymentMethod(null)
+                        setIsProcessingPayment(false)
+                      }, 500)
+                    } catch (hashError: any) {
+                      console.error('Failed to generate CMI hash:', hashError)
+                      setIsProcessingPayment(false)
+                      setSubmitError(hashError.message || 'Failed to generate payment security code. Please try again.')
+                    }
+                  }
+                } catch (error) {
+                  console.error('Payment redirect error:', error)
+                  setIsProcessingPayment(false)
+                  setSubmitError('Failed to redirect to payment. Please try again.')
+                }
+              }}
+              disabled={!selectedPaymentMethod || isProcessingPayment}
+              className="w-full sm:w-auto gap-2"
+            >
+              {isProcessingPayment ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Redirecting...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-4 w-4" />
+                  Pay Now
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

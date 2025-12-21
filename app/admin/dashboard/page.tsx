@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import {
   CalendarCheck,
@@ -11,42 +11,162 @@ import {
   ArrowRight,
   Banknote,
   Clock,
+  Loader2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import {
-  bookings,
-  users,
-  reviews,
-  getMonthlyBookingStats,
-  getStatsSummary,
-} from "@/lib/admin-data"
-import {
-  toursOffers,
-  excursionsOffers,
-  activitiesOffers,
-  transfersOffers,
-  packagesOffers,
-} from "@/lib/offers-data"
+import { adminApi, type ApiError } from "@/lib/api"
+import { toast } from "sonner"
+
+interface DashboardStats {
+  totalBookings: number
+  totalOffers: number
+  totalUsers: number
+  totalReviews: number
+  totalRevenue: number
+  pendingBookings: number
+  pendingReviews: number
+}
+
+interface MonthlyStat {
+  month: string
+  bookings: number
+  revenue: number
+}
+
+interface Booking {
+  id: string
+  customerName: string
+  customerEmail?: string
+  offerTitle: string
+  totalPrice: number
+  status: string
+  createdAt: string
+}
+
+interface User {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+  createdAt: string
+  bookingsCount: number
+}
 
 export default function AdminDashboardPage() {
-  const stats = useMemo(() => getStatsSummary(), [])
-  const monthlyStats = useMemo(() => getMonthlyBookingStats(), [])
-  
-  const totalOffers =
-    toursOffers.length +
-    excursionsOffers.length +
-    activitiesOffers.length +
-    transfersOffers.length +
-    packagesOffers.length
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [stats, setStats] = useState<DashboardStats>({
+    totalBookings: 0,
+    totalOffers: 0,
+    totalUsers: 0,
+    totalReviews: 0,
+    totalRevenue: 0,
+    pendingBookings: 0,
+    pendingReviews: 0,
+  })
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [monthlyStats, setMonthlyStats] = useState<MonthlyStat[]>([])
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        // Fetch all data in parallel
+        const [dashboardResponse, bookingsResponse, usersResponse, reviewsResponse] = await Promise.all([
+          adminApi.getDashboard(),
+          adminApi.getBookings(undefined, 100, 0),
+          adminApi.getUsers(100, 0),
+          adminApi.getReviews(undefined, 100, 0),
+        ])
+
+        // Transform dashboard stats
+        const dashboardStats = dashboardResponse.stats
+        const totalOffers = parseInt(dashboardStats.total_offers || '0', 10)
+
+        // Transform bookings
+        const transformedBookings: Booking[] = (bookingsResponse.bookings || []).map((booking: any) => ({
+          id: booking.id,
+          customerName: booking.customer_name || booking.customerName || 'Unknown',
+          customerEmail: booking.customer_email || booking.customerEmail,
+          offerTitle: booking.offer_title || booking.offerTitle || booking.title || 'Untitled Offer',
+          totalPrice: parseFloat(booking.total_price || booking.totalPrice || 0),
+          status: (booking.status || 'pending').toLowerCase(),
+          createdAt: booking.created_at || booking.createdAt || new Date().toISOString(),
+        }))
+
+        // Transform users
+        const transformedUsers: User[] = (usersResponse.users || []).map((user: any) => ({
+          id: user.id,
+          name: user.name || 'Unknown',
+          email: user.email,
+          phone: user.phone,
+          createdAt: user.created_at || user.createdAt || new Date().toISOString(),
+          bookingsCount: user.bookings_count || user.bookingsCount || 0,
+        }))
+
+        // Calculate pending bookings and reviews
+        const pendingBookings = transformedBookings.filter(b => b.status === 'pending').length
+        const pendingReviews = (reviewsResponse.reviews || []).filter((r: any) => 
+          (r.status || '').toLowerCase() === 'pending'
+        ).length
+
+        // Calculate monthly stats (last 6 months)
+        const now = new Date()
+        const months: MonthlyStat[] = []
+        for (let i = 5; i >= 0; i--) {
+          const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+          const monthName = date.toLocaleDateString('en-US', { month: 'short' })
+          const monthBookings = transformedBookings.filter(booking => {
+            const bookingDate = new Date(booking.createdAt)
+            return bookingDate.getMonth() === date.getMonth() && 
+                   bookingDate.getFullYear() === date.getFullYear() &&
+                   booking.status === 'confirmed'
+          })
+          months.push({
+            month: monthName,
+            bookings: monthBookings.length,
+            revenue: monthBookings.reduce((sum, b) => sum + b.totalPrice, 0),
+          })
+        }
+
+        setStats({
+          totalBookings: parseInt(dashboardStats.total_bookings || '0', 10),
+          totalOffers: totalOffers || parseInt(dashboardStats.total_offers || '0', 10),
+          totalUsers: parseInt(dashboardStats.total_users || '0', 10),
+          totalReviews: (reviewsResponse.reviews || []).length,
+          totalRevenue: parseFloat(dashboardStats.total_revenue?.toString() || '0'),
+          pendingBookings,
+          pendingReviews,
+        })
+        setBookings(transformedBookings)
+        setUsers(transformedUsers)
+        setMonthlyStats(months)
+      } catch (err) {
+        const apiError = err as ApiError
+        console.error('Error fetching dashboard data:', err)
+        setError(apiError.message || 'Failed to load dashboard data')
+        toast.error('Failed to load dashboard', {
+          description: apiError.message || 'Please try again later',
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
 
   const latestBookings = useMemo(
     () =>
       [...bookings]
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5),
-    []
+    [bookings]
   )
 
   const latestUsers = useMemo(
@@ -54,13 +174,13 @@ export default function AdminDashboardPage() {
       [...users]
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5),
-    []
+    [users]
   )
 
   const maxBookings = Math.max(...monthlyStats.map((s) => s.bookings), 1)
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "confirmed":
         return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
       case "pending":
@@ -80,6 +200,31 @@ export default function AdminDashboardPage() {
       day: "numeric",
       year: "numeric",
     })
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="border-destructive/50 bg-destructive/10 rounded-sm">
+        <CardContent className="flex flex-col items-center justify-center py-16">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+            <CalendarCheck className="h-8 w-8 text-destructive" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading dashboard</h3>
+          <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -116,7 +261,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Offers</p>
-                <p className="text-2xl font-bold">{totalOffers}</p>
+                <p className="text-2xl font-bold">{stats.totalOffers}</p>
                 <p className="text-xs text-muted-foreground mt-1">Across all categories</p>
               </div>
               <div className="h-12 w-12 rounded-sm bg-emerald-500/10 flex items-center justify-center">
@@ -215,7 +360,7 @@ export default function AdminDashboardPage() {
             <div className="space-y-3">
               {monthlyStats.slice(-3).reverse().map((stat, index) => (
                 <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">{stat.month} 2025</span>
+                  <span className="text-sm text-muted-foreground">{stat.month} {new Date().getFullYear()}</span>
                   <span className="text-sm font-medium">{stat.revenue.toLocaleString()} MAD</span>
                 </div>
               ))}
@@ -241,29 +386,33 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {latestBookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="flex items-center justify-between p-3 bg-muted/30 rounded-sm hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{booking.customerName}</p>
-                    <p className="text-xs text-muted-foreground truncate">{booking.offerTitle}</p>
-                  </div>
-                  <div className="flex items-center gap-3 ml-4">
-                    <div className="text-right hidden sm:block">
-                      <p className="text-sm font-medium">{booking.totalPrice} MAD</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {formatDate(booking.createdAt)}
-                      </p>
+              {latestBookings.length > 0 ? (
+                latestBookings.map((booking) => (
+                  <div
+                    key={booking.id}
+                    className="flex items-center justify-between p-3 bg-muted/30 rounded-sm hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{booking.customerName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{booking.offerTitle}</p>
                     </div>
-                    <Badge variant="secondary" className={getStatusColor(booking.status)}>
-                      {booking.status}
-                    </Badge>
+                    <div className="flex items-center gap-3 ml-4">
+                      <div className="text-right hidden sm:block">
+                        <p className="text-sm font-medium">{booking.totalPrice} MAD</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {formatDate(booking.createdAt)}
+                        </p>
+                      </div>
+                      <Badge variant="secondary" className={getStatusColor(booking.status)}>
+                        {booking.status}
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No bookings yet</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -283,34 +432,38 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {latestUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between p-3 bg-muted/30 rounded-sm hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-medium text-primary">
-                        {user.name.charAt(0).toUpperCase()}
-                      </span>
+              {latestUsers.length > 0 ? (
+                latestUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center justify-between p-3 bg-muted/30 rounded-sm hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-sm font-medium text-primary">
+                          {user.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{user.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {user.email || user.phone || 'No contact info'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">{user.name}</p>
+                    <div className="text-right">
                       <p className="text-xs text-muted-foreground">
-                        {user.email || user.phone}
+                        {formatDate(user.createdAt)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.bookingsCount} booking{user.bookingsCount !== 1 ? "s" : ""}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(user.createdAt)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {user.bookingsCount} booking{user.bookingsCount !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No users yet</p>
+              )}
             </div>
           </CardContent>
         </Card>

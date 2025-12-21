@@ -55,12 +55,12 @@ function ToursContent() {
               mainImage = backendOffer.main_image
             } else if (backendOffer.main_image.startsWith('/')) {
               // If it's a relative path, make it absolute to backend
-              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
               const baseUrl = apiBaseUrl.replace('/api/v1', '')
               mainImage = `${baseUrl}${backendOffer.main_image}`
             } else {
               // If it's just a filename, construct the full path
-              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
               const baseUrl = apiBaseUrl.replace('/api/v1', '')
               mainImage = `${baseUrl}/uploads/${backendOffer.main_image}`
             }

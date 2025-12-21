@@ -223,7 +223,7 @@ export default function BookingsPage() {
                 >
                   <div className="flex items-center gap-4 p-4 rounded-lg border border-border group-hover:border-primary/50 transition-all bg-card hover:shadow-sm">
                     <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-muted">
-                      {booking.offerImage && booking.offerImage.includes('localhost:3030') ? (
+                      {booking.offerImage && booking.offerImage.includes('api.marrakeshtravelservices.com') ? (
                         <img
                           src={booking.offerImage}
                           alt={booking.offerTitle}
@@ -309,7 +309,7 @@ export default function BookingsPage() {
                 >
                   <div className="flex items-center gap-4 p-4 rounded-lg border border-border opacity-75 hover:opacity-100 transition-all hover:border-primary/50 hover:shadow-sm">
                     <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 grayscale group-hover:grayscale-0 transition-all">
-                      {booking.offerImage && booking.offerImage.includes('localhost:3030') ? (
+                      {booking.offerImage && booking.offerImage.includes('api.marrakeshtravelservices.com') ? (
                         <img
                           src={booking.offerImage}
                           alt={booking.offerTitle}

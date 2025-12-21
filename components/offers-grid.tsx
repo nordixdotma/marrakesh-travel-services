@@ -162,7 +162,7 @@ export default function OffersGrid({ offers }: OffersGridProps) {
             className="offer-card rounded-sm md:rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group flex flex-col relative h-full"
           >
             <div className="relative overflow-hidden h-52 md:h-56 lg:h-64">
-              {offer.mainImage && offer.mainImage.includes('localhost:3030') ? (
+              {offer.mainImage && offer.mainImage.includes('api.marrakeshtravelservices.com') ? (
                 <img
                   src={offer.mainImage || "/placeholder.svg"}
                   alt={offer.title}

@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
 
 export interface ApiError {
   message: string
@@ -213,6 +213,10 @@ export const offersApi = {
 
 // Admin API methods
 export const adminApi = {
+  getDashboard: async () => {
+    const client = new ApiClient()
+    return client.get<{ stats: { total_users: number; total_bookings: number; total_offers: number; total_affiliates: number; total_revenue: string | number } }>('/admin/dashboard')
+  },
   createTour: async (data: any) => {
     const client = new ApiClient()
     return client.post<{ message: string; tour: any }>('/admin/tours', data)
@@ -364,6 +368,40 @@ export const bookingApi = {
 }
 
 // User API methods
+// Payment API methods
+export const paymentApi = {
+  createPayPalOrder: async (data: {
+    amount: number;
+    currency?: string;
+    bookingReference?: string;
+    returnUrl?: string;
+    cancelUrl?: string;
+  }) => {
+    const client = new ApiClient()
+    return client.post<{ orderId: string; approvalUrl: string; order: any }>('/payments/paypal/order', data)
+  },
+  capturePayPalOrder: async (orderId: string, bookingReference?: string) => {
+    const client = new ApiClient()
+    const params = new URLSearchParams({ orderId })
+    if (bookingReference) {
+      params.append('bookingReference', bookingReference)
+    }
+    return client.get<{ success: boolean; orderId: string; status: string; paymentStatus: string; capture: any; order: any; bookingUpdated: boolean }>(`/payments/paypal/capture?${params.toString()}`)
+  },
+  generateCMIHash: async (data: {
+    clientid: string;
+    username: string;
+    oid: string;
+    amount: string;
+    okUrl: string;
+    failUrl: string;
+    rnd: string;
+  }) => {
+    const client = new ApiClient()
+    return client.post<{ hash: string }>('/payments/cmi-hash', data)
+  },
+}
+
 export const userApi = {
   getProfile: async () => {
     const client = new ApiClient()

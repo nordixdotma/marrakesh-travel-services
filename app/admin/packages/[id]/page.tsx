@@ -57,11 +57,11 @@ function PackagesDetailContent() {
         
         // Handle image URL - convert to full URL if needed
         if (mainImage && !mainImage.startsWith('http') && !mainImage.startsWith('/')) {
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
           const baseUrl = apiBaseUrl.replace('/api/v1', '')
           mainImage = `${baseUrl}/uploads/${mainImage}`
         } else if (mainImage && mainImage.startsWith('/') && !mainImage.startsWith('//')) {
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
           const baseUrl = apiBaseUrl.replace('/api/v1', '')
           mainImage = `${baseUrl}${mainImage}`
         }
@@ -70,11 +70,11 @@ function PackagesDetailContent() {
         const thumbnailImages = (backendOffer.images?.filter((img: any) => img.type === 'GALLERY').map((img: any) => {
           let url = img.url
           if (url && !url.startsWith('http') && !url.startsWith('/')) {
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
             const baseUrl = apiBaseUrl.replace('/api/v1', '')
             url = `${baseUrl}/uploads/${url}`
           } else if (url && url.startsWith('/') && !url.startsWith('//')) {
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api/v1'
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
             const baseUrl = apiBaseUrl.replace('/api/v1', '')
             url = `${baseUrl}${url}`
           }

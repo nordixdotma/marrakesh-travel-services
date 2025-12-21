@@ -219,7 +219,7 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
             <CardContent>
               <div className="flex gap-4">
                 <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-muted">
-                  {offerImage && offerImage.includes('localhost:3030') ? (
+                  {offerImage && offerImage.includes('api.marrakeshtravelservices.com') ? (
                     <img 
                       src={offerImage} 
                       alt={offerTitle} 

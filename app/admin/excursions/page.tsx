@@ -157,7 +157,7 @@ export default function AdminExcursionsPage() {
             >
               {/* Thumbnail */}
               <div className="relative w-20 h-14 shrink-0 overflow-hidden rounded-sm">
-                {offer.main_image && offer.main_image.includes('localhost:3030') ? (
+                {offer.main_image && offer.main_image.includes('api.marrakeshtravelservices.com') ? (
                   <img
                     src={offer.main_image}
                     alt={offer.title || 'Excursion'}

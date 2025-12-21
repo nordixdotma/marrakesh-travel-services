@@ -26,7 +26,6 @@ function ActivitiesDetailContent() {
 
   // Fetch offer from backend if not new
   useEffect(() => {
-      router.push("/admin/activities")
     if (isNew) {
       setIsLoading(false)
       return

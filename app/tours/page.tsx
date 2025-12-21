@@ -187,10 +187,6 @@ function ToursContent() {
                 Try again
               </button>
             </div>
-          ) : offers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <p className="text-sm text-muted-foreground">No tours found</p>
-            </div>
           ) : (
             <OffersGrid offers={offers} />
           )}

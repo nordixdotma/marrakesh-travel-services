@@ -233,6 +233,7 @@ export const es: TranslationKeys = {
     reviews: "reseñas",
     noOffersFound: "No se encontraron ofertas",
     noOffersDescription: "No pudimos encontrar ofertas que coincidan con sus criterios. Intente ajustar sus filtros o busque otra cosa.",
+    custom: "A medida",
   },
 
   // Login Modal

@@ -231,6 +231,7 @@ export const en = {
     reviews: "reviews",
     noOffersFound: "No offers found",
     noOffersDescription: "We couldn't find any offers matching your criteria. Try adjusting your filters or search for something else.",
+    custom: "Custom",
   },
 
   // Login Modal

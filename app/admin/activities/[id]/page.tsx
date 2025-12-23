@@ -35,10 +35,12 @@ function ActivitiesDetailContent() {
       try {
         setIsLoading(true)
         setError(null)
-        const response = await offersApi.getOfferById(id, 'en')
+        // Fetch offer with all languages for proper translation support
+        const response = await offersApi.getOfferByIdWithAllLanguages(id)
         
         // Transform backend data to match frontend Offer format
         const backendOffer = response.offer
+        const allTranslations = response.translations
         
         // Extract pricing data
         const priceAdult = backendOffer.pricing?.price_adult || backendOffer.price_adult
@@ -52,6 +54,23 @@ function ActivitiesDetailContent() {
         
         // Extract thumbnail images
         const thumbnailImages = backendOffer.images?.filter((img: any) => img.type === 'GALLERY').map((img: any) => img.url) || []
+        
+        // Helper function to create translation object from backend data
+        const createTranslation = (langOffer: any) => ({
+          title: langOffer?.title || '',
+          description: langOffer?.description || '',
+          detailedDescription: {
+            overview: langOffer?.overview || '',
+            highlights: langOffer?.highlights || [],
+            sections: langOffer?.sections || [],
+            itinerary: [],
+            tips: [],
+            duration: langOffer?.activityDetails?.duration || '',
+            groupSize: langOffer?.activityDetails?.group_size || '',
+          },
+          includedItems: langOffer?.included_items || [],
+          excludedItems: langOffer?.excluded_items || [],
+        })
         
         const transformedOffer: Offer = {
           id: backendOffer.id,
@@ -79,6 +98,12 @@ function ActivitiesDetailContent() {
           },
           includedItems: backendOffer.included_items || [],
           excludedItems: backendOffer.excluded_items || [],
+          // Include translations for all languages
+          translations: {
+            en: createTranslation(allTranslations.en),
+            fr: createTranslation(allTranslations.fr),
+            es: createTranslation(allTranslations.es),
+          },
         }
         
         setOffer(transformedOffer)

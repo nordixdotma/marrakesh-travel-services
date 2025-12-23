@@ -35,12 +35,15 @@ function ExcursionsDetailContent() {
       try {
         setIsLoading(true)
         setError(null)
-        const response = await offersApi.getOfferById(id, 'en')
+        // Fetch offer with all languages for proper translation support
+        const response = await offersApi.getOfferByIdWithAllLanguages(id)
         
         // Transform backend data to match frontend Offer format
         const backendOffer = response.offer
+        const allTranslations = response.translations
         
         console.log('Backend excursion:', backendOffer)
+        console.log('All translations:', allTranslations)
         console.log('Backend images:', backendOffer.images)
         console.log('Backend main_image:', backendOffer.main_image)
         console.log('Backend pricing:', backendOffer.pricing)
@@ -60,6 +63,23 @@ function ExcursionsDetailContent() {
         
         console.log('Extracted mainImage:', mainImage)
         console.log('Extracted thumbnailImages:', thumbnailImages)
+        
+        // Helper function to create translation object from backend data
+        const createTranslation = (langOffer: any) => ({
+          title: langOffer?.title || '',
+          description: langOffer?.description || '',
+          detailedDescription: {
+            overview: langOffer?.overview || '',
+            highlights: langOffer?.highlights || [],
+            sections: langOffer?.sections || [],
+            itinerary: [],
+            tips: [],
+            duration: langOffer?.excursionDetails?.duration || '',
+            difficulty: langOffer?.excursionDetails?.difficulty || '',
+          },
+          includedItems: langOffer?.included_items || [],
+          excludedItems: langOffer?.excluded_items || [],
+        })
         
         const transformedOffer: Offer = {
           id: backendOffer.id,
@@ -88,6 +108,12 @@ function ExcursionsDetailContent() {
           },
           includedItems: backendOffer.included_items || [],
           excludedItems: backendOffer.excluded_items || [],
+          // Include translations for all languages
+          translations: {
+            en: createTranslation(allTranslations.en),
+            fr: createTranslation(allTranslations.fr),
+            es: createTranslation(allTranslations.es),
+          },
         }
         
         setOffer(transformedOffer)

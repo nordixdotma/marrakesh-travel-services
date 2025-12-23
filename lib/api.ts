@@ -209,6 +209,26 @@ export const offersApi = {
     const client = new ApiClient()
     return client.get<{ offer: any }>(`/offers/${id}?language=${language}`)
   },
+  // Fetch offer with all language translations for admin editing
+  getOfferByIdWithAllLanguages: async (id: string) => {
+    const client = new ApiClient()
+    // Fetch all three languages in parallel
+    const [enResponse, frResponse, esResponse] = await Promise.all([
+      client.get<{ offer: any }>(`/offers/${id}?language=en`),
+      client.get<{ offer: any }>(`/offers/${id}?language=fr`),
+      client.get<{ offer: any }>(`/offers/${id}?language=es`),
+    ])
+    
+    // Return the English offer as base with translations from all languages
+    return {
+      offer: enResponse.offer,
+      translations: {
+        en: enResponse.offer,
+        fr: frResponse.offer,
+        es: esResponse.offer,
+      }
+    }
+  },
 }
 
 // Admin API methods

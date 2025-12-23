@@ -40,7 +40,7 @@ export default function PageHero({ title, backgroundImage, showOverlay = true }:
       
       {/* Dark overlay for better text readability - conditionally rendered */}
       {showOverlay && (
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent z-10" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/30 via-black/5 z-10" />
       )}
       
       {/* Content */}

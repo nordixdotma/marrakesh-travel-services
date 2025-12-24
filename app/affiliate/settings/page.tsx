@@ -1,11 +1,13 @@
 "use client"
 
 import { useLanguage } from "@/components/language-provider"
-import { User, Mail, Lock, Bell, Save } from "lucide-react"
+import { User, Mail, Lock, Bell, Save, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState, useEffect } from "react"
+import { authApi, userApi, ApiError } from "@/lib/api"
+import { toast } from "sonner"
 
 export default function AffiliateSettingsPage() {
   const { language } = useLanguage()
@@ -16,26 +18,71 @@ export default function AffiliateSettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [notifications, setNotifications] = useState(true)
   const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [changingPassword, setChangingPassword] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Load user data from localStorage
-    const savedName = localStorage.getItem("affiliate_name") || ""
-    const savedEmail = localStorage.getItem("affiliate_email") || ""
-    setName(savedName)
-    setEmail(savedEmail)
+    const fetchUserData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await authApi.getMe()
+        if (response.user) {
+          setName(response.user.name || "")
+          setEmail(response.user.email || "")
+        }
+      } catch (err) {
+        console.error('Error fetching user data:', err)
+        if (err instanceof ApiError) {
+          setError(err.message)
+          toast.error('Failed to load profile', {
+            description: err.message || 'Please try again later',
+          })
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
   }, [])
 
-  const handleSave = () => {
-    // Save to localStorage (in a real app, this would be an API call)
-    localStorage.setItem("affiliate_name", name)
-    localStorage.setItem("affiliate_email", email)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      setError(null)
+      await userApi.updateProfile({ name, email })
+      setSaved(true)
+      toast.success(
+        language === "fr" 
+          ? "Profil mis à jour avec succès"
+          : language === "es"
+          ? "Perfil actualizado exitosamente"
+          : "Profile updated successfully"
+      )
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      console.error('Error updating profile:', err)
+      if (err instanceof ApiError) {
+        setError(err.message)
+        toast.error('Failed to update profile', {
+          description: err.message || 'Please try again later',
+        })
+      } else {
+        toast.error('Failed to update profile', {
+          description: 'Please try again later',
+        })
+      }
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
     if (newPassword !== confirmPassword) {
-      alert(
+      toast.error(
         language === "fr" 
           ? "Les mots de passe ne correspondent pas"
           : language === "es"
@@ -44,17 +91,55 @@ export default function AffiliateSettingsPage() {
       )
       return
     }
-    // In a real app, this would be an API call
-    alert(
-      language === "fr" 
-        ? "Mot de passe modifié avec succès"
-        : language === "es"
-        ? "Contraseña cambiada exitosamente"
-        : "Password changed successfully"
+
+    if (newPassword.length < 6) {
+      toast.error(
+        language === "fr" 
+          ? "Le mot de passe doit contenir au moins 6 caractères"
+          : language === "es"
+          ? "La contraseña debe tener al menos 6 caracteres"
+          : "Password must be at least 6 characters long"
+      )
+      return
+    }
+
+    try {
+      setChangingPassword(true)
+      setError(null)
+      await authApi.changePassword(currentPassword, newPassword)
+      toast.success(
+        language === "fr" 
+          ? "Mot de passe modifié avec succès"
+          : language === "es"
+          ? "Contraseña cambiada exitosamente"
+          : "Password changed successfully"
+      )
+      setCurrentPassword("")
+      setNewPassword("")
+      setConfirmPassword("")
+    } catch (err) {
+      console.error('Error changing password:', err)
+      if (err instanceof ApiError) {
+        setError(err.message)
+        toast.error('Failed to change password', {
+          description: err.message || 'Please try again later',
+        })
+      } else {
+        toast.error('Failed to change password', {
+          description: 'Please try again later',
+        })
+      }
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     )
-    setCurrentPassword("")
-    setNewPassword("")
-    setConfirmPassword("")
   }
 
   return (
@@ -129,12 +214,29 @@ export default function AffiliateSettingsPage() {
             </div>
           </div>
 
-          <Button onClick={handleSave} className="w-full sm:w-auto">
-            <Save className="h-4 w-4 mr-2" />
-            {saved 
-              ? (language === "fr" ? "Enregistré!" : language === "es" ? "¡Guardado!" : "Saved!")
-              : (language === "fr" ? "Enregistrer" : language === "es" ? "Guardar" : "Save")
-            }
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+          <Button onClick={handleSave} className="w-full sm:w-auto" disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {language === "fr" ? "Enregistrement..." : language === "es" ? "Guardando..." : "Saving..."}
+              </>
+            ) : saved ? (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                {language === "fr" ? "Enregistré!" : language === "es" ? "¡Guardado!" : "Saved!"}
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                {language === "fr" ? "Enregistrer" : language === "es" ? "Guardar" : "Save"}
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -218,8 +320,21 @@ export default function AffiliateSettingsPage() {
             </div>
           </div>
 
-          <Button onClick={handlePasswordChange} className="w-full sm:w-auto">
-            {language === "fr" ? "Mettre à jour le mot de passe" : language === "es" ? "Actualizar contraseña" : "Update Password"}
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+          <Button onClick={handlePasswordChange} className="w-full sm:w-auto" disabled={changingPassword}>
+            {changingPassword ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {language === "fr" ? "Mise à jour..." : language === "es" ? "Actualizando..." : "Updating..."}
+              </>
+            ) : (
+              language === "fr" ? "Mettre à jour le mot de passe" : language === "es" ? "Actualizar contraseña" : "Update Password"
+            )}
           </Button>
         </div>
       </div>

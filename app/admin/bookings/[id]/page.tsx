@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import { useState, useEffect } from "react"
 import {
   ArrowLeft,
   CalendarCheck,
@@ -15,19 +16,61 @@ import {
   CheckCircle,
   XCircle,
   MessageSquare,
+  Loader2,
+  AlertCircle,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { getBookingById } from "@/lib/admin-data"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { adminApi, ApiError } from "@/lib/api"
+import { toast } from "sonner"
 
 export default function BookingDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const bookingId = params.id as string
+  const [booking, setBooking] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
 
-  const booking = getBookingById(bookingId)
+  useEffect(() => {
+    const fetchBooking = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await adminApi.getBookingById(bookingId)
+        setBooking(response.booking)
+      } catch (err) {
+        console.error('Error fetching booking:', err)
+        if (err instanceof ApiError) {
+          setError(err.message)
+          toast.error('Failed to load booking', {
+            description: err.message || 'Please try again later',
+          })
+        } else {
+          setError('Failed to load booking')
+          toast.error('Failed to load booking', {
+            description: 'Please try again later',
+          })
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (bookingId) {
+      fetchBooking()
+    }
+  }, [bookingId])
 
   if (!booking) {
     return (
@@ -90,18 +133,56 @@ export default function BookingDetailsPage() {
     })
   }
 
+  const handleStatusChange = async (newStatus: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED') => {
+    try {
+      setUpdatingStatus(true)
+      await adminApi.updateBookingStatus(bookingId, newStatus)
+      
+      // Update local state
+      setBooking((prev: any) => ({
+        ...prev,
+        status: newStatus.toLowerCase(),
+      }))
+      
+      toast.success(`Booking status updated to ${newStatus.toLowerCase()}`)
+    } catch (err) {
+      console.error('Error updating booking status:', err)
+      if (err instanceof ApiError) {
+        toast.error('Failed to update booking status', {
+          description: err.message || 'Please try again later',
+        })
+      } else {
+        toast.error('Failed to update booking status', {
+          description: 'Please try again later',
+        })
+      }
+    } finally {
+      setUpdatingStatus(false)
+    }
+  }
+
   const handleConfirm = () => {
-    alert("Booking confirmed! (Demo)")
+    handleStatusChange('CONFIRMED')
   }
 
   const handleCancel = () => {
     if (confirm("Are you sure you want to cancel this booking?")) {
-      alert("Booking cancelled! (Demo)")
+      handleStatusChange('CANCELLED')
     }
   }
 
   const handleContact = () => {
-    alert(`Contact ${booking.customerName} at ${booking.customerEmail}`)
+    if (booking?.customerEmail) {
+      window.location.href = `mailto:${booking.customerEmail}`
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   return (
@@ -126,17 +207,23 @@ export default function BookingDetailsPage() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
-          {booking.status === "pending" && (
-            <Button onClick={handleConfirm} className="gap-1 rounded-sm">
-              <CheckCircle className="h-4 w-4" />
-              Confirm Booking
-            </Button>
-          )}
-          {booking.status !== "cancelled" && booking.status !== "completed" && (
-            <Button variant="outline" onClick={handleCancel} className="gap-1 text-destructive hover:text-destructive rounded-sm">
-              <XCircle className="h-4 w-4" />
-              Cancel
-            </Button>
+          <Select
+            value={booking.status.toUpperCase()}
+            onValueChange={(value) => handleStatusChange(value as 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED')}
+            disabled={updatingStatus}
+          >
+            <SelectTrigger className="w-[150px] bg-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+              <SelectItem value="COMPLETED">Completed</SelectItem>
+              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          {updatingStatus && (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           )}
           <Button variant="outline" onClick={handleContact} className="gap-1 rounded-sm">
             <MessageSquare className="h-4 w-4" />
@@ -157,23 +244,49 @@ export default function BookingDetailsPage() {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground">Full Name</p>
-              <p className="font-medium">{booking.customerName}</p>
+              <p className="font-medium">{booking.customerName || 'N/A'}</p>
             </div>
             <Separator />
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
-                <p className="text-sm font-medium">{booking.customerEmail}</p>
+                <p className="text-sm font-medium">{booking.customerEmail || 'N/A'}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="text-sm font-medium">{booking.customerPhone}</p>
+                <p className="text-sm font-medium">{booking.customerPhone || 'N/A'}</p>
               </div>
             </div>
+            {booking.affiliateCode && (
+              <>
+                <Separator />
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Affiliate Referral</p>
+                  <div className="space-y-1">
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      Code: {booking.affiliateCode}
+                    </Badge>
+                    {booking.affiliateName && (
+                      <p className="text-sm font-medium">{booking.affiliateName}</p>
+                    )}
+                    {booking.affiliateEmail && (
+                      <p className="text-xs text-muted-foreground">{booking.affiliateEmail}</p>
+                    )}
+                    {booking.affiliateId && (
+                      <Link href={`/admin/affiliates/${booking.affiliateId}`}>
+                        <Button variant="link" size="sm" className="h-auto p-0 text-xs">
+                          View Affiliate Details
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -199,8 +312,8 @@ export default function BookingDetailsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Guests</p>
                 <p className="text-sm font-medium">
-                  {booking.adults} Adult{booking.adults !== 1 ? "s" : ""}
-                  {booking.children > 0 && `, ${booking.children} Child${booking.children !== 1 ? "ren" : ""}`}
+                  {booking.adults || 0} Adult{(booking.adults || 0) !== 1 ? "s" : ""}
+                  {(booking.children || 0) > 0 && `, ${booking.children} Child${booking.children !== 1 ? "ren" : ""}`}
                 </p>
               </div>
             </div>
@@ -208,7 +321,7 @@ export default function BookingDetailsPage() {
               <Banknote className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Total Price</p>
-                <p className="text-lg font-bold">{booking.totalPrice} MAD</p>
+                <p className="text-lg font-bold">{booking.totalPrice?.toFixed(2) || '0.00'} MAD</p>
               </div>
             </div>
             <Separator />

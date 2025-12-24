@@ -1,8 +1,13 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://api.marrakeshtravelservices.com/api/v1'
 
-export interface ApiError {
-  message: string
+export class ApiError extends Error {
   error?: string
+
+  constructor(message: string, error?: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.error = error
+  }
 }
 
 export class ApiClient {
@@ -101,17 +106,19 @@ export class ApiClient {
           }
         }
         
-        const error: ApiError = {
-          message: data.message || 'An error occurred',
-          error: data.error,
-        }
-        throw error
+        throw new ApiError(
+          data.message || 'An error occurred',
+          data.error
+        )
       }
 
       return data
     } catch (error) {
+      if (error instanceof ApiError) {
+        throw error
+      }
       if (error instanceof Error) {
-        throw { message: error.message } as ApiError
+        throw new ApiError(error.message)
       }
       throw error
     }
@@ -180,6 +187,20 @@ export const authApi = {
       }
     }>('/auth/admin/login', { username, password })
   },
+  login: async (email: string | null, phone: string | null, password: string) => {
+    const client = new ApiClient()
+    return client.post<{
+      message: string
+      token: string
+      user: {
+        id: string
+        name: string
+        email: string | null
+        phone: string | null
+        role: string
+      }
+    }>('/auth/login', { email, phone, password })
+  },
   register: async (name: string, email: string, phone: string, password: string) => {
     const client = new ApiClient()
     return client.post<{
@@ -193,6 +214,37 @@ export const authApi = {
         role: string
       }
     }>('/auth/register', { name, email, phone, password })
+  },
+  requestPasswordReset: async (email: string) => {
+    const client = new ApiClient()
+    return client.post<{
+      message: string
+    }>('/auth/forgot-password', { email })
+  },
+  resetPassword: async (token: string, password: string) => {
+    const client = new ApiClient()
+    return client.post<{
+      message: string
+    }>('/auth/reset-password', { token, password })
+  },
+  getMe: async () => {
+    const client = new ApiClient()
+    return client.get<{
+      user: {
+        id: string
+        name: string
+        email: string | null
+        phone: string | null
+        role: string
+        created_at: string
+      }
+    }>('/auth/me')
+  },
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const client = new ApiClient()
+    return client.post<{
+      message: string
+    }>('/auth/change-password', { currentPassword, newPassword })
   },
 }
 
@@ -256,6 +308,26 @@ export const adminApi = {
   updateTransfer: async (id: string, data: any) => {
     const client = new ApiClient()
     return client.patch<{ message: string; transfer: any }>(`/admin/transfers/${id}`, data)
+  },
+  deleteTour: async (id: string) => {
+    const client = new ApiClient()
+    return client.delete<{ message: string; deletedId: string }>(`/admin/tours/${id}`)
+  },
+  deleteExcursion: async (id: string) => {
+    const client = new ApiClient()
+    return client.delete<{ message: string; deletedId: string }>(`/admin/excursions/${id}`)
+  },
+  deleteActivity: async (id: string) => {
+    const client = new ApiClient()
+    return client.delete<{ message: string; deletedId: string }>(`/admin/activities/${id}`)
+  },
+  deleteTransfer: async (id: string) => {
+    const client = new ApiClient()
+    return client.delete<{ message: string; deletedId: string }>(`/admin/transfers/${id}`)
+  },
+  deletePackage: async (id: string) => {
+    const client = new ApiClient()
+    return client.delete<{ message: string; deletedId: string }>(`/admin/packages/${id}`)
   },
   getTransfers: async (language: string = 'en') => {
     const client = new ApiClient()
@@ -322,6 +394,28 @@ export const adminApi = {
     params.append('offset', offset.toString())
     return client.get<{ promoCodes: any[] }>(`/admin/promo-codes?${params.toString()}`)
   },
+  getAffiliateById: async (id: string) => {
+    const client = new ApiClient()
+    return client.get<{ affiliate: any }>(`/admin/affiliates/${id}`)
+  },
+  updateAffiliateStatus: async (id: string, status: 'ACTIVE' | 'INACTIVE') => {
+    const client = new ApiClient()
+    return client.patch<{
+      message: string
+      affiliate: any
+    }>(`/admin/affiliates/${id}/status`, { status })
+  },
+  getBookingById: async (id: string) => {
+    const client = new ApiClient()
+    return client.get<{ booking: any }>(`/admin/bookings/${id}`)
+  },
+  updateBookingStatus: async (id: string, status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED') => {
+    const client = new ApiClient()
+    return client.patch<{
+      message: string
+      booking: any
+    }>(`/admin/bookings/${id}/status`, { status })
+  },
 }
 
 // Booking API methods
@@ -334,6 +428,7 @@ export const bookingApi = {
     children: number
     promoCodeId?: string
     totalPrice?: number
+    affiliateCode?: string
   }, token?: string) => {
     const url = `${API_BASE_URL}/bookings`
     
@@ -356,11 +451,10 @@ export const bookingApi = {
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      const error: ApiError = {
-        message: errorData.message || 'Failed to create booking',
-        error: errorData.error,
-      }
-      throw error
+      throw new ApiError(
+        errorData.message || 'Failed to create booking',
+        errorData.error
+      )
     }
     
     return response.json() as Promise<{
@@ -407,6 +501,9 @@ export const paymentApi = {
   generateCMIHash: async (data: {
     clientid: string;
     username: string;
+    storetype?: string;
+    hashAlgorithm?: string;
+    currency?: string;
     oid: string;
     amount: string;
     okUrl: string;
@@ -414,10 +511,11 @@ export const paymentApi = {
     rnd: string;
   }) => {
     const client = new ApiClient()
-    return client.post<{ hash: string }>('/payments/cmi-hash', data)
+    return client.post<{ hash: string; formattedAmount: string }>('/payments/cmi-hash', data)
   },
 }
 
+// User API methods
 export const userApi = {
   getProfile: async () => {
     const client = new ApiClient()
@@ -425,7 +523,17 @@ export const userApi = {
   },
   updateProfile: async (data: { name?: string; email?: string; phone?: string }) => {
     const client = new ApiClient()
-    return client.patch<{ message: string; user: any }>('/users/profile', data)
+    return client.patch<{
+      message: string
+      user: {
+        id: string
+        name: string
+        email: string | null
+        phone: string | null
+        role: string
+        created_at: string
+      }
+    }>('/users/profile', data)
   },
   getFavorites: async (language: string = 'en') => {
     const client = new ApiClient()
@@ -497,6 +605,44 @@ export const uploadApi = {
 
     const data = await response.json()
     return data.files.map((f: any) => f.url)
+  },
+}
+
+// Affiliate API methods
+export const affiliateApi = {
+  register: async (name: string, email: string, commissionRate?: number) => {
+    const client = new ApiClient()
+    return client.post<{
+      message: string
+      affiliate: any
+    }>('/affiliates/register', { name, email, commissionRate })
+  },
+  getDashboard: async () => {
+    const client = new ApiClient()
+    return client.get<{
+      affiliate: any
+      recentBookings: any[]
+      recentCommissions: any[]
+    }>('/affiliates/dashboard')
+  },
+  createLink: async (name: string, baseUrl: string) => {
+    const client = new ApiClient()
+    return client.post<{
+      message: string
+      link: any
+    }>('/affiliates/links', { name, baseUrl })
+  },
+  getLinks: async () => {
+    const client = new ApiClient()
+    return client.get<{ links: any[] }>('/affiliates/links')
+  },
+  getCommissions: async () => {
+    const client = new ApiClient()
+    return client.get<{ commissions: any[] }>('/affiliates/commissions')
+  },
+  getBookings: async (language: string = 'en') => {
+    const client = new ApiClient()
+    return client.get<{ bookings: any[] }>(`/affiliates/bookings?language=${language}`)
   },
 }
 

@@ -2,21 +2,25 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff, Lock, User, Mail } from "lucide-react"
+import { Eye, EyeOff, Lock, User, Mail, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import Image from "next/image"
 import { useLanguage } from "@/components/language-provider"
-
-const VALID_USERNAME = "affiliate"
-const VALID_PASSWORD = "affiliate2025"
+import { authApi, affiliateApi, ApiError } from "@/lib/api"
 
 type AuthMode = "login" | "register"
 
 export default function AffiliateLoginPage() {
   const { language } = useLanguage()
   const [mode, setMode] = useState<AuthMode>("login")
-  const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
@@ -25,6 +29,8 @@ export default function AffiliateLoginPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,35 +78,70 @@ export default function AffiliateLoginPage() {
           )
         }
 
-        // Simulate registration
-        await new Promise((resolve) => setTimeout(resolve, 800))
-        
-        // Store registration data (in a real app, this would be sent to a server)
-        localStorage.setItem("affiliate_registered", "true")
-        localStorage.setItem("affiliate_name", name)
-        localStorage.setItem("affiliate_email", email)
-        
-        // After registration, switch to login mode
-        setMode("login")
-        setError("")
-        setPassword("")
-        setConfirmPassword("")
-        setShowPassword(false)
-        setShowConfirmPassword(false)
-        
-        // Show success message
-        alert(
-          language === "fr"
-            ? "Inscription réussie! Veuillez vous connecter."
-            : language === "es"
-            ? "¡Registro exitoso! Por favor inicie sesión."
-            : "Registration successful! Please log in."
+        // Step 1: Register as a user
+        const userResponse = await authApi.register(
+          name.trim(),
+          email.trim(),
+          "", // phone (empty for affiliate registration)
+          password
         )
+
+        // Store user token
+        if (userResponse.token) {
+          localStorage.setItem("token", userResponse.token)
+          localStorage.setItem("user", JSON.stringify(userResponse.user))
+        }
+
+        // Step 2: Register as an affiliate
+        try {
+          await affiliateApi.register(name.trim(), email.trim())
+          
+          // Account is created but inactive - show success message
+          setMode("login")
+          setError("") // Clear any errors
+          // Set success message and show modal
+          setSuccessMessage(
+            language === "fr"
+              ? "Inscription réussie! Votre compte d'affilié est en attente d'approbation par un administrateur. Vous recevrez un email une fois votre compte activé."
+              : language === "es"
+              ? "¡Registro exitoso! Su cuenta de afiliado está pendiente de aprobación por un administrador. Recibirá un correo electrónico una vez que su cuenta esté activada."
+              : "Registration successful! Your affiliate account is pending approval by an administrator. You will receive an email once your account is activated."
+          )
+          setShowSuccessModal(true)
+          setPassword("")
+          setConfirmPassword("")
+          setName("")
+          setEmail("")
+          setShowPassword(false)
+          setShowConfirmPassword(false)
+        } catch (affiliateErr) {
+          // If affiliate registration fails but user is created, still allow login
+          if (affiliateErr instanceof ApiError && affiliateErr.message.includes("already an affiliate")) {
+            // User is already an affiliate, just redirect
+            localStorage.setItem("affiliate_authenticated", "true")
+            window.dispatchEvent(new Event("affiliate-auth-change"))
+            router.replace("/affiliate/dashboard")
+          } else {
+            // Switch to login mode so user can login
+            setMode("login")
+            setError(
+              language === "fr"
+                ? "Compte créé avec succès. Veuillez vous connecter."
+                : language === "es"
+                ? "Cuenta creada exitosamente. Por favor inicie sesión."
+                : "Account created successfully. Please log in."
+            )
+            setPassword("")
+            setConfirmPassword("")
+            setShowPassword(false)
+            setShowConfirmPassword(false)
+          }
+        }
         setIsLoading(false)
         return
       } else {
         // Login validation
-        if (!username || !password) {
+        if (!email || !password) {
           throw new Error(
             language === "fr"
               ? "Veuillez remplir tous les champs"
@@ -110,24 +151,54 @@ export default function AffiliateLoginPage() {
           )
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 400))
+        // Login using email (affiliates use email, not username)
+        const loginResponse = await authApi.login(email, null, password)
 
-        if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+        // Store token and user
+        if (loginResponse.token) {
+          localStorage.setItem("token", loginResponse.token)
+          localStorage.setItem("user", JSON.stringify(loginResponse.user))
+        }
+
+        // Check if user is an affiliate by trying to access dashboard
+        try {
+          await affiliateApi.getDashboard()
+          // User is an affiliate and active
           localStorage.setItem("affiliate_authenticated", "true")
           window.dispatchEvent(new Event("affiliate-auth-change"))
           router.replace("/affiliate/dashboard")
-        } else {
-          throw new Error(
-            language === "fr"
-              ? "Nom d'utilisateur ou mot de passe invalide"
-              : language === "es"
-              ? "Nombre de usuario o contraseña inválidos"
-              : "Invalid username or password"
-          )
+        } catch (dashboardErr) {
+          if (dashboardErr instanceof ApiError) {
+            // Check if account is inactive
+            if (dashboardErr.message.includes("not yet active") || dashboardErr.message.includes("not active")) {
+              throw new Error(
+                language === "fr"
+                  ? "Votre compte d'affilié est en attente d'approbation. Un administrateur activera votre compte sous peu."
+                  : language === "es"
+                  ? "Su cuenta de afiliado está pendiente de aprobación. Un administrador activará su cuenta pronto."
+                  : "Your affiliate account is pending approval. An administrator will activate your account shortly."
+              )
+            }
+            // User is not an affiliate yet
+            throw new Error(
+              language === "fr"
+                ? "Ce compte n'est pas encore affilié. Veuillez vous inscrire en tant qu'affilié."
+                : language === "es"
+                ? "Esta cuenta aún no es afiliada. Por favor regístrese como afiliado."
+                : "This account is not yet an affiliate. Please register as an affiliate."
+            )
+          }
+          throw dashboardErr
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      if (err instanceof ApiError) {
+        setError(err.message || "An error occurred")
+      } else if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError("An error occurred")
+      }
       setIsLoading(false)
     }
   }
@@ -243,33 +314,33 @@ export default function AffiliateLoginPage() {
                 </div>
               )}
 
-              {/* Username field (Login only) */}
+              {/* Email field (Login) */}
               {mode === "login" && (
                 <div className="space-y-1.5">
-                  <label htmlFor="username" className="text-sm font-medium">
+                  <label htmlFor="email" className="text-sm font-medium">
                     {language === "fr"
-                      ? "Nom d'utilisateur"
+                      ? "Email"
                       : language === "es"
-                      ? "Nombre de usuario"
-                      : "Username"}
+                      ? "Correo electrónico"
+                      : "Email"}
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="username"
-                      type="text"
+                      id="email"
+                      type="email"
                       placeholder={
                         language === "fr"
-                          ? "Entrez votre nom d'utilisateur"
+                          ? "Entrez votre email"
                           : language === "es"
-                          ? "Ingrese su nombre de usuario"
-                          : "Enter your username"
+                          ? "Ingrese su correo electrónico"
+                          : "Enter your email"
                       }
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="pl-9 h-10"
                       required
-                      autoComplete="username"
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -359,8 +430,9 @@ export default function AffiliateLoginPage() {
               )}
 
               {error && (
-                <div className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-sm">
-                  {error}
+                <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-sm">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{error}</span>
                 </div>
               )}
 
@@ -411,7 +483,7 @@ export default function AffiliateLoginPage() {
                       onClick={() => {
                         setMode("register")
                         setError("")
-                        setUsername("")
+                        setEmail("")
                         setPassword("")
                         setShowPassword(false)
                       }}
@@ -467,6 +539,41 @@ export default function AffiliateLoginPage() {
             )}
           </div>
         </div>
+
+        {/* Success Modal */}
+        <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                  <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              <DialogTitle className="text-center text-xl">
+                {language === "fr"
+                  ? "Inscription réussie!"
+                  : language === "es"
+                  ? "¡Registro exitoso!"
+                  : "Registration Successful!"}
+              </DialogTitle>
+              <DialogDescription className="text-center text-base pt-2">
+                {successMessage}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center pt-4">
+              <Button
+                onClick={() => setShowSuccessModal(false)}
+                className="bg-primary hover:bg-primary/90"
+              >
+                {language === "fr"
+                  ? "Compris"
+                  : language === "es"
+                  ? "Entendido"
+                  : "Got it"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
     </div>
   )
 }

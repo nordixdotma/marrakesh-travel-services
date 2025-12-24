@@ -7,7 +7,9 @@ import { Map, Plus, Search, Eye, Pencil, Trash2, MapPin, Loader2, AlertCircle } 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { offersApi, ApiError } from "@/lib/api"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { offersApi, adminApi, ApiError } from "@/lib/api"
+import { toast } from "sonner"
 
 interface Tour {
   id: string
@@ -30,6 +32,9 @@ export default function AdminToursPage() {
   const [tours, setTours] = useState<Tour[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [tourToDelete, setTourToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     const fetchTours = async () => {
@@ -84,17 +89,28 @@ export default function AdminToursPage() {
     router.push(`/admin/tours/${id}?mode=edit`)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this tour?")) {
-      try {
-        // TODO: Implement delete API endpoint
-        // await offersApi.deleteOffer(id)
-        setTours(tours.filter(tour => tour.id !== id))
-        alert(`Tour deleted successfully`)
-      } catch (err) {
-        const apiError = err as ApiError
-        alert(apiError.message || 'Failed to delete tour')
-      }
+  const handleDeleteClick = (id: string) => {
+    setTourToDelete(id)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!tourToDelete) return
+
+    try {
+      setIsDeleting(true)
+      await adminApi.deleteTour(tourToDelete)
+      setTours(tours.filter(tour => tour.id !== tourToDelete))
+      toast.success('Tour deleted successfully')
+      setDeleteDialogOpen(false)
+      setTourToDelete(null)
+    } catch (err) {
+      const apiError = err as ApiError
+      toast.error('Failed to delete tour', {
+        description: apiError.message || 'Please try again later',
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -221,7 +237,7 @@ export default function AdminToursPage() {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 rounded-sm text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => handleDelete(offer.id)}
+                  onClick={() => handleDeleteClick(offer.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -247,6 +263,46 @@ export default function AdminToursPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Tour</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this tour? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false)
+                setTourToDelete(null)
+              }}
+              disabled={isDeleting}
+              className="rounded-sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="rounded-sm"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

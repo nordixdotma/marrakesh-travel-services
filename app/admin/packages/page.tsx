@@ -7,7 +7,8 @@ import { Package, Plus, Search, Eye, Pencil, Trash2, MapPin, Loader2 } from "luc
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { adminApi } from "@/lib/api"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { adminApi, ApiError } from "@/lib/api"
 import { toast } from "sonner"
 
 interface PackageData {
@@ -30,6 +31,9 @@ export default function AdminPackagesPage() {
   const [packages, setPackages] = useState<PackageData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [packageToDelete, setPackageToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     const fetchPackages = async () => {
@@ -73,10 +77,28 @@ export default function AdminPackagesPage() {
     router.push(`/admin/packages/${id}?mode=edit`)
   }
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this package?")) {
-      // TODO: Implement delete API call
-      toast.info('Delete functionality coming soon')
+  const handleDeleteClick = (id: string) => {
+    setPackageToDelete(id)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!packageToDelete) return
+
+    try {
+      setIsDeleting(true)
+      await adminApi.deletePackage(packageToDelete)
+      setPackages(packages.filter(pkg => pkg.id !== packageToDelete))
+      toast.success('Package deleted successfully')
+      setDeleteDialogOpen(false)
+      setPackageToDelete(null)
+    } catch (err) {
+      const apiError = err as ApiError
+      toast.error('Failed to delete package', {
+        description: apiError.message || 'Please try again later',
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -225,7 +247,7 @@ export default function AdminPackagesPage() {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 rounded-sm text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => handleDelete(pkg.id)}
+                    onClick={() => handleDeleteClick(pkg.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -249,6 +271,46 @@ export default function AdminPackagesPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Package</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this package? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false)
+                setPackageToDelete(null)
+              }}
+              disabled={isDeleting}
+              className="rounded-sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="rounded-sm"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

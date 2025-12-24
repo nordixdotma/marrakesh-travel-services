@@ -13,6 +13,9 @@ import {
   TrendingUp,
   MousePointerClick,
   DollarSign,
+  CheckCircle2,
+  XCircle,
+  User,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -54,6 +57,7 @@ export default function AdminAffiliatesPage() {
   const [affiliates, setAffiliates] = useState<Affiliate[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchAffiliates = async () => {
@@ -113,6 +117,36 @@ export default function AdminAffiliatesPage() {
       day: "numeric",
       year: "numeric",
     })
+  }
+
+  const handleStatusChange = async (affiliateId: string, newStatus: 'ACTIVE' | 'INACTIVE') => {
+    try {
+      setUpdatingStatus(affiliateId)
+      await adminApi.updateAffiliateStatus(affiliateId, newStatus)
+      
+      // Update local state
+      setAffiliates(prev => prev.map(aff => 
+        aff.id === affiliateId 
+          ? { ...aff, status: newStatus.toLowerCase() }
+          : aff
+      ))
+      
+      toast.success(
+        `Affiliate status updated to ${newStatus.toLowerCase()}`,
+        {
+          description: newStatus === 'ACTIVE' 
+            ? 'The affiliate will receive an activation email.'
+            : 'The affiliate account has been deactivated.'
+        }
+      )
+    } catch (err: any) {
+      console.error('Error updating affiliate status:', err)
+      toast.error('Failed to update affiliate status', {
+        description: err.message || 'Please try again later',
+      })
+    } finally {
+      setUpdatingStatus(null)
+    }
   }
 
   if (loading) {
@@ -193,6 +227,9 @@ export default function AdminAffiliatesPage() {
                       <Badge variant="secondary" className={getStatusColor(affiliate.status)}>
                         {affiliate.status.toLowerCase()}
                       </Badge>
+                      {updatingStatus === affiliate.id && (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                      )}
                     </div>
                     <div className="flex flex-wrap items-center gap-3 mt-1">
                       {affiliate.email && (
@@ -231,22 +268,63 @@ export default function AdminAffiliatesPage() {
                     </div>
                   </div>
 
-                  {/* Right: Date & Actions */}
+                  {/* Right: Status Toggle, Date & Actions */}
                   <div className="flex items-center gap-3">
+                    {/* Status Toggle */}
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={affiliate.status.toUpperCase()}
+                        onValueChange={(value) => handleStatusChange(affiliate.id, value as 'ACTIVE' | 'INACTIVE')}
+                        disabled={updatingStatus === affiliate.id}
+                      >
+                        <SelectTrigger className="w-[130px] h-8 text-xs bg-white">
+                          <div className="flex items-center gap-2">
+                            {affiliate.status.toLowerCase() === 'active' ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                            ) : (
+                              <XCircle className="h-3.5 w-3.5 text-gray-500" />
+                            )}
+                            <SelectValue />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ACTIVE">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                              Active
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="INACTIVE">
+                            <div className="flex items-center gap-2">
+                              <XCircle className="h-3.5 w-3.5 text-gray-500" />
+                              Inactive
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="text-right hidden md:block">
                       <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
                         <Calendar className="h-3 w-3" />
                         {formatDate(affiliate.createdAt)}
                       </p>
                     </div>
-                    {affiliate.userId && (
-                      <Link href={`/admin/users/${affiliate.userId}`}>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/admin/affiliates/${affiliate.id}`}>
                         <Button variant="outline" size="sm" className="gap-1 rounded-sm">
                           <Eye className="h-3.5 w-3.5" />
-                          View User
+                          View Details
                         </Button>
                       </Link>
-                    )}
+                      {affiliate.userId && (
+                        <Link href={`/admin/users/${affiliate.userId}`}>
+                          <Button variant="outline" size="sm" className="gap-1 rounded-sm">
+                            <User className="h-3.5 w-3.5" />
+                            View User
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>

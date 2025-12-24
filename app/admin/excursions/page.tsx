@@ -7,7 +7,9 @@ import { Compass, Plus, Search, Eye, Pencil, Trash2, MapPin, Loader2, AlertCircl
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { offersApi, ApiError } from "@/lib/api"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { offersApi, adminApi, ApiError } from "@/lib/api"
+import { toast } from "sonner"
 
 interface Excursion {
   id: string
@@ -29,6 +31,9 @@ export default function AdminExcursionsPage() {
   const [excursions, setExcursions] = useState<Excursion[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [excursionToDelete, setExcursionToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     const fetchExcursions = async () => {
@@ -83,17 +88,28 @@ export default function AdminExcursionsPage() {
     router.push(`/admin/excursions/${id}?mode=edit`)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this excursion?")) {
-      try {
-        // TODO: Implement delete API endpoint
-        // await offersApi.deleteOffer(id)
-        setExcursions(excursions.filter(excursion => excursion.id !== id))
-        alert(`Excursion deleted successfully`)
-      } catch (err) {
-        const apiError = err as ApiError
-        alert(apiError.message || 'Failed to delete excursion')
-      }
+  const handleDeleteClick = (id: string) => {
+    setExcursionToDelete(id)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!excursionToDelete) return
+
+    try {
+      setIsDeleting(true)
+      await adminApi.deleteExcursion(excursionToDelete)
+      setExcursions(excursions.filter(excursion => excursion.id !== excursionToDelete))
+      toast.success('Excursion deleted successfully')
+      setDeleteDialogOpen(false)
+      setExcursionToDelete(null)
+    } catch (err) {
+      const apiError = err as ApiError
+      toast.error('Failed to delete excursion', {
+        description: apiError.message || 'Please try again later',
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -220,7 +236,7 @@ export default function AdminExcursionsPage() {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 rounded-sm text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => handleDelete(offer.id)}
+                  onClick={() => handleDeleteClick(offer.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -246,6 +262,46 @@ export default function AdminExcursionsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Excursion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this excursion? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false)
+                setExcursionToDelete(null)
+              }}
+              disabled={isDeleting}
+              className="rounded-sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="rounded-sm"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

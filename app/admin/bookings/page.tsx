@@ -41,6 +41,10 @@ interface Booking {
   totalPrice: number
   status: string
   createdAt: string
+  affiliateId?: string | null
+  affiliateCode?: string | null
+  affiliateName?: string | null
+  affiliateEmail?: string | null
 }
 
 export default function AdminBookingsPage() {
@@ -207,6 +211,16 @@ export default function AdminBookingsPage() {
                     </div>
                     <p className="text-sm text-muted-foreground truncate">{booking.offerTitle}</p>
                     <p className="text-xs text-muted-foreground mt-1">{booking.customerEmail}</p>
+                    {booking.affiliateCode && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                          Affiliate: {booking.affiliateCode}
+                        </Badge>
+                        {booking.affiliateName && (
+                          <span className="text-xs text-muted-foreground">({booking.affiliateName})</span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Middle: Details */}

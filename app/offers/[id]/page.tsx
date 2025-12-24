@@ -18,6 +18,7 @@ import { type Offer } from "@/lib/offers-data"
 import { useAuth } from "@/components/login-modal"
 import { useLanguage } from "@/components/language-provider"
 import { offersApi, authApi, bookingApi, adminApi, userApi, paymentApi, type ApiError } from "@/lib/api"
+import { trackAffiliateFromUrl, getAffiliateCode } from "@/lib/affiliate-tracking"
 
 interface OfferDetailsPageProps {
   params: Promise<{ id: string }>
@@ -751,6 +752,12 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
       if (promoCodeId) {
         bookingData.promoCodeId = promoCodeId
+      }
+
+      // Add affiliate code if available
+      const affiliateCode = getAffiliateCode()
+      if (affiliateCode) {
+        bookingData.affiliateCode = affiliateCode
       }
 
       if (offer.type === 'transfers') {
@@ -1850,12 +1857,18 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     const amount = totalAmount.toFixed(2)
                     const okUrl = `${window.location.origin}/payment/success?bookingRef=${orderId}`
                     const failUrl = `${window.location.origin}/payment/failed?bookingRef=${orderId}`
+                    const storetype = '3D_PAY_HOSTING'
+                    const hashAlgorithm = 'ver3'
+                    const currency = '504' // MAD currency code
                     
                     try {
-                      // Get hash from backend
+                      // Get hash from backend (includes all parameters for ver3)
                       const hashResponse = await paymentApi.generateCMIHash({
                         clientid: '600000560',
                         username: 'marraskeshts_a',
+                        storetype: storetype,
+                        hashAlgorithm: hashAlgorithm,
+                        currency: currency,
                         oid: orderId,
                         amount: amount,
                         okUrl: okUrl,
@@ -1869,20 +1882,27 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                       cmiForm.action = 'https://payment.cmi.co.ma/fim/est3Dgate' // CMI payment gateway URL
                       cmiForm.target = '_blank'
                       
-                      // CMI required fields
+                      // CMI required fields - amount format must match hash calculation
+                      // The amount in the form must exactly match what was used in hash calculation
                       const formData: Record<string, string> = {
                         clientid: '600000560', // Merchant ID
                         username: 'marraskeshts_a', // Username
-                        storetype: '3D_PAY_HOSTING',
-                        hashAlgorithm: 'ver3',
-                        currency: '504', // MAD currency code
+                        storetype: storetype,
+                        hashAlgorithm: hashAlgorithm,
+                        currency: currency,
                         oid: orderId,
-                        amount: amount,
+                        amount: hashResponse.formattedAmount || amount, // Use formatted amount from backend (must match hash)
                         okUrl: okUrl,
                         failUrl: failUrl,
                         rnd: randomNumber,
                         hash: hashResponse.hash, // Security hash from backend
                       }
+                      
+                      // Debug logging (remove in production)
+                      console.log('CMI Payment Form Data:', {
+                        ...formData,
+                        hash: hashResponse.hash.substring(0, 10) + '...',
+                      })
                       
                       // Create hidden inputs for form
                       Object.entries(formData).forEach(([key, value]) => {

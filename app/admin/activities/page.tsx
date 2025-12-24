@@ -7,7 +7,9 @@ import { Activity, Plus, Search, Eye, Pencil, Trash2, MapPin, Loader2, AlertCirc
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { offersApi, ApiError } from "@/lib/api"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { offersApi, adminApi, ApiError } from "@/lib/api"
+import { toast } from "sonner"
 
 interface ActivityItem {
   id: string
@@ -29,6 +31,9 @@ export default function AdminActivitiesPage() {
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [activityToDelete, setActivityToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -89,17 +94,28 @@ export default function AdminActivitiesPage() {
     router.push(`/admin/activities/${id}?mode=edit`)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this activity?")) {
-      try {
-        // TODO: Implement delete API endpoint
-        // await offersApi.deleteOffer(id)
-        setActivities(activities.filter(activity => activity.id !== id))
-        alert(`Activity deleted successfully`)
-      } catch (err) {
-        const apiError = err as ApiError
-        alert(apiError.message || 'Failed to delete activity')
-      }
+  const handleDeleteClick = (id: string) => {
+    setActivityToDelete(id)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!activityToDelete) return
+
+    try {
+      setIsDeleting(true)
+      await adminApi.deleteActivity(activityToDelete)
+      setActivities(activities.filter(activity => activity.id !== activityToDelete))
+      toast.success('Activity deleted successfully')
+      setDeleteDialogOpen(false)
+      setActivityToDelete(null)
+    } catch (err) {
+      const apiError = err as ApiError
+      toast.error('Failed to delete activity', {
+        description: apiError.message || 'Please try again later',
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -226,7 +242,7 @@ export default function AdminActivitiesPage() {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 rounded-sm text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => handleDelete(offer.id)}
+                  onClick={() => handleDeleteClick(offer.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -252,6 +268,46 @@ export default function AdminActivitiesPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Activity</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this activity? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false)
+                setActivityToDelete(null)
+              }}
+              disabled={isDeleting}
+              className="rounded-sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="rounded-sm"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/components/login-modal";
 import { LanguageProvider } from "@/components/language-provider";
 import CookieBanner from "@/components/cookie-banner";
+import AffiliateTracker from "@/components/affiliate-tracker";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -315,7 +316,10 @@ export default function RootLayout({
       </head>
       <body className={`font-sans antialiased`} suppressHydrationWarning>
         <LanguageProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <AffiliateTracker />
+            {children}
+          </AuthProvider>
           <CookieBanner />
         </LanguageProvider>
         <Toaster />

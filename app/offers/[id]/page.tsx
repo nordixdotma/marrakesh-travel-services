@@ -859,7 +859,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
       <PageHero 
         title={offer.title} 
         backgroundImage={offer.mainImage} 
-        showOverlay={offer.type !== 'packages'}
+        showOverlay={true}
       />
 
       <section className="py-10 bg-gray-50">

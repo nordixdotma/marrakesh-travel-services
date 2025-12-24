@@ -232,15 +232,21 @@ export default function OffersGrid({ offers }: OffersGridProps) {
             </div>
 
             <div className="bg-primary p-2 sm:p-3 md:p-4 mt-auto">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-[10px] sm:text-xs text-secondary opacity-90">{t?.common?.from ?? "From"}</p>
-                  <p className="text-sm md:text-base font-semibold text-primary-foreground">MAD {offer.priceAdult}</p>
+              {offer.type === "packages" ? (
+                <div className="flex justify-center items-center h-full">
+                   <p className="text-sm md:text-base font-semibold text-secondary uppercase tracking-wider">{t?.common?.custom ?? "Custom"}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-secondary opacity-90">{offer.type === "transfers" ? (t?.offerDetails?.perVehicle ?? "per vehicle") : (t?.common?.perPerson ?? "per person")}</p>
+              ) : (
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-[10px] sm:text-xs text-secondary opacity-90">{t?.common?.from ?? "From"}</p>
+                    <p className="text-sm md:text-base font-semibold text-primary-foreground">MAD {offer.priceAdult}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-secondary opacity-90">{offer.type === "transfers" ? (t?.offerDetails?.perVehicle ?? "per vehicle") : (t?.common?.perPerson ?? "per person")}</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </Link>
         ))

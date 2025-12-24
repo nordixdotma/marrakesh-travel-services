@@ -233,6 +233,7 @@ export const fr: TranslationKeys = {
     reviews: "avis",
     noOffersFound: "Aucune offre trouvée",
     noOffersDescription: "Nous n'avons trouvé aucune offre correspondant à vos critères. Essayez d'ajuster vos filtres ou de rechercher autre chose.",
+    custom: "Sur mesure",
   },
 
   // Login Modal

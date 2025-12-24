@@ -1882,8 +1882,8 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                       cmiForm.action = 'https://payment.cmi.co.ma/fim/est3Dgate' // CMI payment gateway URL
                       cmiForm.target = '_blank'
                       
-                      // CMI required fields - amount format must match hash calculation
-                      // The amount in the form must exactly match what was used in hash calculation
+                      // CMI required fields
+                      // IMPORTANT: Amount in form should be in cents (80000) when hash uses cents format
                       const formData: Record<string, string> = {
                         clientid: '600000560', // Merchant ID
                         username: 'marraskeshts_a', // Username
@@ -1891,12 +1891,16 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                         hashAlgorithm: hashAlgorithm,
                         currency: currency,
                         oid: orderId,
-                        amount: hashResponse.formattedAmount || amount, // Use formatted amount from backend (must match hash)
+                        amount: hashResponse.formattedAmount || amount, // Use formatted amount from backend (in cents: 80000)
                         okUrl: okUrl,
                         failUrl: failUrl,
                         rnd: randomNumber,
                         hash: hashResponse.hash, // Security hash from backend
                       }
+                      
+                      // If first hash fails, we can try the alternative hash with currency
+                      // Uncomment below to try alternative hash:
+                      // formData.hash = hashResponse.alternativeHash || hashResponse.hash;
                       
                       // Debug logging (remove in production)
                       console.log('CMI Payment Form Data:', {

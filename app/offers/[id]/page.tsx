@@ -1862,19 +1862,27 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     const currency = '504' // MAD currency code
                     
                     try {
-                      // Get hash from backend (includes all parameters for ver3)
-                      const hashResponse = await paymentApi.generateCMIHash({
+                      // Prepare all parameters for hash calculation (must match form data)
+                      const hashRequestData = {
                         clientid: '600000560',
                         username: 'marraskeshts_a',
                         storetype: storetype,
                         hashAlgorithm: hashAlgorithm,
                         currency: currency,
                         oid: orderId,
-                        amount: amount,
+                        amount: amount, // Amount in decimal format (e.g., "800.00")
                         okUrl: okUrl,
                         failUrl: failUrl,
                         rnd: randomNumber,
-                      })
+                        // Optional parameters
+                        lang: 'fr',
+                        refreshtime: '5',
+                        TranType: 'PreAuth',
+                        AutoRedirect: 'true',
+                      }
+
+                      // Generate hash from backend (SHA512 Base64)
+                      const hashResponse = await paymentApi.generateCMIHash(hashRequestData)
                       
                       // Create and submit CMI payment form
                       const cmiForm = document.createElement('form')
@@ -1882,20 +1890,25 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                       cmiForm.action = 'https://payment.cmi.co.ma/fim/est3Dgate' // CMI payment gateway URL
                       cmiForm.target = '_blank'
                       
-                      // CMI required fields
-                      // IMPORTANT: Amount in form should be in cents (80000) when hash uses cents format
+                      // Build form data with all parameters (must match what was sent for hash calculation)
+                      // Amount should be in decimal format (e.g., "800.00") as per CMI documentation
                       const formData: Record<string, string> = {
-                        clientid: '600000560', // Merchant ID
-                        username: 'marraskeshts_a', // Username
-                        storetype: storetype,
-                        hashAlgorithm: hashAlgorithm,
-                        currency: currency,
-                        oid: orderId,
-                        amount: hashResponse.formattedAmount || amount, // Use formatted amount from backend (in cents: 80000)
-                        okUrl: okUrl,
-                        failUrl: failUrl,
-                        rnd: randomNumber,
-                        hash: hashResponse.hash, // Security hash from backend
+                        clientid: hashRequestData.clientid,
+                        username: hashRequestData.username,
+                        storetype: hashRequestData.storetype,
+                        hashAlgorithm: hashRequestData.hashAlgorithm,
+                        currency: hashRequestData.currency,
+                        oid: hashRequestData.oid,
+                        amount: hashResponse.formattedAmount || amount, // Use formatted amount from backend (decimal format: "800.00")
+                        okUrl: hashRequestData.okUrl,
+                        failUrl: hashRequestData.failUrl,
+                        rnd: hashRequestData.rnd,
+                        lang: hashRequestData.lang,
+                        refreshtime: hashRequestData.refreshtime,
+                        TranType: hashRequestData.TranType,
+                        AutoRedirect: hashRequestData.AutoRedirect,
+                        encoding: 'UTF-8',
+                        HASH: hashResponse.hash, // Base64 SHA512 hash from backend (uppercase as per CMI docs)
                       }
                       
                       // If first hash fails, we can try the alternative hash with currency

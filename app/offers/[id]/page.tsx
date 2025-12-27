@@ -1862,86 +1862,157 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     const currency = '504' // MAD currency code
                     
                     try {
-                      // Prepare all parameters for hash calculation (must match form data)
+                      // Use test environment credentials (as per CMI documentation)
+                      // ClientId de test: 600005522 (from CMI documentation image)
+                      // URL de test: https://testpayment.cmi.co.ma/fim/est3Dgate
+                      // NOTE: username is NOT used in CMI official examples - removed
+                      const clientId = process.env.NEXT_PUBLIC_CMI_CLIENT_ID || '600005522' // Test ClientId
+                      
+                      // Prepare all parameters for hash calculation (EXACTLY as per CMI PHP example 1.PaymentRequest.php)
+                      // Only include parameters that are in the official example
                       const hashRequestData = {
-                        clientid: '600000560',
-                        username: 'marraskeshts_a',
-                        storetype: storetype,
-                        hashAlgorithm: hashAlgorithm,
-                        currency: currency,
-                        oid: orderId,
+                        clientid: clientId,
                         amount: amount, // Amount in decimal format (e.g., "800.00")
                         okUrl: okUrl,
                         failUrl: failUrl,
+                        TranType: 'PreAuth', // Note: camelCase as in PHP example
+                        currency: currency,
                         rnd: randomNumber,
-                        // Optional parameters
+                        storetype: storetype,
+                        hashAlgorithm: hashAlgorithm,
                         lang: 'fr',
                         refreshtime: '5',
-                        TranType: 'PreAuth',
-                        AutoRedirect: 'true',
+                        oid: orderId,
+                        // Optional fields from PHP example (can be empty strings)
+                        callbackUrl: '', // Optional
+                        shopurl: '', // Optional
+                        BillToName: '', // Optional
+                        BillToCompany: '', // Optional
+                        BillToStreet1: '', // Optional
+                        BillToCity: '', // Optional
+                        BillToStateProv: '', // Optional
+                        BillToPostalCode: '', // Optional
+                        BillToCountry: currency, // Use currency code as default
+                        email: '', // Optional
+                        tel: '', // Optional
+                        // DO NOT include AutoRedirect - it's not in the PHP example
                       }
 
                       // Generate hash from backend (SHA512 Base64)
+                      // Backend follows exact CMI PHP algorithm
                       const hashResponse = await paymentApi.generateCMIHash(hashRequestData)
                       
-                      // Create and submit CMI payment form
+                      // Create and submit CMI payment form (EXACTLY as per 2.SendData.php)
                       const cmiForm = document.createElement('form')
                       cmiForm.method = 'POST'
-                      cmiForm.action = 'https://payment.cmi.co.ma/fim/est3Dgate' // CMI payment gateway URL
-                      cmiForm.target = '_blank'
+                      // Use test environment URL (as per CMI documentation)
+                      cmiForm.action = process.env.NEXT_PUBLIC_CMI_GATEWAY_URL || 'https://testpayment.cmi.co.ma/fim/est3Dgate'
+                      cmiForm.name = 'pay_form' // As per CMI example
+                      // Submit in same window to ensure proper redirect
+                      cmiForm.target = '_self'
                       
-                      // Build form data with all parameters (must match what was sent for hash calculation)
+                      // Build form data with all parameters (EXACTLY as per CMI PHP example 2.SendData.php)
+                      // Must match EXACTLY what was sent for hash calculation
                       // Amount should be in decimal format (e.g., "800.00") as per CMI documentation
                       const formData: Record<string, string> = {
                         clientid: hashRequestData.clientid,
-                        username: hashRequestData.username,
-                        storetype: hashRequestData.storetype,
-                        hashAlgorithm: hashRequestData.hashAlgorithm,
-                        currency: hashRequestData.currency,
-                        oid: hashRequestData.oid,
                         amount: hashResponse.formattedAmount || amount, // Use formatted amount from backend (decimal format: "800.00")
                         okUrl: hashRequestData.okUrl,
                         failUrl: hashRequestData.failUrl,
+                        TranType: hashRequestData.TranType, // camelCase as in PHP example
+                        callbackUrl: hashRequestData.callbackUrl,
+                        shopurl: hashRequestData.shopurl,
+                        currency: hashRequestData.currency,
                         rnd: hashRequestData.rnd,
+                        storetype: hashRequestData.storetype,
+                        hashAlgorithm: hashRequestData.hashAlgorithm,
                         lang: hashRequestData.lang,
                         refreshtime: hashRequestData.refreshtime,
-                        TranType: hashRequestData.TranType,
-                        AutoRedirect: hashRequestData.AutoRedirect,
+                        BillToName: hashRequestData.BillToName,
+                        BillToCompany: hashRequestData.BillToCompany,
+                        BillToStreet1: hashRequestData.BillToStreet1,
+                        BillToCity: hashRequestData.BillToCity,
+                        BillToStateProv: hashRequestData.BillToStateProv,
+                        BillToPostalCode: hashRequestData.BillToPostalCode,
+                        BillToCountry: hashRequestData.BillToCountry,
+                        email: hashRequestData.email,
+                        tel: hashRequestData.tel,
                         encoding: 'UTF-8',
-                        HASH: hashResponse.hash, // Base64 SHA512 hash from backend (uppercase as per CMI docs)
+                        oid: hashRequestData.oid,
+                        // Use HASH in uppercase as per CMI PHP example (line 65)
+                        HASH: hashResponse.hash, // Base64 SHA512 hash from backend
                       }
                       
-                      // If first hash fails, we can try the alternative hash with currency
-                      // Uncomment below to try alternative hash:
-                      // formData.hash = hashResponse.alternativeHash || hashResponse.hash;
-                      
-                      // Debug logging (remove in production)
-                      console.log('CMI Payment Form Data:', {
-                        ...formData,
-                        hash: hashResponse.hash.substring(0, 10) + '...',
+                      // Debug logging
+                      console.log('🚀 CMI Payment Form Preparation:', {
+                        action: cmiForm.action,
+                        method: cmiForm.method,
+                        target: cmiForm.target,
+                        formDataKeys: Object.keys(formData),
+                        formData: {
+                          ...formData,
+                          HASH: hashResponse.hash.substring(0, 30) + '...',
+                        },
+                        hashLength: hashResponse.hash.length,
                       })
+                      
+                      // Log the exact order of parameters as they will be sent
+                      const formKeys = Object.keys(formData).sort()
+                      console.log('📋 CMI Form Parameters (sorted):', formKeys)
+                      console.log('📝 CMI Form Values:', formKeys.map(key => `${key}=${formData[key]}`).join('&'))
                       
                       // Create hidden inputs for form
                       Object.entries(formData).forEach(([key, value]) => {
                         const input = document.createElement('input')
                         input.type = 'hidden'
                         input.name = key
-                        input.value = value
+                        input.value = String(value)
                         cmiForm.appendChild(input)
+                        console.log(`✅ Added form field: ${key} = ${String(value).substring(0, 50)}${String(value).length > 50 ? '...' : ''}`)
                       })
                       
-                      // Add form to body, submit, then remove
-                      document.body.appendChild(cmiForm)
-                      cmiForm.submit()
-                      document.body.removeChild(cmiForm)
+                      // Verify form is ready
+                      console.log('🔍 Form verification:', {
+                        formElement: cmiForm,
+                        formAction: cmiForm.action,
+                        formMethod: cmiForm.method,
+                        formTarget: cmiForm.target,
+                        inputCount: cmiForm.querySelectorAll('input').length,
+                        allInputs: Array.from(cmiForm.querySelectorAll('input')).map(input => ({
+                          name: input.name,
+                          value: input.value.substring(0, 50) + (input.value.length > 50 ? '...' : '')
+                        }))
+                      })
                       
-                      // Close payment dialog and show success dialog after a short delay
+                      // Add form to body (EXACTLY as per CMI PHP example 2.SendData.php)
+                      document.body.appendChild(cmiForm)
+                      console.log('✅ Form added to body, ready to submit')
+                      
+                      // Close payment dialog BEFORE submitting (so it doesn't block the redirect)
+                      setShowPaymentDialog(false)
+                      setSelectedPaymentMethod(null)
+                      setIsProcessingPayment(false)
+                      
+                      // Submit automatically (as per CMI example with onload="moveWindow()")
+                      // Small delay to ensure dialog is closed and form is ready
                       setTimeout(() => {
-                        setShowPaymentDialog(false)
-                        setShowSuccessDialog(true)
-                        setSelectedPaymentMethod(null)
-                        setIsProcessingPayment(false)
-                      }, 500)
+                        console.log('🚀 Submitting CMI payment form to:', cmiForm.action)
+                        console.log('📋 Form name:', cmiForm.name)
+                        console.log('📋 Form method:', cmiForm.method)
+                        console.log('📋 Form action:', cmiForm.action)
+                        console.log('📋 Input count:', cmiForm.querySelectorAll('input').length)
+                        
+                        // Submit the form - this will redirect to CMI payment gateway
+                        // Following CMI example: document.pay_form.submit()
+                        if (cmiForm.name === 'pay_form') {
+                          (window as any).pay_form = cmiForm
+                        }
+                        cmiForm.submit()
+                        console.log('✅ Form submitted (should redirect to CMI now)')
+                      }, 200)
+                      
+                      // Note: We do NOT show success dialog here because payment hasn't been confirmed yet
+                      // Success will be handled by the /payment/success page after CMI redirects back
                     } catch (hashError: any) {
                       console.error('Failed to generate CMI hash:', hashError)
                       setIsProcessingPayment(false)

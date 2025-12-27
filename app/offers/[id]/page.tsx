@@ -862,9 +862,9 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
         showOverlay={true}
       />
 
-      <section className="py-10 bg-gray-50">
-        <Container className="max-w-7xl px-2 md:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-8">
+      <section className="py-6 md:py-10 bg-gray-50">
+        <Container className="max-w-7xl px-1.5 md:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-8">
             {/* Left Column - Main Content */}
             <div className="lg:col-span-2 space-y-6">
               {/* Image/Video Gallery */}
@@ -1002,7 +1002,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
               {/* Transfer Route Info - Only for transfers */}
               {offer.type === "transfers" && offer.transferDetails && (
-                <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
+                <div className="bg-background rounded-xl p-3.5 md:p-5 border border-border/50 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="p-1.5 rounded-lg bg-primary/10">
                       <Route size={16} className="text-primary" />
@@ -1043,7 +1043,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
               {/* Vehicle Options - Only for transfers */}
               {offer.type === "transfers" && offer.transferDetails?.vehicleOptions && offer.transferDetails.vehicleOptions.length > 0 && (
-                <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
+                <div className="bg-background rounded-xl p-3.5 md:p-5 border border-border/50 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="p-1.5 rounded-lg bg-blue-500/10">
                       <Car size={16} className="text-blue-500" />
@@ -1081,9 +1081,9 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
               {/* Description Card */}
               {offer.description && (
-                <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
-                  <h2 className="text-xl font-semibold text-foreground mb-3">{offer.type === "transfers" ? t.offerDetails.aboutTransfer : t.offerDetails.aboutExperience}</h2>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{offer.description}</p>
+                <div className="bg-background rounded-xl p-3.5 md:p-5 border border-border/50 shadow-sm">
+                  <h2 className="text-lg md:text-xl font-semibold text-foreground mb-2 md:mb-3">{offer.type === "transfers" ? t.offerDetails.aboutTransfer : t.offerDetails.aboutExperience}</h2>
+                  <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{offer.description}</p>
                 </div>
               )}
 
@@ -1112,7 +1112,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
                   {/* Excluded Items */}
                   {offer.excludedItems?.length > 0 && (
-                    <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
+                    <div className="bg-background rounded-xl p-3.5 md:p-5 border border-border/50 shadow-sm">
                       <div className="flex items-center gap-2 mb-4">
                         <div className="p-1.5 rounded-lg bg-red-500/10">
                           <X size={16} className="text-red-500" />
@@ -1137,7 +1137,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                 <div className="bg-background rounded-xl border border-border/50 shadow-sm overflow-hidden">
                   {/* Overview Section - Always Visible */}
                   {offer.detailedDescription.overview && (
-                    <div className="p-5 border-b border-border/50">
+                    <div className="p-3.5 md:p-5 border-b border-border/50">
                       <div className="flex items-center gap-2 mb-3">
                         <div className="p-1.5 rounded-lg bg-primary/10">
                           <Info size={16} className="text-primary" />
@@ -1189,8 +1189,8 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                         <ChevronDown size={18} className="text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="p-5 bg-muted/20">
-                          <p className="text-muted-foreground text-sm leading-relaxed">{section.content}</p>
+                        <div className="p-3.5 md:p-5 bg-muted/20">
+                          <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{section.content}</p>
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
@@ -1255,7 +1255,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
                   {/* Quick Info Footer */}
                   {(offer.detailedDescription.duration || offer.detailedDescription.difficulty || offer.detailedDescription.groupSize) && (
-                    <div className="p-5 bg-muted/30 flex flex-wrap gap-4">
+                    <div className="p-3.5 md:p-5 bg-muted/30 flex flex-wrap gap-4">
                       {offer.detailedDescription.duration && (
                         <div className="flex items-center gap-2 text-sm">
                           <Clock size={14} className="text-primary" />
@@ -1281,30 +1281,30 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
               {/* Pricing Cards - Hide for transfers and packages */}
               {offer.type !== "transfers" && offer.type !== "packages" && (offer.priceAdult !== undefined || offer.priceChild !== undefined) && (
-                <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
-                  <h3 className="font-semibold text-foreground mb-4">{t.offerDetails.pricing}</h3>
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="bg-background rounded-xl p-3.5 md:p-5 border border-border/50 shadow-sm">
+                  <h3 className="font-semibold text-foreground mb-3">{t.offerDetails.pricing}</h3>
+                  <div className="grid grid-cols-2 gap-2 md:gap-3">
                     {offer.priceAdult !== undefined && (
-                      <div className="relative p-4 rounded-xl bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20">
-                        <div className="flex items-center gap-2 mb-2">
-                          <User size={16} className="text-primary" />
-                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.adult}</span>
+                      <div className="relative p-2.5 md:p-4 rounded-xl bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20">
+                        <div className="flex items-center gap-2 mb-1 md:mb-2">
+                          <User size={14} className="text-primary" />
+                          <span className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.adult}</span>
                         </div>
                         <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-bold text-foreground">MAD {offer.priceAdult}</span>
-                          <span className="text-xs text-muted-foreground">{t.offerDetails.perPerson}</span>
+                          <span className="text-lg md:text-2xl font-bold text-foreground">MAD {offer.priceAdult}</span>
+                          <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">{t.offerDetails.perPerson}</span>
                         </div>
                       </div>
                     )}
                     {offer.priceChild !== undefined && (
-                      <div className="relative p-4 rounded-xl bg-linear-to-br from-blue-500/5 to-blue-500/10 border border-blue-500/20">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Users size={16} className="text-blue-500" />
-                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.child}</span>
+                      <div className="relative p-2.5 md:p-4 rounded-xl bg-linear-to-br from-blue-500/5 to-blue-500/10 border border-blue-500/20">
+                        <div className="flex items-center gap-2 mb-1 md:mb-2">
+                          <Users size={14} className="text-blue-500" />
+                          <span className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.child}</span>
                         </div>
                         <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-bold text-foreground">MAD {offer.priceChild}</span>
-                          <span className="text-xs text-muted-foreground">{t.offerDetails.perChild}</span>
+                          <span className="text-lg md:text-2xl font-bold text-foreground">MAD {offer.priceChild}</span>
+                          <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">{t.offerDetails.perChild}</span>
                         </div>
                       </div>
                     )}
@@ -1314,7 +1314,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
               {/* Availability - Hide availability dates section for transfers and packages */}
               {offer.type !== "transfers" && offer.type !== "packages" && offer.availabilityDates?.startDate && offer.availabilityDates?.endDate && (
-                <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
+                <div className="bg-background rounded-xl p-3.5 md:p-5 border border-border/50 shadow-sm">
                   <h3 className="font-semibold text-foreground mb-3">{t.offerDetails.availability}</h3>
                   <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                     <div className="p-2 rounded-full bg-primary/10">
@@ -1561,33 +1561,33 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
 
                   {/* Price Summary - Different for transfers */}
                   {offer.type === "transfers" ? (
-                    <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-                      <div className="flex justify-between text-xs text-muted-foreground">
+                    <div className="p-2.5 md:p-3 bg-muted/50 rounded-lg space-y-1.5 md:space-y-2">
+                      <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
                         <span>{t.offerDetails.reservationForm.transfer} ({formData.adults} {formData.adults > 1 ? t.offerDetails.reservationForm.passengers : t.offerDetails.reservationForm.passenger})</span>
                         <span>{t.offerDetails.reservationForm.fromPrice} MAD {offer.priceAdult}</span>
                       </div>
-                      <div className="flex justify-between font-semibold text-foreground pt-2 border-t border-border/50">
-                        <span>{t.offerDetails.reservationForm.startingFrom}</span>
-                        <span className="text-lg text-primary">MAD {offer.priceAdult}</span>
+                      <div className="flex justify-between font-semibold text-foreground pt-1.5 md:pt-2 border-t border-border/50">
+                        <span className="text-xs md:text-base">{t.offerDetails.reservationForm.startingFrom}</span>
+                        <span className="text-sm md:text-lg text-primary">MAD {offer.priceAdult}</span>
                       </div>
-                      <p className="text-[10px] text-muted-foreground">{t.offerDetails.reservationForm.finalPriceNote}</p>
+                      <p className="text-[9px] md:text-[10px] text-muted-foreground">{t.offerDetails.reservationForm.finalPriceNote}</p>
                     </div>
                   ) : offer.type !== "packages" && (offer.priceAdult !== undefined || offer.priceChild !== undefined) && (
-                    <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    <div className="p-2.5 md:p-3 bg-muted/50 rounded-lg space-y-1.5 md:space-y-2">
                       {offer.priceAdult !== undefined && (
-                        <div className="flex justify-between text-xs text-muted-foreground">
+                        <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
                           <span>{formData.adults} {t.offerDetails.reservationForm.adults} × MAD {offer.priceAdult}</span>
                           <span>MAD {formData.adults * offer.priceAdult}</span>
                         </div>
                       )}
                       {formData.children > 0 && offer.priceChild !== undefined && (
-                        <div className="flex justify-between text-xs text-muted-foreground">
+                        <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
                           <span>{formData.children} {t.offerDetails.reservationForm.children} × MAD {offer.priceChild}</span>
                           <span>MAD {formData.children * offer.priceChild}</span>
                         </div>
                       )}
                       {formData.infants > 0 && (
-                        <div className="flex justify-between text-xs text-muted-foreground">
+                        <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Baby size={10} className="text-pink-500" />
                             {formData.infants} {t.infant?.label || "Infants"}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useMemo, Suspense } from "react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
@@ -24,7 +24,10 @@ function ToursContent() {
   
   const pageType = "tours"
   const [allOffers, setAllOffers] = useState<Offer[]>([])
-  const [offers, setOffers] = useState<Offer[]>([])
+  const [filters, setFilters] = useState<Filters>({
+    category: pageType,
+    departureCity: cityParam ?? "all"
+  })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -97,13 +100,6 @@ function ToursContent() {
         })
 
         setAllOffers(transformedTours)
-        
-        // Apply initial city filter if present
-        if (cityParam) {
-          setOffers(transformedTours.filter(o => o.departCity === cityParam))
-        } else {
-          setOffers(transformedTours)
-        }
       } catch (err) {
         const apiError = err as ApiError
         setError(apiError.message || 'Failed to load tours')
@@ -114,20 +110,10 @@ function ToursContent() {
     }
 
     fetchTours()
-  }, [language, cityParam])
+  }, [language])
 
-  const handleFilterChange = (filters: Filters) => {
-    // Update URL with city parameter
-    const params = new URLSearchParams(searchParams.toString())
-    if (filters.departureCity && filters.departureCity !== "all") {
-      params.set('city', filters.departureCity)
-    } else {
-      params.delete('city')
-    }
-    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname
-    router.replace(newUrl, { scroll: false })
-
-    const filtered = allOffers.filter((o) => {
+  const offers = useMemo(() => {
+    return allOffers.filter((o) => {
       // category: if provided, use it, otherwise default to this page type
       const categoryToMatch = filters.category && filters.category !== "all" ? filters.category : pageType
       if (o.type !== categoryToMatch) return false
@@ -153,8 +139,26 @@ function ToursContent() {
 
       return true
     })
+  }, [allOffers, filters])
 
-    setOffers(filtered)
+  useEffect(() => {
+    if (cityParam && filters.departureCity !== cityParam) {
+      setFilters(prev => ({ ...prev, departureCity: cityParam }))
+    }
+  }, [cityParam])
+
+  const handleFilterChange = (newFilters: Filters) => {
+    // Update URL with city parameter if changed
+    const params = new URLSearchParams(searchParams.toString())
+    if (newFilters.departureCity && newFilters.departureCity !== "all") {
+      params.set('city', newFilters.departureCity)
+    } else {
+      params.delete('city')
+    }
+    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname
+    router.replace(newUrl, { scroll: false })
+
+    setFilters(newFilters)
   }
 
   return (
@@ -162,7 +166,7 @@ function ToursContent() {
       <Header />
       <PageHero title={t.pageHero.tours} backgroundImage="https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
 
-      <section className="py-12 bg-gray-50">
+      <section className="py-6 md:py-12 bg-gray-50">
         <Container className="max-w-6xl px-2 md:px-4">
           <SearchFilter 
             onChange={handleFilterChange} 

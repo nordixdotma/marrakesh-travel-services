@@ -26,11 +26,10 @@ export default function OffersGrid({ offers }: OffersGridProps) {
     return offers.map(offer => getTranslatedOffer(offer, language))
   }, [offers, language])
 
-  // Load favorites from backend API on mount and sync localStorage favorites
+  // Load favorites from backend API on mount
   useEffect(() => {
-    const loadFavorites = async () => {
+    const fetchFavorites = async () => {
       if (!isLoggedIn) {
-        // Fallback to localStorage if not logged in
         const storedFavorites = localStorage.getItem("favorites")
         if (storedFavorites) {
           try {
@@ -43,43 +42,11 @@ export default function OffersGrid({ offers }: OffersGridProps) {
       }
 
       try {
-        // Get favorites from backend
         const response = await userApi.getFavorites(language)
         const backendFavoriteIds = new Set((response.favorites || []).map((fav: any) => fav.id))
         setFavorites(backendFavoriteIds)
-        
-        // Sync localStorage favorites to backend (if any exist and we have offers)
-        const storedFavorites = localStorage.getItem("favorites")
-        if (storedFavorites && offers.length > 0) {
-          try {
-            const localFavoriteIds = JSON.parse(storedFavorites) as string[]
-            // Find offers that are in localStorage but not in backend
-            for (const offerId of localFavoriteIds) {
-              if (!backendFavoriteIds.has(offerId)) {
-                // Find the offer to get its type
-                const offer = offers.find(o => o.id === offerId)
-                if (offer) {
-                  try {
-                    await userApi.addFavorite(offerId, offer.type.toUpperCase())
-                    console.log('✅ Synced favorite to backend:', offerId)
-                    backendFavoriteIds.add(offerId)
-                  } catch (syncError) {
-                    console.warn('Failed to sync favorite:', offerId, syncError)
-                  }
-                }
-              }
-            }
-            // Update state with synced favorites
-            setFavorites(backendFavoriteIds)
-            // Clear localStorage favorites after syncing
-            localStorage.removeItem("favorites")
-          } catch (e) {
-            console.warn('Error syncing localStorage favorites:', e)
-          }
-        }
       } catch (error) {
         console.error('Error loading favorites:', error)
-        // Fallback to localStorage on error
         const storedFavorites = localStorage.getItem("favorites")
         if (storedFavorites) {
           try {
@@ -91,56 +58,90 @@ export default function OffersGrid({ offers }: OffersGridProps) {
       }
     }
 
-    loadFavorites()
-  }, [isLoggedIn, language, offers])
+    fetchFavorites()
+  }, [isLoggedIn, language])
 
-  const toggleFavorite = async (e: React.MouseEvent, offerId: string, offerType: string) => {
-    e.preventDefault()
-    e.stopPropagation()
+  // Sync localStorage favorites to backend once we have offers
+  useEffect(() => {
+    if (!isLoggedIn || offers.length === 0) return
 
-    // Check if user is logged in
-    if (!isLoggedIn) {
-      openLoginModal("Please sign in to add items to your favorites")
-      return
+    const syncFavorites = async () => {
+      const storedFavorites = localStorage.getItem("favorites")
+      if (!storedFavorites) return
+
+      try {
+        const localFavoriteIds = JSON.parse(storedFavorites) as string[]
+        const currentFavorites = new Set(favorites)
+        let hasChanges = false
+
+        for (const offerId of localFavoriteIds) {
+          if (!currentFavorites.has(offerId)) {
+            const offer = offers.find(o => o.id === offerId)
+            if (offer) {
+              try {
+                await userApi.addFavorite(offerId, offer.type.toUpperCase())
+                currentFavorites.add(offerId)
+                hasChanges = true
+              } catch (syncError) {
+                console.warn('Failed to sync favorite:', offerId, syncError)
+              }
+            }
+          }
+        }
+
+        if (hasChanges) {
+          setFavorites(currentFavorites)
+        }
+        localStorage.removeItem("favorites")
+      } catch (e) {
+        console.warn('Error syncing localStorage favorites:', e)
+      }
     }
 
-    const isFavorite = favorites.has(offerId)
-    setIsToggling(offerId)
+    syncFavorites()
+  }, [isLoggedIn, offers.length > 0]) // Only run when login status changes or offers first arrive
 
-    try {
-      if (isFavorite) {
-        // Remove from favorites
-        await userApi.removeFavorite(offerId)
-        const newFavorites = new Set(favorites)
-        newFavorites.delete(offerId)
-        setFavorites(newFavorites)
-        toast.success('Removed from favorites')
-      } else {
-        // Add to favorites
-        await userApi.addFavorite(offerId, offerType.toUpperCase())
-        const newFavorites = new Set(favorites)
-        newFavorites.add(offerId)
-        setFavorites(newFavorites)
-        toast.success('Added to favorites')
+  const toggleFavorite = useMemo(() => {
+    return async (e: React.MouseEvent, offerId: string, offerType: string) => {
+      e.preventDefault()
+      e.stopPropagation()
+
+      if (!isLoggedIn) {
+        openLoginModal("Please sign in to add items to your favorites")
+        return
       }
-      
-      // Dispatch event to notify profile page to refresh stats
-      window.dispatchEvent(new Event('favorites-updated'))
-    } catch (error: any) {
-      console.error('Error toggling favorite:', error)
-      toast.error(error.message || 'Failed to update favorite')
-      // Revert UI change on error
-      const newFavorites = new Set(favorites)
-      if (isFavorite) {
-        newFavorites.add(offerId)
-      } else {
-        newFavorites.delete(offerId)
+
+      const isFavorite = favorites.has(offerId)
+      setIsToggling(offerId)
+
+      try {
+        if (isFavorite) {
+          await userApi.removeFavorite(offerId)
+          setFavorites(prev => {
+            const next = new Set(prev)
+            next.delete(offerId)
+            return next
+          })
+          toast.success('Removed from favorites')
+        } else {
+          await userApi.addFavorite(offerId, offerType.toUpperCase())
+          setFavorites(prev => {
+            const next = new Set(prev)
+            next.add(offerId)
+            return next
+          })
+          toast.success('Added to favorites')
+        }
+        
+        window.dispatchEvent(new Event('favorites-updated'))
+      } catch (error: any) {
+        console.error('Error toggling favorite:', error)
+        toast.error(error.message || 'Failed to update favorite')
+      } finally {
+        setIsToggling(null)
       }
-      setFavorites(newFavorites)
-    } finally {
-      setIsToggling(null)
     }
-  }
+  }, [isLoggedIn, openLoginModal, favorites])
 
   return (
     <div className="offers-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
@@ -201,21 +202,21 @@ export default function OffersGrid({ offers }: OffersGridProps) {
               </button>
             </div>
 
-            <div className="p-2 md:p-4 grow flex flex-col">
-              <h3 className="text-sm sm:text-base md:text-lg font-semibold text-foreground mb-2 md:mb-2 line-clamp-2">{offer.title}</h3>
+            <div className="p-1.5 md:p-4 grow flex flex-col">
+              <h3 className="text-xs sm:text-base md:text-lg font-semibold text-foreground mb-1 md:mb-2 line-clamp-2">{offer.title}</h3>
 
-              <p className="text-xs sm:text-sm text-muted-foreground mb-3 md:mb-2 line-clamp-2">{offer.description}</p>
+              <p className="text-[11px] sm:text-sm text-muted-foreground mb-2 md:mb-2 line-clamp-2">{offer.description}</p>
 
               {/* Show transfer route for transfers, availability dates for others */}
               {offer.type === "transfers" && offer.transferDetails ? (
-                <div className="text-[10px] sm:text-xs text-muted-foreground mb-2 md:mb-2 flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-primary shrink-0" />
+                <div className="text-[9px] sm:text-xs text-muted-foreground mb-1.5 md:mb-2 flex items-center gap-1">
+                  <MapPin className="w-2.5 h-2.5 text-primary shrink-0" />
                   <span className="truncate">{offer.transferDetails.from}</span>
-                  <ArrowRight className="w-3 h-3 text-primary shrink-0" />
+                  <ArrowRight className="w-2.5 h-2.5 text-primary shrink-0" />
                   <span className="truncate">{offer.transferDetails.to}</span>
                 </div>
               ) : (
-                <div className="text-[10px] sm:text-xs text-muted-foreground mb-2 md:mb-1 flex items-center gap-1">
+                <div className="text-[9px] sm:text-xs text-muted-foreground mb-1.5 md:mb-1 flex items-center gap-1">
                   <span className="inline-block w-1 h-1 rounded-full bg-primary"></span>
                   {(t?.offerDetails?.availability ?? "Available") + ":"} {" "}
                   {new Date(offer.availabilityDates.startDate).toLocaleDateString(language || "en", {
@@ -231,19 +232,19 @@ export default function OffersGrid({ offers }: OffersGridProps) {
               )}
             </div>
 
-            <div className="bg-primary p-2 sm:p-3 md:p-4 mt-auto">
+            <div className="bg-primary p-1.5 sm:p-3 md:p-4 mt-auto">
               {offer.type === "packages" ? (
                 <div className="flex justify-center items-center h-full">
-                   <p className="text-sm md:text-base font-semibold text-secondary uppercase tracking-wider">{t?.common?.custom ?? "Custom"}</p>
+                   <p className="text-xs md:text-base font-semibold text-secondary uppercase tracking-wider">{t?.common?.custom ?? "Custom"}</p>
                 </div>
               ) : (
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-[10px] sm:text-xs text-secondary opacity-90">{t?.common?.from ?? "From"}</p>
-                    <p className="text-sm md:text-base font-semibold text-primary-foreground">MAD {offer.priceAdult}</p>
+                    <p className="text-[9px] sm:text-xs text-secondary opacity-90">{t?.common?.from ?? "From"}</p>
+                    <p className="text-[13px] md:text-base font-semibold text-primary-foreground">MAD {offer.priceAdult}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-secondary opacity-90">{offer.type === "transfers" ? (t?.offerDetails?.perVehicle ?? "per vehicle") : (t?.common?.perPerson ?? "per person")}</p>
+                    <p className="text-[10px] sm:text-xs text-secondary opacity-90">{offer.type === "transfers" ? (t?.offerDetails?.perVehicle ?? "per vehicle") : (t?.common?.perPerson ?? "per person")}</p>
                   </div>
                 </div>
               )}

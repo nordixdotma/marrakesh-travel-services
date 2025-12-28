@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, memo } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Heart, MapPin, ArrowRight, Search } from "lucide-react"
@@ -15,7 +15,7 @@ interface OffersGridProps {
   offers: Offer[]
 }
 
-export default function OffersGrid({ offers }: OffersGridProps) {
+const OffersGrid = memo(function OffersGrid({ offers }: OffersGridProps) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const [isToggling, setIsToggling] = useState<string | null>(null)
   const { isLoggedIn, openLoginModal } = useAuth()
@@ -101,47 +101,45 @@ export default function OffersGrid({ offers }: OffersGridProps) {
     syncFavorites()
   }, [isLoggedIn, offers.length > 0]) // Only run when login status changes or offers first arrive
 
-  const toggleFavorite = useMemo(() => {
-    return async (e: React.MouseEvent, offerId: string, offerType: string) => {
-      e.preventDefault()
-      e.stopPropagation()
+  const handleToggleFavorite = async (e: React.MouseEvent, offerId: string, offerType: string) => {
+    e.preventDefault()
+    e.stopPropagation()
 
-      if (!isLoggedIn) {
-        openLoginModal("Please sign in to add items to your favorites")
-        return
-      }
-
-      const isFavorite = favorites.has(offerId)
-      setIsToggling(offerId)
-
-      try {
-        if (isFavorite) {
-          await userApi.removeFavorite(offerId)
-          setFavorites(prev => {
-            const next = new Set(prev)
-            next.delete(offerId)
-            return next
-          })
-          toast.success('Removed from favorites')
-        } else {
-          await userApi.addFavorite(offerId, offerType.toUpperCase())
-          setFavorites(prev => {
-            const next = new Set(prev)
-            next.add(offerId)
-            return next
-          })
-          toast.success('Added to favorites')
-        }
-        
-        window.dispatchEvent(new Event('favorites-updated'))
-      } catch (error: any) {
-        console.error('Error toggling favorite:', error)
-        toast.error(error.message || 'Failed to update favorite')
-      } finally {
-        setIsToggling(null)
-      }
+    if (!isLoggedIn) {
+      openLoginModal("Please sign in to add items to your favorites")
+      return
     }
-  }, [isLoggedIn, openLoginModal, favorites])
+
+    const isFavorite = favorites.has(offerId)
+    setIsToggling(offerId)
+
+    try {
+      if (isFavorite) {
+        await userApi.removeFavorite(offerId)
+        setFavorites(prev => {
+          const next = new Set(prev)
+          next.delete(offerId)
+          return next
+        })
+        toast.success('Removed from favorites')
+      } else {
+        await userApi.addFavorite(offerId, offerType.toUpperCase())
+        setFavorites(prev => {
+          const next = new Set(prev)
+          next.add(offerId)
+          return next
+        })
+        toast.success('Added to favorites')
+      }
+      
+      window.dispatchEvent(new Event('favorites-updated'))
+    } catch (error: any) {
+      console.error('Error toggling favorite:', error)
+      toast.error(error.message || 'Failed to update favorite')
+    } finally {
+      setIsToggling(null)
+    }
+  }
 
   return (
     <div className="offers-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
@@ -156,38 +154,24 @@ export default function OffersGrid({ offers }: OffersGridProps) {
           </p>
         </div>
       ) : (
-        translatedOffers.map((offer) => (
+        translatedOffers.map((offer, index) => (
           <Link
             key={offer.id}
             href={`/offers/${offer.id}`}
             className="offer-card rounded-sm md:rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group flex flex-col relative h-full"
           >
             <div className="relative overflow-hidden h-52 md:h-56 lg:h-64">
-              {offer.mainImage && (offer.mainImage.startsWith('http://') || offer.mainImage.startsWith('https://')) ? (
-                <img
-                  src={offer.mainImage || "/placeholder.svg"}
-                  alt={offer.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.src = '/placeholder.svg'
-                  }}
-                />
-              ) : (
-                <Image
-                  src={offer.mainImage || "/placeholder.svg"}
-                  alt={offer.title}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.src = '/placeholder.svg'
-                  }}
-                />
-              )}
+              <Image
+                src={offer.mainImage || "/placeholder.svg"}
+                alt={offer.title}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                priority={index < 3}
+                loading={index < 3 ? undefined : "lazy"}
+              />
               <button
-                onClick={(e) => toggleFavorite(e, offer.id, offer.type)}
+                onClick={(e) => handleToggleFavorite(e, offer.id, offer.type)}
                 disabled={isToggling === offer.id}
                 className="absolute top-2 right-2 md:top-3 md:right-3 bg-background/80 hover:bg-background rounded-full p-1.5 md:p-2 transition-all duration-200 backdrop-blur-sm transform hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label={favorites.has(offer.id) ? "Remove from favorites" : "Add to favorites"}
@@ -254,4 +238,6 @@ export default function OffersGrid({ offers }: OffersGridProps) {
       )}
     </div>
   )
-}
+})
+
+export default OffersGrid

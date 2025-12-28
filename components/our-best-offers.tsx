@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import OffersGrid from "./offers-grid"
 import { useLanguage } from "@/components/language-provider"
 import { offersApi, type ApiError } from "@/lib/api"
@@ -163,14 +163,15 @@ export default function OurBestOffers() {
   }
 
   // Group offers by type so we can render a subtitle then the grid underneath
-  const groups = Array.from(
-    (bestOffers || []).reduce((acc, offer) => {
-      const arr = acc.get(offer.type) || []
+  const groups = useMemo(() => {
+    const map = new Map<string, Offer[]>()
+    ;(bestOffers || []).forEach(offer => {
+      const arr = map.get(offer.type) || []
       arr.push(offer)
-      acc.set(offer.type, arr)
-      return acc
-    }, new Map())
-  )
+      map.set(offer.type, arr)
+    })
+    return Array.from(map.entries())
+  }, [bestOffers])
 
   if (isLoading) {
     return (
@@ -210,7 +211,7 @@ export default function OurBestOffers() {
 
         {groups.length > 0 ? (
           <div className="flex flex-col gap-8">
-            {groups.map(([type, offersForType]) => (
+            {groups.map(([type, offersForType]: [string, Offer[]]) => (
               <div key={type} className="w-full">
                 <div className="text-center mb-3">
                   <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary mb-2">

@@ -1,7 +1,8 @@
 "use client"
 
-import { Phone, Mail, MapPin, Clock, ExternalLink } from "lucide-react"
-import { useLanguage } from "@/components/language-provider"
+import { useLanguage } from "@/components/language-provider";
+import { useSiteSettings } from "@/hooks/use-site-settings";
+import { Clock, ExternalLink, Mail, MapPin, Phone } from "lucide-react";
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -11,12 +12,13 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 
 export default function SupportPage() {
   const { t } = useLanguage()
+  const { settings } = useSiteSettings()
 
   const contactInfo = [
     {
       icon: Phone,
       title: t.users.support.phone,
-      value: "+212 524 375 251",
+      value: "+212 661 044 503",
       subValue: "+212 661 044 503",
       action: "tel:+212524375251",
       actionLabel: t.users.support.callNow,
@@ -109,10 +111,19 @@ export default function SupportPage() {
             </p>
           </div>
           <a
-            href={`https://wa.me/${settings.whatsapp_number || '212661044503'}`}
+            href={settings.whatsapp_number ? `https://wa.me/${settings.whatsapp_number}` : '#'}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-medium transition-colors shrink-0"
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-colors shrink-0 ${
+              settings.whatsapp_number 
+                ? 'bg-green-500 hover:bg-green-600 cursor-pointer' 
+                : 'bg-gray-400 cursor-not-allowed opacity-50'
+            }`}
+            onClick={(e) => {
+              if (!settings.whatsapp_number) {
+                e.preventDefault()
+              }
+            }}
           >
             <WhatsAppIcon className="w-4 h-4" />
             {t.users.support.startChat}

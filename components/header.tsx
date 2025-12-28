@@ -1,16 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
+import { useLanguage } from "@/components/language-provider"
+import { useAuth } from "@/components/login-modal"
 import { Button } from "@/components/ui/button"
-import { ChevronRight, ChevronDown, User, Mail, Facebook, Instagram, Phone } from "lucide-react"
 import { Container } from "@/components/ui/container"
 import { cn } from "@/lib/utils"
-import { motion, AnimatePresence } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
+import { ChevronDown, ChevronRight, Facebook, Instagram, Mail, Phone, User } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useAuth } from "@/components/login-modal"
-import { useLanguage } from "@/components/language-provider"
+import { useEffect, useState } from "react"
 
 export default function Header({ isStatic = false }: { isStatic?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -105,7 +105,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
             <div className="flex items-center justify-start gap-6 mb-1 sm:mb-0">
               <a href="tel:+212524375251" className="flex items-center gap-2 hover:text-white transition-colors">
                 <Phone className="h-3.5 w-3.5" />
-                <span>+212 524 375 251</span>
+                <span>+212 661 044 503</span>
               </a>
               <a href="mailto:contact@marrakeshtravelservices.com" className="hidden sm:flex items-center gap-2 hover:text-white transition-colors">
                 <Mail className="h-3.5 w-3.5" />

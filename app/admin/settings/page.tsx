@@ -1,22 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import {
-  Settings,
-  Image as ImageIcon,
-  Phone,
-  Save,
-  Loader2,
-  Upload,
-  X,
-  Video,
-  FileImage,
-} from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { adminApi, uploadApi, type ApiError } from "@/lib/api"
+import {
+  FileImage,
+  Image as ImageIcon,
+  Loader2,
+  Phone,
+  Save,
+  Video
+} from "lucide-react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 interface SiteSetting {
@@ -152,6 +149,11 @@ export default function AdminSettingsPage() {
       await adminApi.updateSiteSettings(settingsToUpdate)
       toast.success('Settings saved successfully')
       fetchSettings() // Refresh to get updated data
+      
+      // Dispatch event to notify other components to refresh settings
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('settings-updated'))
+      }
     } catch (err: any) {
       console.error('Error saving settings:', err)
       const apiError = err as ApiError

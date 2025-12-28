@@ -2,15 +2,15 @@
 
 import type React from "react"
 
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
+import Footer from "@/components/footer"
+import Header from "@/components/header"
+import { useLanguage } from "@/components/language-provider"
 import PageHero from "@/components/page-hero"
 import { Container } from "@/components/ui/container"
-import { Phone, Mail, MapPin, Clock, Send, MessageCircle, ArrowRight } from "lucide-react"
-import { useState } from "react"
-import { useLanguage } from "@/components/language-provider"
 import { useSiteSettings } from "@/hooks/use-site-settings"
+import { ArrowRight, Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react"
+import { useState } from "react"
 
 export default function ContactPage() {
   const { t } = useLanguage()
@@ -47,7 +47,7 @@ export default function ContactPage() {
     {
       icon: Phone,
       title: t.contact.callUs,
-      value: "+212 524 375 251",
+      value: "+212 661 044 503",
       subValue: "+212 661 044 503",
       action: "tel:+212524375251",
     },

@@ -1,7 +1,7 @@
 "use client"
 
-import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
+import { Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react"
 
 export default function Footer() {
   const { t } = useLanguage()
@@ -106,7 +106,7 @@ export default function Footer() {
                 </div>
                 <div className="pl-6 space-y-1">
                   <a href="tel:+212524375251" className="block text-sm text-white/70 hover:text-white transition-colors">
-                    +212 (0) 524 375 251
+                    +212 (0) 661 044 503
                   </a>
                   <a href="tel:+212661044503" className="block text-sm text-white/70 hover:text-white transition-colors">
                     +212 (0) 661 044 503

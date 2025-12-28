@@ -1,24 +1,24 @@
 "use client"
 
-import { useState, use, useMemo, useEffect, useRef } from "react"
-import { notFound, useRouter } from "next/navigation"
-import { Calendar, Check, X, Play, ChevronLeft, ChevronRight, Users, User, Clock, MapPin, Shield, ChevronDown, Sparkles, Lightbulb, ListChecks, Info, Car, ArrowRight, Route, Baby, Loader2, Ticket, Phone, CheckCircle2, CreditCard } from "lucide-react"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
 import FloatingContact from "@/components/floating-contact"
+import Footer from "@/components/footer"
+import Header from "@/components/header"
+import { useLanguage } from "@/components/language-provider"
+import { useAuth } from "@/components/login-modal"
 import PageHero from "@/components/page-hero"
-import { Container } from "@/components/ui/container"
 import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Container } from "@/components/ui/container"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { getAffiliateCode } from "@/lib/affiliate-tracking"
+import { adminApi, authApi, bookingApi, offersApi, paymentApi, userApi, type ApiError } from "@/lib/api"
 import { type Offer } from "@/lib/offers-data"
-import { useAuth } from "@/components/login-modal"
-import { useLanguage } from "@/components/language-provider"
-import { offersApi, authApi, bookingApi, adminApi, userApi, paymentApi, type ApiError } from "@/lib/api"
-import { trackAffiliateFromUrl, getAffiliateCode } from "@/lib/affiliate-tracking"
+import { ArrowRight, Baby, Calendar, Car, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Clock, CreditCard, Info, Lightbulb, ListChecks, Loader2, MapPin, Phone, Play, Route, Shield, Sparkles, Ticket, User, Users, X } from "lucide-react"
+import { notFound, useRouter } from "next/navigation"
+import { use, useEffect, useMemo, useRef, useState } from "react"
 
 interface OfferDetailsPageProps {
   params: Promise<{ id: string }>
@@ -1694,7 +1694,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                   href="tel:+212524375251" 
                   className="text-lg font-semibold text-primary hover:underline"
                 >
-                  +212 524 375 251
+                  +212 661 044 503
                 </a>
               </div>
             </div>

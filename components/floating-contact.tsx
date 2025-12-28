@@ -1,8 +1,8 @@
 "use client"
 
+import { useSiteSettings } from "@/hooks/use-site-settings"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { useSiteSettings } from "@/hooks/use-site-settings"
 
 // Custom WhatsApp SVG icon
 const WhatsAppIcon = () => (
@@ -18,16 +18,36 @@ const WhatsAppIcon = () => (
 
 export default function FloatingContact() {
   const { settings, loading } = useSiteSettings()
-  const whatsappNumber = settings.whatsapp_number || '212661044503'
+  const whatsappNumber = settings.whatsapp_number
 
+  // Wait for settings to load
   if (loading) {
-    return null // Don't show until settings are loaded
+    return null
+  }
+
+  // Don't show widget if WhatsApp number is not configured
+  if (!whatsappNumber || whatsappNumber.trim() === '') {
+    // Log for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('WhatsApp widget hidden: No number configured', { 
+        settings, 
+        whatsappNumber, 
+        loading,
+        allSettings: Object.keys(settings)
+      })
+    }
+    return null
   }
 
   return (
     <div className="fixed bottom-2 right-2 z-50 flex flex-col gap-3 items-end">
       {/* WhatsApp Button */}
-      <Link href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="inline-flex">
+      <Link 
+        href={`https://wa.me/${whatsappNumber}`} 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="inline-flex"
+      >
         <motion.div
           className="w-10 h-10 md:w-14 md:h-14 text-white bg-green-500 rounded-full flex items-center justify-center shadow-lg"
           initial={{ scale: 0, opacity: 0 }}

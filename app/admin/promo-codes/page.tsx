@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { adminApi } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 interface PromoCode {
   id: string
@@ -43,6 +44,7 @@ interface PromoCode {
 }
 
 export default function AdminPromoCodesPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([])
@@ -58,8 +60,8 @@ export default function AdminPromoCodesPage() {
         setPromoCodes(response.promoCodes || [])
       } catch (err: any) {
         console.error('Error fetching promo codes:', err)
-        setError(err.message || 'Failed to load promo codes')
-        toast.error('Failed to load promo codes', {
+        setError(err.message || t.admin?.promoCodes?.errorLoading || 'Failed to load promo codes')
+        toast.error(t.admin?.promoCodes?.errorLoading || 'Failed to load promo codes', {
           description: err.message || 'Please try again later',
         })
       } finally {
@@ -119,9 +121,9 @@ export default function AdminPromoCodesPage() {
   }
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this promo code?")) {
+    if (confirm(t.admin?.promoCodes?.deleteConfirm || "Are you sure you want to delete this promo code?")) {
       // TODO: Implement delete API call
-      toast.info('Delete functionality coming soon')
+      toast.info(t.admin?.common?.actions + ' coming soon')
     }
   }
 
@@ -140,10 +142,10 @@ export default function AdminPromoCodesPage() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <Ticket className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading promo codes</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">{t.admin?.promoCodes?.errorLoading || "Error loading promo codes"}</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
           <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
-            Retry
+            {t.admin?.dashboard?.retry || "Retry"}
           </Button>
         </CardContent>
       </Card>
@@ -155,14 +157,14 @@ export default function AdminPromoCodesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Promo Codes</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t.admin?.promoCodes?.title || "Promo Codes"}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage discount codes and promotions. {promoCodes.length} total promo codes.
+            {t.admin?.promoCodes?.description?.replace('{count}', String(promoCodes.length)) || `Manage discount codes and promotions. ${promoCodes.length} total promo codes.`}
           </p>
         </div>
         <Button onClick={handleCreate} className="gap-2 rounded-sm">
           <Plus className="h-4 w-4" />
-          Create Promo Code
+          {t.admin?.promoCodes?.create || "Create Promo Code"}
         </Button>
       </div>
 
@@ -170,7 +172,7 @@ export default function AdminPromoCodesPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search promo codes..."
+          placeholder={t.admin?.promoCodes?.searchPlaceholder || "Search promo codes..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 rounded-sm bg-white"
@@ -189,7 +191,7 @@ export default function AdminPromoCodesPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold font-mono text-lg">{promo.code}</h3>
                       <Badge variant={promo.isActive ? "default" : "secondary"}>
-                        {promo.isActive ? "Active" : "Inactive"}
+                        {promo.isActive ? (t.admin?.promoCodes?.active || "Active") : (t.admin?.promoCodes?.inactive || "Inactive")}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
@@ -208,7 +210,7 @@ export default function AdminPromoCodesPage() {
                     {promo.offers && promo.offers.length > 0 && (
                       <div className="flex flex-wrap items-center gap-2 mt-2">
                         <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Linked to:</span>
+                        <span className="text-xs text-muted-foreground">{t.admin?.promoCodes?.linkedTo || "Linked to"}:</span>
                         {promo.offers.map((offer, idx) => (
                           <Badge key={offer.id} variant="outline" className="text-xs capitalize">
                             {offer.type}: {offer.title}
@@ -219,7 +221,7 @@ export default function AdminPromoCodesPage() {
                     {promo.offers.length === 0 && (
                       <div className="mt-2">
                         <Badge variant="outline" className="text-xs">
-                          Applies to all offers
+                          {t.admin?.promoCodes?.allOffers || "Applies to all offers"}
                         </Badge>
                       </div>
                     )}
@@ -238,7 +240,7 @@ export default function AdminPromoCodesPage() {
                     )}
                     {!promo.usageLimit && promo.usedCount > 0 && (
                       <div className="flex items-center gap-1 text-muted-foreground">
-                        <span>{promo.usedCount} used</span>
+                        <span>{promo.usedCount} {t.admin?.promoCodes?.used || "used"}</span>
                       </div>
                     )}
                   </div>
@@ -258,7 +260,7 @@ export default function AdminPromoCodesPage() {
                       onClick={() => handleView(promo.id)}
                     >
                       <Eye className="h-3.5 w-3.5" />
-                      Details
+                      {t.admin?.bookings?.details || "Details"}
                     </Button>
                     <Button
                       variant="outline"
@@ -267,7 +269,7 @@ export default function AdminPromoCodesPage() {
                       onClick={() => handleDelete(promo.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      Delete
+                      {t.admin?.promoCodes?.delete || t.admin?.common?.delete || "Delete"}
                     </Button>
                   </div>
                 </div>
@@ -281,16 +283,16 @@ export default function AdminPromoCodesPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Ticket className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No promo codes found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.promoCodes?.noPromoCodesFound || "No promo codes found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery
-                ? "No promo codes match your search criteria. Try a different search term."
-                : "Your promotional codes and discounts will appear here once you create them."}
+                ? (t.admin?.promoCodes?.noMatch || "No promo codes match your search criteria. Try a different search term.")
+                : (t.admin?.promoCodes?.emptyState || "Your promotional codes and discounts will appear here once you create them.")}
             </p>
             {!searchQuery && (
               <Button onClick={handleCreate} className="mt-4 gap-2 rounded-sm">
                 <Plus className="h-4 w-4" />
-                Create Promo Code
+                {t.admin?.promoCodes?.create || "Create Promo Code"}
               </Button>
             )}
           </CardContent>

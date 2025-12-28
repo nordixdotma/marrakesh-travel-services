@@ -28,9 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { adminApi } from "@/lib/api"
+import { adminApi, ApiError } from "@/lib/api"
 import { toast } from "sonner"
 import Link from "next/link"
+import { useLanguage } from "@/components/language-provider"
 
 type AffiliateStatus = "all" | "active" | "inactive"
 
@@ -52,6 +53,7 @@ interface Affiliate {
 }
 
 export default function AdminAffiliatesPage() {
+  const { t } = useLanguage()
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<AffiliateStatus>("all")
   const [affiliates, setAffiliates] = useState<Affiliate[]>([])
@@ -69,8 +71,8 @@ export default function AdminAffiliatesPage() {
         setAffiliates(response.affiliates || [])
       } catch (err: any) {
         console.error('Error fetching affiliates:', err)
-        setError(err.message || 'Failed to load affiliates')
-        toast.error('Failed to load affiliates', {
+        setError(err.message || t.admin?.affiliates?.errorLoading || 'Failed to load affiliates')
+        toast.error(t.admin?.affiliates?.errorLoading || 'Failed to load affiliates', {
           description: err.message || 'Please try again later',
         })
       } finally {
@@ -132,11 +134,11 @@ export default function AdminAffiliatesPage() {
       ))
       
       toast.success(
-        `Affiliate status updated to ${newStatus.toLowerCase()}`,
+        t.admin?.affiliates?.updateStatusSuccess?.replace('{status}', newStatus.toLowerCase()) || `Affiliate status updated to ${newStatus.toLowerCase()}`,
         {
           description: newStatus === 'ACTIVE' 
-            ? 'The affiliate will receive an activation email.'
-            : 'The affiliate account has been deactivated.'
+            ? (t.admin?.affiliates?.updateStatusActiveDesc || 'The affiliate will receive an activation email.')
+            : (t.admin?.affiliates?.updateStatusInactiveDesc || 'The affiliate account has been deactivated.')
         }
       )
     } catch (err: any) {
@@ -164,10 +166,10 @@ export default function AdminAffiliatesPage() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <Users2 className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading affiliates</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">{t.admin?.affiliates?.errorLoading || "Error loading affiliates"}</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
           <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
-            Retry
+            {t.admin?.common?.retry || "Retry"}
           </Button>
         </CardContent>
       </Card>
@@ -178,9 +180,9 @@ export default function AdminAffiliatesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Affiliates</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t.admin?.affiliates?.title || "Affiliates"}</h1>
         <p className="text-sm text-muted-foreground">
-          Manage affiliate partners and commissions. {affiliates.length} total affiliates.
+          {t.admin?.affiliates?.description?.replace('{count}', affiliates.length.toString()) || `Manage affiliate partners and commissions. ${affiliates.length} total affiliates.`}
         </p>
       </div>
 
@@ -189,7 +191,7 @@ export default function AdminAffiliatesPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search affiliates..."
+            placeholder={t.admin?.affiliates?.searchPlaceholder || "Search affiliates..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 rounded-sm bg-white"
@@ -202,12 +204,12 @@ export default function AdminAffiliatesPage() {
             onValueChange={(value) => setStatusFilter(value as AffiliateStatus)}
           >
             <SelectTrigger className="w-[140px] bg-white">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t.admin?.common?.status || "Status"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="all">{t.admin?.affiliates?.statusAll || "All Status"}</SelectItem>
+              <SelectItem value="active">{t.admin?.affiliates?.statusActive || "Active"}</SelectItem>
+              <SelectItem value="inactive">{t.admin?.affiliates?.statusInactive || "Inactive"}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -225,7 +227,7 @@ export default function AdminAffiliatesPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold truncate">{affiliate.name}</h3>
                       <Badge variant="secondary" className={getStatusColor(affiliate.status)}>
-                        {affiliate.status.toLowerCase()}
+                        {affiliate.status.toLowerCase() === 'active' ? (t.admin?.affiliates?.statusActive || 'active') : (t.admin?.affiliates?.statusInactive || 'inactive')}
                       </Badge>
                       {updatingStatus === affiliate.id && (
                         <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
@@ -247,7 +249,7 @@ export default function AdminAffiliatesPage() {
                     </div>
                     <div className="mt-2">
                       <Badge variant="outline" className="text-xs font-mono">
-                        Code: {affiliate.affiliateCode}
+                        {t.admin?.affiliates?.code?.replace('{code}', affiliate.affiliateCode) || `Code: ${affiliate.affiliateCode}`}
                       </Badge>
                     </div>
                   </div>
@@ -256,7 +258,7 @@ export default function AdminAffiliatesPage() {
                   <div className="flex flex-wrap items-center gap-4 text-sm">
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <MousePointerClick className="h-4 w-4" />
-                      <span>{affiliate.totalClicks} clicks</span>
+                      <span>{t.admin?.affiliates?.clicks?.replace('{count}', affiliate.totalClicks.toString()) || `${affiliate.totalClicks} clicks`}</span>
                     </div>
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <TrendingUp className="h-4 w-4" />
@@ -291,13 +293,13 @@ export default function AdminAffiliatesPage() {
                           <SelectItem value="ACTIVE">
                             <div className="flex items-center gap-2">
                               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                              Active
+                              {t.admin?.affiliates?.statusActive || "Active"}
                             </div>
                           </SelectItem>
                           <SelectItem value="INACTIVE">
                             <div className="flex items-center gap-2">
                               <XCircle className="h-3.5 w-3.5 text-gray-500" />
-                              Inactive
+                              {t.admin?.affiliates?.statusInactive || "Inactive"}
                             </div>
                           </SelectItem>
                         </SelectContent>
@@ -313,14 +315,14 @@ export default function AdminAffiliatesPage() {
                       <Link href={`/admin/affiliates/${affiliate.id}`}>
                         <Button variant="outline" size="sm" className="gap-1 rounded-sm">
                           <Eye className="h-3.5 w-3.5" />
-                          View Details
+                          {t.admin?.affiliates?.viewDetails || "View Details"}
                         </Button>
                       </Link>
                       {affiliate.userId && (
                         <Link href={`/admin/users/${affiliate.userId}`}>
                           <Button variant="outline" size="sm" className="gap-1 rounded-sm">
                             <User className="h-3.5 w-3.5" />
-                            View User
+                            {t.admin?.affiliates?.viewUser || "View User"}
                           </Button>
                         </Link>
                       )}
@@ -337,11 +339,11 @@ export default function AdminAffiliatesPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Users2 className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No affiliates found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.affiliates?.noFound || "No affiliates found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery || statusFilter !== "all"
-                ? "No affiliates match your search criteria. Try different filters."
-                : "Your affiliate partners will appear here once they join your program."}
+                ? (t.admin?.affiliates?.noResults || "No affiliates match your search criteria. Try different filters.")
+                : (t.admin?.affiliates?.emptyState || "Your affiliate partners will appear here once they join your program.")}
             </p>
           </CardContent>
         </Card>

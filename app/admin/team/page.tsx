@@ -31,6 +31,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { adminApi, type ApiError } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 interface Permission {
   page: string
@@ -66,6 +67,7 @@ const AVAILABLE_PAGES = [
 ]
 
 export default function AdminTeamPage() {
+  const { t } = useLanguage()
   const [searchQuery, setSearchQuery] = useState("")
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
@@ -96,14 +98,14 @@ export default function AdminTeamPage() {
       setTeamMembers(response.teamMembers || [])
     } catch (err: any) {
       console.error('Error fetching team members:', err)
-      const apiError = err as ApiError
+      const apiError = err as any
       setError(apiError.message || 'Failed to load team members')
       if (apiError.status === 403) {
-        toast.error('Access Denied', {
-          description: 'Only SUPER_ADMIN can access team management',
+        toast.error(t.admin?.team?.accessDenied || 'Access Denied', {
+          description: t.admin?.team?.accessDeniedDesc || 'Only SUPER_ADMIN can access team management',
         })
       } else {
-        toast.error('Failed to load team members', {
+        toast.error(t.admin?.team?.errorLoading || 'Failed to load team members', {
           description: apiError.message || 'Please try again later',
         })
       }
@@ -126,7 +128,7 @@ export default function AdminTeamPage() {
   }, [searchQuery, teamMembers])
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Never"
+    if (!dateString) return t.admin?.common?.never || "Never"
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -137,7 +139,7 @@ export default function AdminTeamPage() {
   }
 
   const getPermissionSummary = (permissions?: Permission[]) => {
-    if (!permissions || permissions.length === 0) return "No permissions"
+    if (!permissions || permissions.length === 0) return t.admin?.team?.noPermissions || "No permissions"
     const pagesWithRead = permissions.filter(p => p.can_read).length
     return `${pagesWithRead} page${pagesWithRead !== 1 ? 's' : ''} with access`
   }
@@ -198,15 +200,15 @@ export default function AdminTeamPage() {
 
   const handleSubmitCreate = async () => {
     if (!formData.username || !formData.email || !formData.password) {
-      toast.error('Validation Error', {
-        description: 'Please fill in all required fields',
+      toast.error(t.admin?.common?.validationError || 'Validation Error', {
+        description: t.admin?.common?.fillRequired || 'Please fill in all required fields',
       })
       return
     }
 
     if (formData.password.length < 6) {
-      toast.error('Validation Error', {
-        description: 'Password must be at least 6 characters long',
+      toast.error(t.admin?.common?.validationError || 'Validation Error', {
+        description: t.admin?.common?.passwordMinLength || 'Password must be at least 6 characters long',
       })
       return
     }
@@ -229,7 +231,7 @@ export default function AdminTeamPage() {
         password: formData.password,
         permissions: permissionsArray,
       })
-      toast.success('Team member created successfully')
+      toast.success(t.admin?.team?.createSuccess || 'Team member created successfully')
       setShowCreateDialog(false)
       fetchTeamMembers()
       setFormData({
@@ -240,7 +242,7 @@ export default function AdminTeamPage() {
       })
     } catch (err: any) {
       const apiError = err as ApiError
-      toast.error('Failed to create team member', {
+      toast.error(t.admin?.team?.createFailed || 'Failed to create team member', {
         description: apiError.message || 'Please try again',
       })
     } finally {
@@ -286,13 +288,13 @@ export default function AdminTeamPage() {
         updateData.password = formData.password
       }
       await adminApi.updateTeamMember(selectedMember.id, updateData)
-      toast.success('Team member updated successfully')
+      toast.success(t.admin?.team?.updateSuccess || 'Team member updated successfully')
       setShowEditDialog(false)
       setSelectedMember(null)
       fetchTeamMembers()
     } catch (err: any) {
       const apiError = err as ApiError
-      toast.error('Failed to update team member', {
+      toast.error(t.admin?.team?.updateFailed || 'Failed to update team member', {
         description: apiError.message || 'Please try again',
       })
     } finally {
@@ -306,13 +308,13 @@ export default function AdminTeamPage() {
     try {
       setIsSubmitting(true)
       await adminApi.deleteTeamMember(selectedMember.id)
-      toast.success('Team member deleted successfully')
+      toast.success(t.admin?.team?.deleteSuccess || 'Team member deleted successfully')
       setShowDeleteDialog(false)
       setSelectedMember(null)
       fetchTeamMembers()
     } catch (err: any) {
       const apiError = err as ApiError
-      toast.error('Failed to delete team member', {
+      toast.error(t.admin?.team?.deleteFailed || 'Failed to delete team member', {
         description: apiError.message || 'Please try again',
       })
     } finally {
@@ -335,9 +337,9 @@ export default function AdminTeamPage() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <AlertCircle className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
+          <h3 className="text-lg font-semibold mb-2">{t.admin?.team?.accessDenied || "Access Denied"}</h3>
           <p className="text-muted-foreground text-center max-w-md">
-            Only SUPER_ADMIN can access team management. Please contact your administrator.
+            {t.admin?.team?.accessDeniedDesc || "Only SUPER_ADMIN can access team management. Please contact your administrator."}
           </p>
         </CardContent>
       </Card>
@@ -346,7 +348,7 @@ export default function AdminTeamPage() {
 
   const renderPermissionsForm = () => (
     <div className="space-y-4 max-h-[400px] overflow-y-auto">
-      <div className="text-sm font-medium mb-2">Page Permissions</div>
+      <div className="text-sm font-medium mb-2">{t.admin?.team?.permissions || "Page Permissions"}</div>
       <div className="space-y-3">
         {AVAILABLE_PAGES.map((page) => {
           const perm = formData.permissions[page.id] || { can_read: false, can_write: false, can_delete: false }
@@ -354,7 +356,7 @@ export default function AdminTeamPage() {
             <Card key={page.id} className="p-3 border">
               <div className="flex items-center justify-between mb-2">
                 <Label className="font-medium cursor-pointer" htmlFor={`read-${page.id}`}>
-                  {page.label}
+                  {t.admin?.pages?.[page.id] || page.label}
                 </Label>
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -363,7 +365,7 @@ export default function AdminTeamPage() {
                     onCheckedChange={(checked) => updatePermission(page.id, 'can_read', checked as boolean)}
                   />
                   <Label htmlFor={`read-${page.id}`} className="text-xs text-muted-foreground cursor-pointer">
-                    Read
+                    {t.admin?.team?.read || "Read"}
                   </Label>
                 </div>
               </div>
@@ -376,7 +378,7 @@ export default function AdminTeamPage() {
                       onCheckedChange={(checked) => updatePermission(page.id, 'can_write', checked as boolean)}
                     />
                     <Label htmlFor={`write-${page.id}`} className="text-sm text-muted-foreground cursor-pointer">
-                      Write
+                      {t.admin?.team?.write || "Write"}
                     </Label>
                   </div>
                   <div className="flex items-center gap-2">
@@ -386,7 +388,7 @@ export default function AdminTeamPage() {
                       onCheckedChange={(checked) => updatePermission(page.id, 'can_delete', checked as boolean)}
                     />
                     <Label htmlFor={`delete-${page.id}`} className="text-sm text-muted-foreground cursor-pointer">
-                      Delete
+                      {t.admin?.team?.delete || "Delete"}
                     </Label>
                   </div>
                 </div>
@@ -402,14 +404,14 @@ export default function AdminTeamPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Team Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t.admin?.team?.title || "Team Management"}</h1>
           <p className="text-muted-foreground mt-1">
-            Manage your admin team members and their page permissions
+            {t.admin?.team?.description || "Manage your admin team members and their page permissions"}
           </p>
         </div>
         <Button onClick={handleCreate}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Team Member
+          {t.admin?.team?.addMember || "Add Team Member"}
         </Button>
       </div>
 
@@ -417,15 +419,15 @@ export default function AdminTeamPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Team Members</CardTitle>
+              <CardTitle>{t.admin?.team?.title || "Team Members"}</CardTitle>
               <CardDescription>
-                {teamMembers.length} total member{teamMembers.length !== 1 ? 's' : ''}
+                {teamMembers.length} {teamMembers.length !== 1 ? (t.admin?.common?.members || 'members') : (t.admin?.common?.member || 'member')}
               </CardDescription>
             </div>
             <div className="relative w-64">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search members..."
+                placeholder={t.admin?.team?.searchPlaceholder || "Search members..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -438,7 +440,7 @@ export default function AdminTeamPage() {
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                {searchQuery ? "No members found matching your search" : "No team members yet"}
+                {searchQuery ? (t.admin?.team?.noMembersFound || "No members found matching your search") : (t.admin?.team?.noMembersYet || "No team members yet")}
               </p>
             </div>
           ) : (
@@ -464,7 +466,7 @@ export default function AdminTeamPage() {
                           </div>
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            Joined {formatDate(member.created_at)}
+                            {t.admin?.team?.joined || "Joined"} {formatDate(member.created_at)}
                           </div>
                           <div className="text-xs">
                             {getPermissionSummary(member.permissions)}
@@ -479,7 +481,7 @@ export default function AdminTeamPage() {
                         onClick={() => handleEdit(member)}
                       >
                         <Edit className="h-4 w-4 mr-2" />
-                        Edit
+                        {t.admin?.common?.edit || "Edit"}
                       </Button>
                       <Button
                         variant="destructive"
@@ -487,7 +489,7 @@ export default function AdminTeamPage() {
                         onClick={() => handleDelete(member)}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                        {t.admin?.common?.delete || "Delete"}
                       </Button>
                     </div>
                   </CardContent>
@@ -502,55 +504,55 @@ export default function AdminTeamPage() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add Team Member</DialogTitle>
+            <DialogTitle>{t.admin?.team?.addMember || "Add Team Member"}</DialogTitle>
             <DialogDescription>
-              Create a new admin account and select page permissions
+              {t.admin?.team?.createDesc || "Create a new admin account and select page permissions"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username *</Label>
+              <Label htmlFor="username">{t.admin?.team?.username || "Username"} *</Label>
               <Input
                 id="username"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                placeholder="Enter username"
+                placeholder={t.admin?.team?.usernamePlaceholder || "Enter username"}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">{t.admin?.team?.email || "Email"} *</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="Enter email"
+                placeholder={t.admin?.team?.emailPlaceholder || "Enter email"}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password *</Label>
+              <Label htmlFor="password">{t.admin?.team?.password || "Password"} *</Label>
               <Input
                 id="password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="Enter password (min 6 characters)"
+                placeholder={t.admin?.team?.passwordPlaceholder || "Enter password (min 6 characters)"}
               />
             </div>
             {renderPermissionsForm()}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-              Cancel
+              {t.admin?.common?.cancel || "Cancel"}
             </Button>
             <Button onClick={handleSubmitCreate} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
+                  {t.admin?.team?.creating || "Creating..."}
                 </>
               ) : (
-                "Create"
+                t.admin?.common?.create || "Create"
               )}
             </Button>
           </DialogFooter>
@@ -561,55 +563,55 @@ export default function AdminTeamPage() {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Team Member</DialogTitle>
+            <DialogTitle>{t.admin?.team?.editMember || "Edit Team Member"}</DialogTitle>
             <DialogDescription>
-              Update team member information and page permissions
+              {t.admin?.team?.editDesc || "Update team member information and page permissions"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-username">Username *</Label>
+              <Label htmlFor="edit-username">{t.admin?.team?.username || "Username"} *</Label>
               <Input
                 id="edit-username"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                placeholder="Enter username"
+                placeholder={t.admin?.team?.usernamePlaceholder || "Enter username"}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-email">Email *</Label>
+              <Label htmlFor="edit-email">{t.admin?.team?.email || "Email"} *</Label>
               <Input
                 id="edit-email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="Enter email"
+                placeholder={t.admin?.team?.emailPlaceholder || "Enter email"}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-password">New Password (leave empty to keep current)</Label>
+              <Label htmlFor="edit-password">{t.admin?.team?.newPassword || "New Password (leave empty to keep current)"}</Label>
               <Input
                 id="edit-password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="Enter new password (min 6 characters)"
+                placeholder={t.admin?.team?.passwordPlaceholder || "Enter new password (min 6 characters)"}
               />
             </div>
             {renderPermissionsForm()}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Cancel
+              {t.admin?.common?.cancel || "Cancel"}
             </Button>
             <Button onClick={handleSubmitEdit} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Updating...
+                  {t.admin?.team?.updating || "Updating..."}
                 </>
               ) : (
-                "Update"
+                t.admin?.common?.update || "Update"
               )}
             </Button>
           </DialogFooter>
@@ -620,23 +622,23 @@ export default function AdminTeamPage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Team Member</DialogTitle>
+            <DialogTitle>{t.admin?.team?.deleteMember || "Delete Team Member"}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {selectedMember?.username}? This action cannot be undone.
+              {t.admin?.team?.deleteConfirm?.replace('{name}', selectedMember?.username || '') || `Are you sure you want to delete ${selectedMember?.username}? This action cannot be undone.`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancel
+              {t.admin?.common?.cancel || "Cancel"}
             </Button>
             <Button variant="destructive" onClick={handleConfirmDelete} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
+                  {t.admin?.team?.deleting || "Deleting..."}
                 </>
               ) : (
-                "Delete"
+                t.admin?.common?.delete || "Delete"
               )}
             </Button>
           </DialogFooter>

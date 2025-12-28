@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { offersApi, adminApi, ApiError } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 interface Tour {
   id: string
@@ -27,6 +28,7 @@ interface Tour {
 }
 
 export default function AdminToursPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [tours, setTours] = useState<Tour[]>([])
@@ -57,8 +59,8 @@ export default function AdminToursPage() {
         
         setTours(transformedTours)
       } catch (err) {
-        const apiError = err as ApiError
-        setError(apiError.message || 'Failed to load tours')
+        const apiError = err as any
+        setError(apiError.message || t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.offers?.titles?.tours || 'tours') || 'Failed to load tours')
         console.error('Error fetching tours:', err)
       } finally {
         setIsLoading(false)
@@ -101,7 +103,7 @@ export default function AdminToursPage() {
       setIsDeleting(true)
       await adminApi.deleteTour(tourToDelete)
       setTours(tours.filter(tour => tour.id !== tourToDelete))
-      toast.success('Tour deleted successfully')
+      toast.success(t.admin?.common?.deleteSuccess || 'Tour deleted successfully')
       setDeleteDialogOpen(false)
       setTourToDelete(null)
     } catch (err) {
@@ -119,9 +121,9 @@ export default function AdminToursPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tours</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t.admin?.offers?.titles?.tours || "Tours"}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your tours. {isLoading ? 'Loading...' : `${tours.length} total tours.`}
+            {t.admin?.offers?.total?.replace('{count}', tours.length.toString()).replace('{type}', t.admin?.offers?.titles?.tours || 'tours') || `Manage your tours. ${isLoading ? 'Loading...' : `${tours.length} total tours.`}`}
           </p>
         </div>
         <Button onClick={handleCreate} className="gap-2 rounded-sm">
@@ -134,7 +136,7 @@ export default function AdminToursPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search tours..."
+          placeholder={t.admin?.offers?.search?.replace('{type}', t.admin?.offers?.titles?.tours || 'tours') || "Search tours..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 rounded-sm bg-white"
@@ -147,7 +149,7 @@ export default function AdminToursPage() {
           <CardContent className="flex items-center gap-3 p-4">
             <AlertCircle className="h-5 w-5 text-destructive" />
             <div>
-              <p className="text-sm font-medium text-destructive">Error loading tours</p>
+              <p className="text-sm font-medium text-destructive">{t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.offers?.titles?.tours || 'tours') || "Error loading tours"}</p>
               <p className="text-xs text-destructive/80">{error}</p>
             </div>
           </CardContent>
@@ -159,7 +161,7 @@ export default function AdminToursPage() {
         <Card className="border-dashed rounded-sm bg-white">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-sm text-muted-foreground">Loading tours...</p>
+            <p className="text-sm text-muted-foreground">{t.admin?.offers?.loading?.replace('{type}', t.admin?.offers?.titles?.tours || 'tours') || "Loading tours..."}</p>
           </CardContent>
         </Card>
       )}
@@ -201,7 +203,7 @@ export default function AdminToursPage() {
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-sm truncate">{offer.title || 'Untitled Tour'}</h3>
+                <h3 className="font-medium text-sm truncate">{offer.title || (t.admin?.common?.untitled || 'Untitled')}</h3>
                 <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
@@ -254,11 +256,11 @@ export default function AdminToursPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Map className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No tours found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.offers?.noFound?.replace('{type}', t.admin?.offers?.titles?.tours || 'tours') || "No tours found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery
-                ? "No tours match your search criteria. Try a different search term."
-                : "Your tours will appear here once you start adding them to your catalog."}
+                ? (t.admin?.offers?.noResults?.replace('{type}', t.admin?.offers?.titles?.tours || 'tours') || "No tours match your search criteria. Try a different search term.")
+                : (t.admin?.offers?.emptyState?.replace('{type}', t.admin?.offers?.titles?.tours || 'tours') || "Your tours will appear here once you start adding them to your catalog.")}
             </p>
           </CardContent>
         </Card>
@@ -268,9 +270,9 @@ export default function AdminToursPage() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px] rounded-sm">
           <DialogHeader>
-            <DialogTitle>Delete Tour</DialogTitle>
+            <DialogTitle>{t.admin?.offers?.deleteTitle?.replace('{type}', t.admin?.pages?.tours || 'Tour') || "Delete Tour"}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this tour? This action cannot be undone.
+              {t.admin?.offers?.deleteConfirm?.replace('{type}', t.admin?.pages?.tours || 'tour') || "Are you sure you want to delete this tour? This action cannot be undone."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -283,7 +285,7 @@ export default function AdminToursPage() {
               disabled={isDeleting}
               className="rounded-sm"
             >
-              Cancel
+              {t.admin?.common?.cancel || "Cancel"}
             </Button>
             <Button
               variant="destructive"
@@ -294,10 +296,10 @@ export default function AdminToursPage() {
               {isDeleting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
+                  {t.admin?.common?.deleting || "Deleting..."}
                 </>
               ) : (
-                'Delete'
+                t.admin?.common?.delete || 'Delete'
               )}
             </Button>
           </DialogFooter>

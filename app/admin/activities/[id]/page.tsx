@@ -8,10 +8,12 @@ import { offersApi, ApiError } from "@/lib/api"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
 import type { Offer } from "@/lib/offers-data"
+import { useLanguage } from "@/components/language-provider"
 
 function ActivitiesDetailContent() {
   const params = useParams()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const router = useRouter()
   const id = params.id as string
   const isNew = id === "new"
@@ -75,7 +77,7 @@ function ActivitiesDetailContent() {
         const transformedOffer: Offer = {
           id: backendOffer.id,
           type: 'activities',
-          title: backendOffer.title || 'Untitled Activity',
+          title: backendOffer.title || t.admin?.offers?.noFound?.replace('{type}', t.admin?.pages?.activities || 'Activity'),
           description: backendOffer.description || '',
           departCity: backendOffer.depart_city,
           priceAdult: priceAdult ? parseFloat(priceAdult) : 0,
@@ -109,7 +111,7 @@ function ActivitiesDetailContent() {
         setOffer(transformedOffer)
       } catch (err) {
         const apiError = err as ApiError
-        setError(apiError.message || 'Failed to load activity')
+        setError(apiError.message || t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.pages?.activities || 'Activity') || 'Failed to load activity')
         console.error('Error fetching activity:', err)
         // Redirect back if activity not found
         setTimeout(() => {
@@ -151,9 +153,9 @@ function ActivitiesDetailContent() {
     return (
       <Card className="border-destructive/50 bg-destructive/10 rounded-sm m-6">
         <CardContent className="flex flex-col items-center justify-center py-16">
-          <p className="text-sm font-medium text-destructive mb-2">Error loading activity</p>
+          <p className="text-sm font-medium text-destructive mb-2">{t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.pages?.activities || 'Activity') || "Error loading activity"}</p>
           <p className="text-xs text-destructive/80">{error}</p>
-          <p className="text-xs text-muted-foreground mt-4">Redirecting back...</p>
+          <p className="text-xs text-muted-foreground mt-4">{t.admin?.common?.loading || "Redirecting back..."}</p>
         </CardContent>
       </Card>
     )

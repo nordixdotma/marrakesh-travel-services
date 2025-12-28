@@ -5,6 +5,7 @@ import { useState, useEffect, createContext, useContext, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
   Map,
@@ -24,8 +25,9 @@ import {
   Shield,
   Settings,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { adminApi } from "@/lib/api"
+import { useLanguage } from "@/components/language-provider"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 
 // Auth Context
@@ -85,6 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [permissionsLoading, setPermissionsLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
+  const { t } = useLanguage()
 
   const isLoginPage = pathname === "/admin/login"
 
@@ -195,7 +198,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 border-2 border-primary border-r-transparent rounded-full animate-spin" />
-          <span className="text-sm text-muted-foreground">Loading...</span>
+          <span className="text-sm text-muted-foreground">{t.admin?.header?.loading || "Loading..."}</span>
         </div>
       </div>
     )
@@ -271,7 +274,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   >
                     <div className="flex items-center gap-3">
                       <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
+                      <span>{t.admin?.sidebar?.[Object.keys(pageToNavItem).find(key => pageToNavItem[key].href === item.href) || ''] || item.title}</span>
                     </div>
                     {item.badge && (
                       <span className={cn(
@@ -294,7 +297,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className="flex items-center gap-3 w-full px-3 py-2 rounded-sm text-destructive hover:bg-destructive/10 transition-colors"
             >
               <LogOut className="h-5 w-5" />
-              <span>Sign Out</span>
+              <span>{t.admin?.sidebar?.signOut || "Sign Out"}</span>
             </button>
           </div>
         </aside>
@@ -313,11 +316,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
 
             <div className="flex items-center gap-3">
+              <LanguageSwitcher 
+                buttonClassName="bg-primary/5 hover:bg-primary/10 border border-primary/20 text-primary"
+              />
               <div className="flex items-center gap-3 px-3 py-2">
                 <div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
                   <span className="text-sm font-medium text-primary">AD</span>
                 </div>
-                <span className="hidden sm:block font-medium">Admin</span>
+                <span className="hidden sm:block font-medium">{t.admin?.header?.admin || "Admin"}</span>
               </div>
             </div>
           </header>

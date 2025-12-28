@@ -12,6 +12,7 @@ import {
   MapPin,
   Clock,
 } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -21,6 +22,7 @@ import { users, bookings } from "@/lib/admin-data"
 export default function UserDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const { t } = useLanguage()
   const userId = params.id as string
 
   const user = useMemo(() => users.find(u => u.id === userId), [userId])
@@ -59,13 +61,13 @@ export default function UserDetailPage() {
       <div className="space-y-6">
         <Button variant="ghost" onClick={() => router.push("/admin/users")} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
-          Back to Users
+          {t.admin?.common?.back || "Back to Users"}
         </Button>
         <Card className="rounded-sm bg-white">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <User className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">User not found</h3>
-            <p className="text-sm text-muted-foreground">The user you're looking for doesn't exist.</p>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.users?.notFound || "User not found"}</h3>
+            <p className="text-sm text-muted-foreground">{t.admin?.users?.notFoundDesc || "The user you're looking for doesn't exist."}</p>
           </CardContent>
         </Card>
       </div>
@@ -78,10 +80,10 @@ export default function UserDetailPage() {
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" onClick={() => router.push("/admin/users")} className="gap-2 rounded-sm">
           <ArrowLeft className="h-4 w-4" />
-          Back
+          {t.admin?.common?.back || "Back"}
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">User Details</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t.admin?.users?.details || "User Details"}</h1>
           <p className="text-sm text-muted-foreground">{user.name}</p>
         </div>
       </div>
@@ -92,7 +94,7 @@ export default function UserDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
-              Profile Information
+              {t.admin?.users?.profileInfo || "Profile Information"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -105,7 +107,7 @@ export default function UserDetailPage() {
             </div>
             <div className="text-center">
               <h3 className="font-semibold text-lg">{user.name}</h3>
-              <p className="text-sm text-muted-foreground">Customer</p>
+              <p className="text-sm text-muted-foreground">{t.admin?.users?.customer || "Customer"}</p>
             </div>
             <Separator />
             <div className="space-y-3">
@@ -123,7 +125,7 @@ export default function UserDetailPage() {
               )}
               <div className="flex items-center gap-3">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Joined {formatDate(user.createdAt)}</span>
+                <span className="text-sm">{t.admin?.users?.joinedAt?.replace('{date}', formatDate(user.createdAt)) || `Joined ${formatDate(user.createdAt)}`}</span>
               </div>
               <div className="flex items-center gap-3">
                 <CalendarCheck className="h-4 w-4 text-muted-foreground" />
@@ -138,7 +140,7 @@ export default function UserDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarCheck className="h-5 w-5" />
-              Booking History
+              {t.admin?.users?.history || "Booking History"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -180,9 +182,9 @@ export default function UserDetailPage() {
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <CalendarCheck className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="font-semibold mb-2">No bookings yet</h3>
+                <h3 className="font-semibold mb-2">{t.admin?.dashboard?.noBookingsYet || "No bookings yet"}</h3>
                 <p className="text-sm text-muted-foreground">
-                  This user hasn't made any bookings yet.
+                  {t.admin?.users?.notFoundDesc || "This user hasn't made any bookings yet."}
                 </p>
               </div>
             )}

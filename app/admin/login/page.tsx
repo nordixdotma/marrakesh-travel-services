@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import { authApi, ApiError } from "@/lib/api"
+import { useLanguage } from "@/components/language-provider"
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState("")
@@ -15,6 +16,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { t } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,7 +38,7 @@ export default function AdminLoginPage() {
       router.replace("/admin/dashboard")
     } catch (err) {
       const apiError = err as ApiError
-      setError(apiError.message || "Invalid username or password")
+      setError(apiError.message || t.admin?.login?.error || "Invalid username or password")
       setIsLoading(false)
     }
   }
@@ -59,21 +61,21 @@ export default function AdminLoginPage() {
               height={48}
               className="mb-4"
             />
-            <h2 className="text-2xl font-semibold tracking-tight">Welcome back</h2>
-            <p className="text-sm text-muted-foreground">Sign in to access the admin panel</p>
+            <h2 className="text-2xl font-semibold tracking-tight">{t.admin?.login?.welcome || "Welcome back"}</h2>
+            <p className="text-sm text-muted-foreground">{t.admin?.login?.subtitle || "Sign in to access the admin panel"}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label htmlFor="username" className="text-sm font-medium">
-                Username
+                {t.admin?.login?.username || "Username"}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Enter your username"
+                  placeholder={t.admin?.login?.usernamePlaceholder || "Enter your username"}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="pl-9 h-10"
@@ -85,14 +87,14 @@ export default function AdminLoginPage() {
 
             <div className="space-y-1.5">
               <label htmlFor="password" className="text-sm font-medium">
-                Password
+                {t.admin?.login?.password || "Password"}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder={t.admin?.login?.passwordPlaceholder || "Enter your password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-9 pr-9 h-10"
@@ -120,16 +122,16 @@ export default function AdminLoginPage() {
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
-                  Signing in...
+                  {t.admin?.login?.signingIn || "Signing in..."}
                 </span>
               ) : (
-                "Sign In"
+                t.admin?.login?.signIn || "Sign In"
               )}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            Contact IT support if you need access
+            {t.admin?.login?.support || "Contact IT support if you need access"}
           </p>
         </div>
       </div>

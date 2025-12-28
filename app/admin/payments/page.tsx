@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select"
 import { adminApi } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 import Link from "next/link"
 
 type PaymentStatus = "all" | "pending" | "completed" | "failed" | "refunded"
@@ -43,6 +44,7 @@ interface Payment {
 }
 
 export default function AdminPaymentsPage() {
+  const { t } = useLanguage()
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<PaymentStatus>("all")
   const [payments, setPayments] = useState<Payment[]>([])
@@ -59,8 +61,8 @@ export default function AdminPaymentsPage() {
         setPayments(response.payments || [])
       } catch (err: any) {
         console.error('Error fetching payments:', err)
-        setError(err.message || 'Failed to load payments')
-        toast.error('Failed to load payments', {
+        setError(err.message || t.admin?.payments?.errorLoading || 'Failed to load payments')
+        toast.error(t.admin?.payments?.errorLoading || 'Failed to load payments', {
           description: err.message || 'Please try again later',
         })
       } finally {
@@ -139,10 +141,10 @@ export default function AdminPaymentsPage() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <CreditCard className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading payments</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">{t.admin?.payments?.errorLoading || "Error loading payments"}</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
           <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
-            Retry
+            {t.admin?.dashboard?.retry || "Retry"}
           </Button>
         </CardContent>
       </Card>
@@ -153,9 +155,9 @@ export default function AdminPaymentsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t.admin?.payments?.title || "Payments"}</h1>
         <p className="text-sm text-muted-foreground">
-          Manage payments and transactions. {payments.length} total payments.
+          {t.admin?.payments?.description?.replace('{count}', String(payments.length)) || `Manage payments and transactions. ${payments.length} total payments.`}
         </p>
       </div>
 
@@ -164,7 +166,7 @@ export default function AdminPaymentsPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search payments..."
+            placeholder={t.admin?.payments?.searchPlaceholder || "Search payments..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 rounded-sm bg-white"
@@ -177,14 +179,14 @@ export default function AdminPaymentsPage() {
             onValueChange={(value) => setStatusFilter(value as PaymentStatus)}
           >
             <SelectTrigger className="w-[140px] bg-white">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t.admin?.common?.status || "Status"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="refunded">Refunded</SelectItem>
+              <SelectItem value="all">{t.admin?.payments?.statusAll || "All Status"}</SelectItem>
+              <SelectItem value="pending">{t.admin?.payments?.statusPending || "Pending"}</SelectItem>
+              <SelectItem value="completed">{t.admin?.payments?.statusCompleted || "Completed"}</SelectItem>
+              <SelectItem value="failed">{t.admin?.payments?.statusFailed || "Failed"}</SelectItem>
+              <SelectItem value="refunded">{t.admin?.payments?.statusRefunded || "Refunded"}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -209,7 +211,7 @@ export default function AdminPaymentsPage() {
                     <p className="text-xs text-muted-foreground mt-1">{payment.customerEmail}</p>
                     {payment.transactionId && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Transaction ID: {payment.transactionId}
+                        {t.admin?.payments?.transactionId || "Transaction ID"}: {payment.transactionId}
                       </p>
                     )}
                   </div>
@@ -239,7 +241,7 @@ export default function AdminPaymentsPage() {
                     <Link href={`/admin/bookings/${payment.bookingId}`}>
                       <Button variant="outline" size="sm" className="gap-1 rounded-sm">
                         <Eye className="h-3.5 w-3.5" />
-                        View Booking
+                        {t.admin?.payments?.viewBooking || "View Booking"}
                       </Button>
                     </Link>
                   </div>
@@ -254,11 +256,11 @@ export default function AdminPaymentsPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <CreditCard className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No payments found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.payments?.noPaymentsFound || "No payments found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery || statusFilter !== "all"
-                ? "No payments match your search criteria. Try different filters."
-                : "Payment transactions will appear here once you start processing orders."}
+                ? (t.admin?.payments?.noMatch || "No payments match your search criteria. Try different filters.")
+                : (t.admin?.payments?.emptyState || "Payment transactions will appear here once you start processing orders.")}
             </p>
           </CardContent>
         </Card>

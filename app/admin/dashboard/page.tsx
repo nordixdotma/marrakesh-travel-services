@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { adminApi, type ApiError } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 interface DashboardStats {
   totalBookings: number
@@ -55,6 +56,7 @@ interface User {
 }
 
 export default function AdminDashboardPage() {
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [stats, setStats] = useState<DashboardStats>({
@@ -86,7 +88,7 @@ export default function AdminDashboardPage() {
 
         // Transform dashboard stats
         const dashboardStats = dashboardResponse.stats
-        const totalOffers = parseInt(dashboardStats.total_offers || '0', 10)
+        const totalOffers = parseInt(String(dashboardStats.total_offers || '0'), 10)
 
         // Transform bookings
         const transformedBookings: Booking[] = (bookingsResponse.bookings || []).map((booking: any) => ({
@@ -135,11 +137,11 @@ export default function AdminDashboardPage() {
         }
 
         setStats({
-          totalBookings: parseInt(dashboardStats.total_bookings || '0', 10),
-          totalOffers: totalOffers || parseInt(dashboardStats.total_offers || '0', 10),
-          totalUsers: parseInt(dashboardStats.total_users || '0', 10),
+          totalBookings: parseInt(String(dashboardStats.total_bookings || '0'), 10),
+          totalOffers: totalOffers || parseInt(String(dashboardStats.total_offers || '0'), 10),
+          totalUsers: parseInt(String(dashboardStats.total_users || '0'), 10),
           totalReviews: (reviewsResponse.reviews || []).length,
-          totalRevenue: parseFloat(dashboardStats.total_revenue?.toString() || '0'),
+          totalRevenue: parseFloat(String(dashboardStats.total_revenue || '0')),
           pendingBookings,
           pendingReviews,
         })
@@ -149,8 +151,8 @@ export default function AdminDashboardPage() {
       } catch (err) {
         const apiError = err as ApiError
         console.error('Error fetching dashboard data:', err)
-        setError(apiError.message || 'Failed to load dashboard data')
-        toast.error('Failed to load dashboard', {
+        setError(apiError.message || t.admin?.dashboard?.errorLoading || 'Failed to load dashboard data')
+        toast.error(t.admin?.dashboard?.errorLoading || 'Failed to load dashboard', {
           description: apiError.message || 'Please try again later',
         })
       } finally {
@@ -217,10 +219,10 @@ export default function AdminDashboardPage() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <CalendarCheck className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading dashboard</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">{t.admin?.dashboard?.errorLoading || "Error loading dashboard"}</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
           <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
-            Retry
+            {t.admin?.dashboard?.retry || "Retry"}
           </Button>
         </CardContent>
       </Card>
@@ -231,9 +233,9 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t.admin?.dashboard?.title || "Dashboard"}</h1>
         <p className="text-sm text-muted-foreground">
-          Welcome back! Here&apos;s an overview of your business.
+          {t.admin?.dashboard?.welcome || "Welcome back! Here's an overview of your business."}
         </p>
       </div>
 
@@ -243,10 +245,10 @@ export default function AdminDashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
+                <p className="text-sm font-medium text-muted-foreground">{t.admin?.dashboard?.totalBookings || "Total Bookings"}</p>
                 <p className="text-2xl font-bold">{stats.totalBookings}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  <span className="text-amber-600">{stats.pendingBookings} pending</span>
+                  <span className="text-amber-600">{stats.pendingBookings} {t.admin?.dashboard?.pending || "pending"}</span>
                 </p>
               </div>
               <div className="h-12 w-12 rounded-sm bg-primary/10 flex items-center justify-center">
@@ -260,9 +262,9 @@ export default function AdminDashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Offers</p>
+                <p className="text-sm font-medium text-muted-foreground">{t.admin?.dashboard?.totalOffers || "Total Offers"}</p>
                 <p className="text-2xl font-bold">{stats.totalOffers}</p>
-                <p className="text-xs text-muted-foreground mt-1">Across all categories</p>
+                <p className="text-xs text-muted-foreground mt-1">{t.admin?.dashboard?.acrossAllCategories || "Across all categories"}</p>
               </div>
               <div className="h-12 w-12 rounded-sm bg-emerald-500/10 flex items-center justify-center">
                 <Package className="h-6 w-6 text-emerald-600" />
@@ -275,9 +277,9 @@ export default function AdminDashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+                <p className="text-sm font-medium text-muted-foreground">{t.admin?.dashboard?.totalUsers || "Total Users"}</p>
                 <p className="text-2xl font-bold">{stats.totalUsers}</p>
-                <p className="text-xs text-muted-foreground mt-1">Registered accounts</p>
+                <p className="text-xs text-muted-foreground mt-1">{t.admin?.dashboard?.registeredAccounts || "Registered accounts"}</p>
               </div>
               <div className="h-12 w-12 rounded-sm bg-blue-500/10 flex items-center justify-center">
                 <Users className="h-6 w-6 text-blue-600" />
@@ -290,10 +292,10 @@ export default function AdminDashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Reviews</p>
+                <p className="text-sm font-medium text-muted-foreground">{t.admin?.dashboard?.totalReviews || "Total Reviews"}</p>
                 <p className="text-2xl font-bold">{stats.totalReviews}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  <span className="text-amber-600">{stats.pendingReviews} pending</span>
+                  <span className="text-amber-600">{stats.pendingReviews} {t.admin?.dashboard?.pending || "pending"}</span>
                 </p>
               </div>
               <div className="h-12 w-12 rounded-sm bg-amber-500/10 flex items-center justify-center">
@@ -310,10 +312,10 @@ export default function AdminDashboardPage() {
         <Card className="lg:col-span-2 rounded-sm bg-white">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">Booking Trends</CardTitle>
+              <CardTitle className="text-base font-semibold">{t.admin?.dashboard?.bookingTrends || "Booking Trends"}</CardTitle>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <TrendingUp className="h-4 w-4" />
-                Last 6 months
+                {t.admin?.dashboard?.last6Months || "Last 6 months"}
               </div>
             </div>
           </CardHeader>
@@ -342,7 +344,7 @@ export default function AdminDashboardPage() {
         {/* Revenue Summary */}
         <Card className="rounded-sm bg-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Revenue Overview</CardTitle>
+            <CardTitle className="text-base font-semibold">{t.admin?.dashboard?.revenueOverview || "Revenue Overview"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-sm">
@@ -351,8 +353,8 @@ export default function AdminDashboardPage() {
                   <Banknote className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Total Revenue</p>
-                  <p className="text-xs text-muted-foreground">All time</p>
+                  <p className="text-sm font-medium">{t.admin?.dashboard?.totalRevenue || "Total Revenue"}</p>
+                  <p className="text-xs text-muted-foreground">{t.admin?.dashboard?.allTime || "All time"}</p>
                 </div>
               </div>
               <p className="text-lg font-bold">{stats.totalRevenue.toLocaleString()} MAD</p>
@@ -375,10 +377,10 @@ export default function AdminDashboardPage() {
         <Card className="rounded-sm bg-white">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">Latest Bookings</CardTitle>
+              <CardTitle className="text-base font-semibold">{t.admin?.dashboard?.latestBookings || "Latest Bookings"}</CardTitle>
               <Link href="/admin/bookings">
                 <Button variant="ghost" size="sm" className="gap-1 text-xs">
-                  View all
+                  {t.admin?.dashboard?.viewAll || "View all"}
                   <ArrowRight className="h-3 w-3" />
                 </Button>
               </Link>
@@ -411,7 +413,7 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">No bookings yet</p>
+                <p className="text-sm text-muted-foreground text-center py-4">{t.admin?.dashboard?.noBookingsYet || "No bookings yet"}</p>
               )}
             </div>
           </CardContent>
@@ -421,10 +423,10 @@ export default function AdminDashboardPage() {
         <Card className="rounded-sm bg-white">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">New Users</CardTitle>
+              <CardTitle className="text-base font-semibold">{t.admin?.dashboard?.newUsers || "New Users"}</CardTitle>
               <Link href="/admin/users">
                 <Button variant="ghost" size="sm" className="gap-1 text-xs">
-                  View all
+                  {t.admin?.dashboard?.viewAll || "View all"}
                   <ArrowRight className="h-3 w-3" />
                 </Button>
               </Link>
@@ -462,7 +464,7 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">No users yet</p>
+                <p className="text-sm text-muted-foreground text-center py-4">{t.admin?.dashboard?.noUsersYet || "No users yet"}</p>
               )}
             </div>
           </CardContent>

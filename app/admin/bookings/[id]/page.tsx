@@ -19,6 +19,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +38,7 @@ export default function BookingDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const bookingId = params.id as string
+  const { t } = useLanguage()
   const [booking, setBooking] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -53,13 +55,13 @@ export default function BookingDetailsPage() {
         console.error('Error fetching booking:', err)
         if (err instanceof ApiError) {
           setError(err.message)
-          toast.error('Failed to load booking', {
-            description: err.message || 'Please try again later',
+          toast.error(t.admin?.bookings?.errorLoading || 'Failed to load booking', {
+            description: err.message || t.admin?.common?.errorOccurred || 'Please try again later',
           })
         } else {
           setError('Failed to load booking')
-          toast.error('Failed to load booking', {
-            description: 'Please try again later',
+          toast.error(t.admin?.bookings?.errorLoading || 'Failed to load booking', {
+            description: t.admin?.common?.errorOccurred || 'Please try again later',
           })
         }
       } finally {
@@ -86,12 +88,12 @@ export default function BookingDetailsPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <CalendarCheck className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Booking not found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.bookings?.notFound || "Booking not found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
-              The booking you&apos;re looking for doesn&apos;t exist or has been removed.
+              {t.admin?.bookings?.notFoundDesc || "The booking you're looking for doesn't exist or has been removed."}
             </p>
             <Link href="/admin/bookings" className="mt-4">
-              <Button>Back to Bookings</Button>
+              <Button>{t.admin?.bookings?.title || "Back to Bookings"}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -148,12 +150,12 @@ export default function BookingDetailsPage() {
     } catch (err) {
       console.error('Error updating booking status:', err)
       if (err instanceof ApiError) {
-        toast.error('Failed to update booking status', {
-          description: err.message || 'Please try again later',
+        toast.error(t.admin?.promoCodes?.errorLoading || 'Failed to update booking status', {
+          description: err.message || t.admin?.common?.errorOccurred || 'Please try again later',
         })
       } else {
-        toast.error('Failed to update booking status', {
-          description: 'Please try again later',
+        toast.error(t.admin?.promoCodes?.errorLoading || 'Failed to update booking status', {
+          description: t.admin?.common?.errorOccurred || 'Please try again later',
         })
       }
     } finally {
@@ -166,7 +168,7 @@ export default function BookingDetailsPage() {
   }
 
   const handleCancel = () => {
-    if (confirm("Are you sure you want to cancel this booking?")) {
+    if (confirm(t.admin?.offers?.deleteConfirm?.replace('{type}', t.admin?.pages?.bookings || 'booking') || "Are you sure you want to cancel this booking?")) {
       handleStatusChange('CANCELLED')
     }
   }
@@ -196,7 +198,7 @@ export default function BookingDetailsPage() {
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight">Booking Details</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{t.admin?.bookings?.details || "Booking Details"}</h1>
               <Badge variant="secondary" className={getStatusColor(booking.status)}>
                 {booking.status}
               </Badge>
@@ -216,10 +218,10 @@ export default function BookingDetailsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-              <SelectItem value="COMPLETED">Completed</SelectItem>
-              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              <SelectItem value="PENDING">{t.admin?.bookings?.statusPending || "Pending"}</SelectItem>
+              <SelectItem value="CONFIRMED">{t.admin?.bookings?.statusConfirmed || "Confirmed"}</SelectItem>
+              <SelectItem value="COMPLETED">{t.admin?.bookings?.statusCompleted || "Completed"}</SelectItem>
+              <SelectItem value="CANCELLED">{t.admin?.bookings?.statusCancelled || "Cancelled"}</SelectItem>
             </SelectContent>
           </Select>
           {updatingStatus && (
@@ -227,7 +229,7 @@ export default function BookingDetailsPage() {
           )}
           <Button variant="outline" onClick={handleContact} className="gap-1 rounded-sm">
             <MessageSquare className="h-4 w-4" />
-            Contact
+            {t.admin?.common?.contact || "Contact"}
           </Button>
         </div>
       </div>
@@ -238,7 +240,7 @@ export default function BookingDetailsPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <User className="h-4 w-4" />
-              Customer Information
+              {t.admin?.bookings?.customerInfo || "Customer Information"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -295,7 +297,7 @@ export default function BookingDetailsPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <CalendarCheck className="h-4 w-4" />
-              Booking Details
+              {t.admin?.bookings?.details || "Booking Details"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -340,7 +342,7 @@ export default function BookingDetailsPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Package className="h-4 w-4" />
-              Offer Information
+              {t.admin?.bookings?.offerInfo || "Offer Information"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

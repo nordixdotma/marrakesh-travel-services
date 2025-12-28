@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 interface SiteSetting {
   id: string
@@ -39,6 +40,7 @@ const HERO_PAGES = [
 ]
 
 export default function AdminSettingsPage() {
+  const { t } = useLanguage()
   const [settings, setSettings] = useState<SiteSetting[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -64,7 +66,7 @@ export default function AdminSettingsPage() {
     } catch (err: any) {
       console.error('Error fetching settings:', err)
       const apiError = err as ApiError
-      toast.error('Failed to load settings', {
+      toast.error(t.admin?.settings?.errorLoading || 'Failed to load settings', {
         description: apiError.message || 'Please try again later',
       })
     } finally {
@@ -88,15 +90,15 @@ export default function AdminSettingsPage() {
       const isVideo = file.type.startsWith('video/')
       
       if (type === 'image' && !isImage) {
-        toast.error('Invalid file type', {
-          description: 'Please select an image file',
+        toast.error(t.admin?.settings?.invalidFileType || 'Invalid file type', {
+          description: t.admin?.settings?.selectImage || 'Please select an image file',
         })
         return
       }
       
       if (type === 'video' && !isVideo) {
-        toast.error('Invalid file type', {
-          description: 'Please select a video file',
+        toast.error(t.admin?.settings?.invalidFileType || 'Invalid file type', {
+          description: t.admin?.settings?.selectVideo || 'Please select a video file',
         })
         return
       }
@@ -107,7 +109,7 @@ export default function AdminSettingsPage() {
       // Update form data with the uploaded file URL
       handleInputChange(key, url)
       
-      toast.success(`${type === 'image' ? 'Image' : 'Video'} uploaded successfully`)
+      toast.success(t.admin?.settings?.uploadSuccess?.replace('{type}', type === 'image' ? (t.admin?.common?.image || 'Image') : (t.admin?.common?.video || 'Video')) || `${type === 'image' ? 'Image' : 'Video'} uploaded successfully`)
     } catch (err: any) {
       console.error('Error uploading file:', err)
       toast.error('Failed to upload file', {
@@ -143,11 +145,11 @@ export default function AdminSettingsPage() {
       // Prepare settings array
       const settingsToUpdate = Object.entries(formData).map(([setting_key, setting_value]) => ({
         setting_key,
-        setting_value: setting_value || null,
+        setting_value: setting_value || undefined,
       }))
 
       await adminApi.updateSiteSettings(settingsToUpdate)
-      toast.success('Settings saved successfully')
+      toast.success(t.admin?.settings?.saveSuccess || 'Settings saved successfully')
       fetchSettings() // Refresh to get updated data
       
       // Dispatch event to notify other components to refresh settings
@@ -157,7 +159,7 @@ export default function AdminSettingsPage() {
     } catch (err: any) {
       console.error('Error saving settings:', err)
       const apiError = err as ApiError
-      toast.error('Failed to save settings', {
+      toast.error(t.admin?.settings?.saveFailed || 'Failed to save settings', {
         description: apiError.message || 'Please try again',
       })
     } finally {
@@ -176,9 +178,9 @@ export default function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Site Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t.admin?.settings?.title || "Site Settings"}</h1>
         <p className="text-muted-foreground mt-1">
-          Manage hero images and WhatsApp contact number
+          {t.admin?.settings?.description || "Manage hero images and WhatsApp contact number"}
         </p>
       </div>
 
@@ -187,24 +189,23 @@ export default function AdminSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Phone className="h-5 w-5" />
-            WhatsApp Contact
+            {t.admin?.settings?.whatsapp?.title || "WhatsApp Contact"}
           </CardTitle>
           <CardDescription>
-            Update the WhatsApp number used in the floating contact widget
+            {t.admin?.settings?.whatsapp?.description || "Update the WhatsApp number used in the floating contact widget"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="whatsapp_number">WhatsApp Number</Label>
+            <Label htmlFor="whatsapp_number">{t.admin?.settings?.whatsapp?.label || "WhatsApp Number"}</Label>
             <Input
               id="whatsapp_number"
               value={formData['whatsapp_number'] || ''}
               onChange={(e) => handleInputChange('whatsapp_number', e.target.value)}
               placeholder="212661044503"
-              description="Enter number without + (e.g., 212661044503)"
             />
             <p className="text-xs text-muted-foreground">
-              Format: Country code + number without + (e.g., 212661044503 for +212 661 044 503)
+              {t.admin?.settings?.whatsapp?.help || "Format: Country code + number without + (e.g., 212661044503 for +212 661 044 503)"}
             </p>
           </div>
         </CardContent>
@@ -215,10 +216,10 @@ export default function AdminSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5" />
-            Hero Images
+            {t.admin?.settings?.hero?.title || "Hero Images"}
           </CardTitle>
           <CardDescription>
-            Upload hero images or videos for each page. You can also manually enter a URL.
+            {t.admin?.settings?.hero?.description || "Upload hero images or videos for each page. You can also manually enter a URL."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -229,7 +230,7 @@ export default function AdminSettingsPage() {
             
             return (
               <div key={page.key} className="space-y-2">
-                <Label htmlFor={page.key}>{page.label}</Label>
+                <Label htmlFor={page.key}>{t.admin?.settings?.hero?.pages?.[page.key] || page.label}</Label>
                 <div className="flex gap-2 items-start">
                   <div className="flex-1 space-y-2">
                     <div className="flex gap-2">
@@ -249,7 +250,7 @@ export default function AdminSettingsPage() {
                         onClick={() => document.getElementById(`${page.key}-image`)?.click()}
                       >
                         <FileImage className="h-4 w-4 mr-2" />
-                        {isUploading ? 'Uploading...' : 'Upload Image'}
+                        {isUploading ? (t.admin?.settings?.hero?.uploading || 'Uploading...') : (t.admin?.settings?.hero?.uploadImage || 'Upload Image')}
                       </Button>
                       
                       <input
@@ -268,7 +269,7 @@ export default function AdminSettingsPage() {
                         onClick={() => document.getElementById(`${page.key}-video`)?.click()}
                       >
                         <Video className="h-4 w-4 mr-2" />
-                        {isUploading ? 'Uploading...' : 'Upload Video'}
+                        {isUploading ? (t.admin?.settings?.hero?.uploading || 'Uploading...') : (t.admin?.settings?.hero?.uploadVideo || 'Upload Video')}
                       </Button>
                     </div>
                     
@@ -276,7 +277,7 @@ export default function AdminSettingsPage() {
                       id={page.key}
                       value={currentValue}
                       onChange={(e) => handleInputChange(page.key, e.target.value)}
-                      placeholder="/placeholder.jpg or URL"
+                      placeholder={t.admin?.settings?.hero?.urlPlaceholder || "/placeholder.jpg or URL"}
                       className="w-full"
                     />
                   </div>
@@ -322,12 +323,12 @@ export default function AdminSettingsPage() {
           {saving ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Saving...
+              {t.admin?.common?.saving || "Saving..."}
             </>
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              Save Settings
+              {t.admin?.common?.saveSettings || t.admin?.common?.save || "Save Settings"}
             </>
           )}
         </Button>
@@ -335,4 +336,3 @@ export default function AdminSettingsPage() {
     </div>
   )
 }
-

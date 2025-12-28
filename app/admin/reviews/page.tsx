@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select"
 import { adminApi } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 type ReviewStatus = "all" | "pending" | "approved" | "rejected"
 
@@ -44,6 +45,7 @@ interface Review {
 }
 
 export default function AdminReviewsPage() {
+  const { t } = useLanguage()
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<ReviewStatus>("all")
   const [reviews, setReviews] = useState<Review[]>([])
@@ -129,20 +131,20 @@ export default function AdminReviewsPage() {
 
   const handleApprove = (id: string) => {
     // TODO: Implement approve API call
-    toast.info('Approve functionality coming soon')
+    toast.info(t.admin?.common?.actions + ' coming soon')
   }
 
   const handleReject = (id: string) => {
-    if (confirm("Are you sure you want to reject this review?")) {
+    if (confirm(t.admin?.reviews?.rejectConfirm || "Are you sure you want to reject this review?")) {
       // TODO: Implement reject API call
-      toast.info('Reject functionality coming soon')
+      toast.info(t.admin?.common?.actions + ' coming soon')
     }
   }
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this review?")) {
+    if (confirm(t.admin?.reviews?.deleteConfirm || "Are you sure you want to delete this review?")) {
       // TODO: Implement delete API call
-      toast.info('Delete functionality coming soon')
+      toast.info(t.admin?.common?.actions + ' coming soon')
     }
   }
 
@@ -161,10 +163,10 @@ export default function AdminReviewsPage() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <Star className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading reviews</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">{t.admin?.reviews?.errorLoading || "Error loading reviews"}</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
           <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
-            Retry
+            {t.admin?.dashboard?.retry || "Retry"}
           </Button>
         </CardContent>
       </Card>
@@ -175,9 +177,9 @@ export default function AdminReviewsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Reviews</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t.admin?.reviews?.title || "Reviews"}</h1>
         <p className="text-sm text-muted-foreground">
-          Manage customer reviews and ratings. {reviews.length} total reviews.
+          {t.admin?.reviews?.description?.replace('{count}', String(reviews.length)) || `Manage customer reviews and ratings. ${reviews.length} total reviews.`}
         </p>
       </div>
 
@@ -186,7 +188,7 @@ export default function AdminReviewsPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search reviews..."
+            placeholder={t.admin?.reviews?.searchPlaceholder || "Search reviews..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 rounded-sm bg-white"
@@ -199,13 +201,13 @@ export default function AdminReviewsPage() {
             onValueChange={(value) => setStatusFilter(value as ReviewStatus)}
           >
             <SelectTrigger className="w-[140px] bg-white">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t.admin?.common?.status || "Status"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="all">{t.admin?.reviews?.statusAll || "All Status"}</SelectItem>
+              <SelectItem value="pending">{t.admin?.reviews?.statusPending || "Pending"}</SelectItem>
+              <SelectItem value="approved">{t.admin?.reviews?.statusApproved || "Approved"}</SelectItem>
+              <SelectItem value="rejected">{t.admin?.reviews?.statusRejected || "Rejected"}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -251,7 +253,7 @@ export default function AdminReviewsPage() {
                   {/* Offer Info */}
                   <div className="flex items-center gap-2 text-sm">
                     <Package className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Reviewed:</span>
+                    <span className="text-muted-foreground">{t.admin?.reviews?.reviewed || "Reviewed"}:</span>
                     <span className="font-medium">{review.offerTitle}</span>
                     <Badge variant="outline" className="capitalize text-xs">
                       {review.offerType}
@@ -267,23 +269,23 @@ export default function AdminReviewsPage() {
                   <div className="flex items-center gap-2 pt-2">
                     {review.status.toLowerCase() === "pending" && (
                       <>
-                        <Button
-                          size="sm"
-                          className="gap-1 rounded-sm"
-                          onClick={() => handleApprove(review.id)}
-                        >
-                          <CheckCircle className="h-3.5 w-3.5" />
-                          Approve
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1 text-destructive hover:text-destructive rounded-sm"
-                          onClick={() => handleReject(review.id)}
-                        >
-                          <XCircle className="h-3.5 w-3.5" />
-                          Reject
-                        </Button>
+                          <Button
+                            size="sm"
+                            className="gap-1 rounded-sm"
+                            onClick={() => handleApprove(review.id)}
+                          >
+                            <CheckCircle className="h-3.5 w-3.5" />
+                            {t.admin?.reviews?.approve || "Approve"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 text-destructive hover:text-destructive rounded-sm"
+                            onClick={() => handleReject(review.id)}
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                            {t.admin?.reviews?.reject || "Reject"}
+                          </Button>
                       </>
                     )}
                     <Button
@@ -293,7 +295,7 @@ export default function AdminReviewsPage() {
                       onClick={() => handleDelete(review.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      Delete
+                      {t.admin?.reviews?.delete || t.admin?.common?.delete || "Delete"}
                     </Button>
                   </div>
                 </div>
@@ -307,11 +309,11 @@ export default function AdminReviewsPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Star className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No reviews found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.reviews?.noReviewsFound || "No reviews found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery || statusFilter !== "all"
-                ? "No reviews match your search criteria. Try different filters."
-                : "Customer reviews and ratings will appear here once they start leaving feedback."}
+                ? (t.admin?.reviews?.noMatch || "No reviews match your search criteria. Try different filters.")
+                : (t.admin?.reviews?.emptyState || "Customer reviews and ratings will appear here once they start leaving feedback.")}
             </p>
           </CardContent>
         </Card>

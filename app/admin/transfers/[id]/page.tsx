@@ -8,10 +8,12 @@ import { offersApi, ApiError } from "@/lib/api"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
 import type { Offer } from "@/lib/offers-data"
+import { useLanguage } from "@/components/language-provider"
 
 function TransfersDetailContent() {
   const params = useParams()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const router = useRouter()
   const id = params.id as string
   const isNew = id === "new"
@@ -71,7 +73,7 @@ function TransfersDetailContent() {
         const transformedOffer: Offer = {
           id: backendOffer.id,
           type: 'transfers',
-          title: backendOffer.title || 'Untitled Transfer',
+          title: backendOffer.title || t.admin?.offers?.noFound?.replace('{type}', t.admin?.pages?.transfers || 'Transfer'),
           description: backendOffer.description || '',
           departCity: backendOffer.depart_city,
           priceAdult: 0, // Transfers use vehicle options pricing
@@ -111,7 +113,7 @@ function TransfersDetailContent() {
         setOffer(transformedOffer)
       } catch (err) {
         const apiError = err as ApiError
-        setError(apiError.message || 'Failed to load transfer')
+        setError(apiError.message || t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.pages?.transfers || 'Transfer') || 'Failed to load transfer')
         console.error('Error fetching transfer:', err)
         // Redirect back if transfer not found
         setTimeout(() => {
@@ -153,9 +155,9 @@ function TransfersDetailContent() {
     return (
       <Card className="border-destructive/50 bg-destructive/10 rounded-sm m-6">
         <CardContent className="flex flex-col items-center justify-center py-16">
-          <p className="text-sm font-medium text-destructive mb-2">Error loading transfer</p>
+          <p className="text-sm font-medium text-destructive mb-2">{t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.pages?.transfers || 'Transfer') || "Error loading transfer"}</p>
           <p className="text-xs text-destructive/80">{error}</p>
-          <p className="text-xs text-muted-foreground mt-4">Redirecting back...</p>
+          <p className="text-xs text-muted-foreground mt-4">{t.admin?.common?.loading || "Redirecting back..."}</p>
         </CardContent>
       </Card>
     )

@@ -1,5 +1,6 @@
 "use client"
 
+import { LanguageSwitcher } from "@/components/language-switcher"
 import { useLanguage } from "@/components/language-provider"
 import { useAuth } from "@/components/login-modal"
 import { Button } from "@/components/ui/button"
@@ -19,8 +20,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false)
   const pathname = usePathname()
   const { isLoggedIn, openLoginModal } = useAuth()
-  const { language, setLanguage, t, languages } = useLanguage()
-  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false)
+  const { t, languages, language, setLanguage } = useLanguage()
   
   // Check if we're in the users section
   const isUsersSection = pathname?.startsWith("/users") || isStatic
@@ -51,9 +51,6 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement
-      if (languageDropdownOpen && !target.closest('.header-language-dropdown')) {
-        setLanguageDropdownOpen(false)
-      }
       if (servicesDropdownOpen && !target.closest('.services-dropdown-container')) {
         setServicesDropdownOpen(false)
       }
@@ -61,7 +58,7 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [languageDropdownOpen, servicesDropdownOpen])
+  }, [servicesDropdownOpen])
 
   const serviceLinks = [
     { href: "/tours", label: t.header.tours },
@@ -343,49 +340,12 @@ export default function Header({ isStatic = false }: { isStatic?: boolean }) {
                   </Button>
                 )}
                 {/* Desktop Language Dropdown */}
-                <div className="relative header-language-dropdown">
-                  <button
-                    onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer relative overflow-hidden"
-                    aria-label="Open language selector"
-                  >
-                    <Image
-                      src={languages.find((lang) => lang.code === language)?.flag || "/placeholder.svg"}
-                      alt={language}
-                      fill
-                      className="object-cover"
-                      sizes="32px"
-                    />
-                  </button>
-
-                  {languageDropdownOpen && (
-                    <div className="absolute right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-40 z-50 overflow-hidden">
-                      {languages.map((lang) => (
-                        <button
-                          key={lang.code}
-                          onClick={() => {
-                            setLanguage(lang.code as "en" | "fr" | "es")
-                            setLanguageDropdownOpen(false)
-                          }}
-                          className={`flex items-center gap-3 w-full px-4 py-2 text-left hover:bg-primary/10 transition-colors cursor-pointer ${
-                            lang.code === language ? "bg-primary/5" : ""
-                          }`}
-                        >
-                          <div className="relative w-6 h-4 shrink-0">
-                            <Image 
-                              src={lang.flag || "/placeholder.svg"} 
-                              alt={lang.name} 
-                              fill
-                              className="object-cover rounded-sm"
-                              sizes="24px"
-                            />
-                          </div>
-                          <span className="text-sm font-medium text-gray-800">{lang.name}</span>
-                        </button>
-                      ))}
-                    </div>
+                <LanguageSwitcher 
+                  buttonClassName={cn(
+                    "bg-white/10 hover:bg-white/20",
+                    (scrolled || isUsersSection) && "bg-primary/5 hover:bg-primary/10 border border-primary/20"
                   )}
-                </div>
+                />
               </div>
             </div>
           </div>

@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { adminApi } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 interface User {
   id: string
@@ -31,6 +32,7 @@ interface User {
 }
 
 export default function AdminUsersPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [users, setUsers] = useState<User[]>([])
@@ -46,8 +48,8 @@ export default function AdminUsersPage() {
         setUsers(response.users || [])
       } catch (err: any) {
         console.error('Error fetching users:', err)
-        setError(err.message || 'Failed to load users')
-        toast.error('Failed to load users', {
+        setError(err.message || t.admin?.users?.errorLoading || 'Failed to load users')
+        toast.error(t.admin?.users?.errorLoading || 'Failed to load users', {
           description: err.message || 'Please try again later',
         })
       } finally {
@@ -100,10 +102,10 @@ export default function AdminUsersPage() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <Users className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading users</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">{t.admin?.users?.errorLoading || "Error loading users"}</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
           <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
-            Retry
+            {t.admin?.dashboard?.retry || "Retry"}
           </Button>
         </CardContent>
       </Card>
@@ -114,17 +116,16 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Users</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t.admin?.users?.title || "Users"}</h1>
         <p className="text-sm text-muted-foreground">
-          Manage registered users and accounts. {users.length} total users.
+          {t.admin?.users?.description?.replace('{count}', String(users.length)) || `Manage registered users and accounts. ${users.length} total users.`}
         </p>
       </div>
 
-      {/* Search */}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search users..."
+          placeholder={t.admin?.users?.searchPlaceholder || "Search users..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 rounded-sm bg-white"
@@ -169,7 +170,7 @@ export default function AdminUsersPage() {
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <Calendar className="h-4 w-4" />
-                        <span>Joined {formatDate(user.createdAt)}</span>
+                        <span>{t.admin?.users?.joined || "Joined"} {formatDate(user.createdAt)}</span>
                       </div>
                       <Badge variant="secondary" className="gap-1">
                         <CalendarCheck className="h-3 w-3" />
@@ -183,7 +184,7 @@ export default function AdminUsersPage() {
                       onClick={() => handleViewDetails(user.id)}
                     >
                       <Eye className="h-3.5 w-3.5" />
-                      Details
+                      {t.admin?.users?.details || t.admin?.bookings?.details || "Details"}
                     </Button>
                   </div>
                 </div>
@@ -197,11 +198,11 @@ export default function AdminUsersPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Users className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No users found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.users?.noUsersFound || "No users found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery
-                ? "No users match your search criteria. Try a different search term."
-                : "Registered users will appear here once customers create accounts."}
+                ? (t.admin?.users?.noMatch || "No users match your search criteria. Try a different search term.")
+                : (t.admin?.users?.emptyState || "Registered users will appear here once customers create accounts.")}
             </p>
           </CardContent>
         </Card>

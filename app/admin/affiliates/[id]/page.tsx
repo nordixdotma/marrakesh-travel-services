@@ -18,6 +18,7 @@ import {
   XCircle,
   Loader2,
 } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +38,7 @@ export default function AffiliateDetailPage() {
   const params = useParams()
   const router = useRouter()
   const affiliateId = params.id as string
+  const { t } = useLanguage()
   const [affiliate, setAffiliate] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -53,13 +55,13 @@ export default function AffiliateDetailPage() {
         console.error('Error fetching affiliate:', err)
         if (err instanceof ApiError) {
           setError(err.message)
-          toast.error('Failed to load affiliate', {
-            description: err.message || 'Please try again later',
+          toast.error(t.admin?.affiliates?.errorLoading || 'Failed to load affiliate', {
+            description: err.message || t.admin?.common?.errorOccurred || 'Please try again later',
           })
         } else {
           setError('Failed to load affiliate')
-          toast.error('Failed to load affiliate', {
-            description: 'Please try again later',
+          toast.error(t.admin?.affiliates?.errorLoading || 'Failed to load affiliate', {
+            description: t.admin?.common?.errorOccurred || 'Please try again later',
           })
         }
       } finally {
@@ -83,16 +85,16 @@ export default function AffiliateDetailPage() {
         status: newStatus.toLowerCase(),
       }))
       
-      toast.success(`Affiliate status updated to ${newStatus.toLowerCase()}`)
+      toast.success((t.admin?.affiliates?.updateStatusSuccess || "Affiliate status updated to {status}").replace('{status}', newStatus.toLowerCase()))
     } catch (err) {
       console.error('Error updating affiliate status:', err)
       if (err instanceof ApiError) {
-        toast.error('Failed to update affiliate status', {
-          description: err.message || 'Please try again later',
+        toast.error(t.admin?.affiliates?.updateStatusFailed || 'Failed to update affiliate status', {
+          description: err.message || t.admin?.common?.errorOccurred || 'Please try again later',
         })
       } else {
-        toast.error('Failed to update affiliate status', {
-          description: 'Please try again later',
+        toast.error(t.admin?.affiliates?.updateStatusFailed || 'Failed to update affiliate status', {
+          description: t.admin?.common?.errorOccurred || 'Please try again later',
         })
       }
     } finally {
@@ -157,7 +159,7 @@ export default function AffiliateDetailPage() {
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => router.back()} className="gap-1 rounded-sm">
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t.admin?.common?.back || "Back"}
           </Button>
         </div>
         <Card className="border-dashed rounded-sm bg-white">
@@ -165,12 +167,12 @@ export default function AffiliateDetailPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <User className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Affiliate not found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.affiliates?.notFound || "Affiliate not found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
-              The affiliate you&apos;re looking for doesn&apos;t exist or has been removed.
+              {t.admin?.affiliates?.notFoundDesc || "The affiliate you're looking for doesn't exist or has been removed."}
             </p>
             <Link href="/admin/affiliates" className="mt-4">
-              <Button>Back to Affiliates</Button>
+              <Button>{t.admin?.affiliates?.noFound || "Back to Affiliates"}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -190,16 +192,16 @@ export default function AffiliateDetailPage() {
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => router.back()} className="gap-1 rounded-sm">
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t.admin?.common?.back || "Back"}
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight">Affiliate Details</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{t.admin?.affiliates?.details || "Affiliate Details"}</h1>
               <Badge variant="secondary" className={getStatusColor(affiliate.status)}>
-                {affiliate.status}
+                {affiliate.status === 'active' ? (t.admin?.affiliates?.statusActive || "active") : (t.admin?.affiliates?.statusInactive || "inactive")}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">Code: {affiliate.affiliateCode}</p>
+            <p className="text-sm text-muted-foreground">{t.admin?.affiliates?.code?.replace('{code}', affiliate.affiliateCode) || `Code: ${affiliate.affiliateCode}`}</p>
           </div>
         </div>
 
@@ -224,13 +226,13 @@ export default function AffiliateDetailPage() {
               <SelectItem value="ACTIVE">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                  Active
+                  {t.admin?.affiliates?.statusActive || "Active"}
                 </div>
               </SelectItem>
               <SelectItem value="INACTIVE">
                 <div className="flex items-center gap-2">
                   <XCircle className="h-3.5 w-3.5 text-gray-500" />
-                  Inactive
+                  {t.admin?.affiliates?.statusInactive || "Inactive"}
                 </div>
               </SelectItem>
             </SelectContent>
@@ -247,7 +249,7 @@ export default function AffiliateDetailPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <User className="h-4 w-4" />
-              Affiliate Information
+              {t.admin?.affiliates?.info || "Affiliate Information"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -301,7 +303,7 @@ export default function AffiliateDetailPage() {
             {affiliate.userId && (
               <Link href={`/admin/users/${affiliate.userId}`}>
                 <Button variant="outline" className="w-full mt-2">
-                  View User Account
+                  {t.admin?.affiliates?.viewUser || "View User Account"}
                 </Button>
               </Link>
             )}
@@ -313,7 +315,7 @@ export default function AffiliateDetailPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              Performance
+              {t.admin?.affiliates?.performance || "Performance"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -373,7 +375,7 @@ export default function AffiliateDetailPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
-              Recent Commissions
+              {t.admin?.affiliates?.recentCommissions || "Recent Commissions"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -398,7 +400,7 @@ export default function AffiliateDetailPage() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No commissions yet
+                {t.admin?.dashboard?.noBookingsYet || "No commissions yet"}
               </p>
             )}
           </CardContent>
@@ -411,7 +413,7 @@ export default function AffiliateDetailPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Link2 className="h-4 w-4" />
-              Affiliate Links
+              {t.admin?.affiliates?.links || "Affiliate Links"}
             </CardTitle>
           </CardHeader>
           <CardContent>

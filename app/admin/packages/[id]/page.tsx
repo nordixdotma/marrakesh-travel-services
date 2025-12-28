@@ -8,10 +8,12 @@ import { offersApi, ApiError } from "@/lib/api"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
 import type { Offer } from "@/lib/offers-data"
+import { useLanguage } from "@/components/language-provider"
 
 function PackagesDetailContent() {
   const params = useParams()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const router = useRouter()
   const id = params.id as string
   const isNew = id === "new"
@@ -108,7 +110,7 @@ function PackagesDetailContent() {
         const transformedOffer: Offer = {
           id: backendOffer.id,
           type: 'packages',
-          title: backendOffer.title || 'Untitled Package',
+          title: backendOffer.title || t.admin?.offers?.noFound?.replace('{type}', t.admin?.pages?.packages || 'Package'),
           description: backendOffer.description || '',
           departCity: backendOffer.depart_city || 'Marrakech',
           priceAdult: priceAdult ? parseFloat(priceAdult) : 0,
@@ -147,7 +149,7 @@ function PackagesDetailContent() {
         setOffer(transformedOffer)
       } catch (err) {
         const apiError = err as ApiError
-        setError(apiError.message || 'Failed to load package')
+        setError(apiError.message || t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.pages?.packages || 'Package') || 'Failed to load package')
         console.error('Error fetching package:', err)
         // Redirect back if package not found
         setTimeout(() => {
@@ -192,13 +194,13 @@ function PackagesDetailContent() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <Loader2 className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading package</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">{t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.pages?.packages || 'Package') || "Error loading package"}</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
           <button
             onClick={() => router.push("/admin/packages")}
             className="text-sm text-primary hover:underline"
           >
-            Back to Packages
+            {t.admin?.offerForm?.backToList?.replace('{type}', t.admin?.pages?.packages || 'Packages') || "Back to Packages"}
           </button>
         </CardContent>
       </Card>

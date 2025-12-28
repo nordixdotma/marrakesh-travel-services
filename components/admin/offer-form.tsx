@@ -29,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Offer, OfferType } from "@/lib/offers-data"
 import { adminApi } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 type FormMode = "view" | "edit" | "add"
 type Language = "en" | "fr" | "es"
@@ -218,6 +219,7 @@ const offerToFormData = (offer: Offer | undefined, type: OfferType): FormData =>
 }
 
 export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: OfferFormProps) {
+  const { t } = useLanguage()
   const router = useRouter()
   const isViewMode = mode === "view"
   const isAddMode = mode === "add"
@@ -247,11 +249,11 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
 
   const getOfferTypeName = () => {
     switch (offerType) {
-      case "tours": return "Tour"
-      case "excursions": return "Excursion"
-      case "activities": return "Activity"
-      case "transfers": return "Transfer"
-      case "packages": return "Package"
+      case "tours": return t.admin?.pages?.tours || "Tour"
+      case "excursions": return t.admin?.pages?.excursions || "Excursion"
+      case "activities": return t.admin?.pages?.activities || "Activity"
+      case "transfers": return t.admin?.pages?.transfers || "Transfer"
+      case "packages": return t.admin?.pages?.packages || "Package"
       default: return "Offer"
     }
   }
@@ -270,21 +272,21 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
       if (offerType === 'transfers') {
         // Transfers don't need pricing/availability, but need transfer details
         if (!formData.departCity || !formData.transferDetails?.from || !formData.transferDetails?.to) {
-          throw new Error('Please fill in all required fields (Departure City, From Location, To Location)')
+          throw new Error(t.admin?.offerForm?.validationError || 'Please fill in all required fields (Departure City, From Location, To Location)')
         }
       } else if (offerType === 'packages') {
         // Packages don't need pricing/availability
         if (!formData.departCity) {
-          throw new Error('Please fill in all required fields (Departure City)')
+          throw new Error(t.admin?.offerForm?.validationError || 'Please fill in all required fields (Departure City)')
         }
       } else {
         // Other offer types need pricing and availability
         if (!formData.departCity || !formData.priceAdult || !formData.priceChild) {
-          throw new Error('Please fill in all required fields (Departure City, Adult Price, Child Price)')
+          throw new Error(t.admin?.offerForm?.validationError || 'Please fill in all required fields (Departure City, Adult Price, Child Price)')
         }
 
         if (!formData.availabilityDates.startDate || !formData.availabilityDates.endDate) {
-          throw new Error('Please select availability dates')
+          throw new Error(t.admin?.offerForm?.validationError || 'Please select availability dates')
         }
       }
 
@@ -388,7 +390,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
           throw new Error(`Creating ${offerType} is not yet implemented`)
         }
         
-        toast.success(`${getOfferTypeName()} created successfully!`, {
+        toast.success(t.admin?.offerForm?.successCreated?.replace('{type}', getOfferTypeName()) || `${getOfferTypeName()} created successfully!`, {
           description: "The tour has been added to your catalog.",
           duration: 3000,
         })
@@ -415,7 +417,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
           throw new Error(`Updating ${offerType} is not yet implemented`)
         }
         
-        toast.success(`${getOfferTypeName()} updated successfully!`, {
+        toast.success(t.admin?.offerForm?.successUpdated?.replace('{type}', getOfferTypeName()) || `${getOfferTypeName()} updated successfully!`, {
           description: "Your changes have been saved.",
           duration: 3000,
         })
@@ -427,7 +429,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
       console.error('Error saving offer:', error)
       const errorMessage = error.message || 'Failed to save offer. Please try again.'
       setSaveError(errorMessage)
-      toast.error('Failed to save', {
+      toast.error(t.admin?.offerForm?.errorSaving || 'Failed to save', {
         description: errorMessage,
         duration: 5000,
       })
@@ -437,9 +439,9 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
   }
 
   const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete this ${getOfferTypeName().toLowerCase()}?`)) {
+    if (confirm(t.admin?.offers?.deleteConfirm?.replace('{type}', getOfferTypeName().toLowerCase()) || `Are you sure you want to delete this ${getOfferTypeName().toLowerCase()}?`)) {
       console.log("Deleting offer:", formData.id)
-      alert(`Deleted ${getOfferTypeName()} successfully!`)
+      alert(`${getOfferTypeName()} deleted successfully!`)
       router.push(backUrl)
     }
   }
@@ -720,37 +722,37 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         {/* Basic Info */}
         <Card className="rounded-sm bg-white">
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{t.admin?.offerForm?.basicInfo || "Basic Information"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Title</Label>
+              <Label>{t.admin?.offerForm?.title || "Title"}</Label>
               <Input
                 value={langData.title}
                 onChange={(e) => updateLangField(lang, "title", e.target.value)}
                 disabled={isViewMode}
-                placeholder={`Title in ${languageLabels[lang]}`}
+                placeholder={t.admin?.offerForm?.title || "Title"}
                 className="rounded-sm bg-gray-50"
               />
             </div>
             <div className="space-y-2">
-              <Label>Short Description</Label>
+              <Label>{t.admin?.offerForm?.shortDescription || "Short Description"}</Label>
               <Textarea
                 value={langData.description}
                 onChange={(e) => updateLangField(lang, "description", e.target.value)}
                 disabled={isViewMode}
-                placeholder={`Description in ${languageLabels[lang]}`}
+                placeholder={t.admin?.offerForm?.shortDescription || "Description"}
                 rows={3}
                 className="rounded-sm bg-gray-50"
               />
             </div>
             <div className="space-y-2">
-              <Label>Overview</Label>
+              <Label>{t.admin?.offerForm?.overview || "Overview"}</Label>
               <Textarea
                 value={langData.overview}
                 onChange={(e) => updateLangField(lang, "overview", e.target.value)}
                 disabled={isViewMode}
-                placeholder={`Overview in ${languageLabels[lang]}`}
+                placeholder={t.admin?.offerForm?.overview || "Overview"}
                 rows={5}
                 className="rounded-sm bg-gray-50"
               />
@@ -767,13 +769,13 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
-                    Location & Duration
+                    {t.admin?.offerForm?.locationDuration || "Location & Duration"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Departure City</Label>
+                      <Label>{t.admin?.offerForm?.departureCity || "Departure City"}</Label>
                       <Input
                         value={formData.departCity}
                         onChange={(e) => setFormData(prev => ({ ...prev, departCity: e.target.value }))}
@@ -808,7 +810,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   {offerType !== 'packages' && (
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Difficulty</Label>
+                        <Label>{t.admin?.offerForm?.difficulty || "Difficulty"}</Label>
                         <Input
                           value={formData.difficulty}
                           onChange={(e) => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
@@ -818,7 +820,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Group Size</Label>
+                        <Label>{t.admin?.offerForm?.groupSize || "Group Size"}</Label>
                         <Input
                           value={formData.groupSize}
                           onChange={(e) => setFormData(prev => ({ ...prev, groupSize: e.target.value }))}
@@ -839,12 +841,12 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
-                    Location
+                    {t.admin?.common?.status || "Location"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Departure City</Label>
+                    <Label>{t.admin?.offerForm?.departureCity || "Departure City"}</Label>
                     <Input
                       value={formData.departCity}
                       onChange={(e) => setFormData(prev => ({ ...prev, departCity: e.target.value }))}
@@ -863,13 +865,13 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Banknote className="h-5 w-5" />
-                    Pricing (MAD)
+                    {t.admin?.offerForm?.pricingAvailability || "Pricing (MAD)"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Adult Price (MAD)</Label>
+                      <Label>{t.admin?.offerForm?.priceAdult || "Adult Price (MAD)"}</Label>
                       <Input
                         type="number"
                         value={formData.priceAdult}
@@ -880,7 +882,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Child Price (MAD)</Label>
+                      <Label>{t.admin?.offerForm?.priceChild || "Child Price (MAD)"}</Label>
                       <Input
                         type="number"
                         value={formData.priceChild}
@@ -901,13 +903,13 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
-                    Availability
+                    {t.admin?.offerForm?.pricingAvailability || "Availability"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Start Date</Label>
+                      <Label>{t.admin?.offerForm?.startDate || "Start Date"}</Label>
                       <Input
                         type="date"
                         value={formData.availabilityDates.startDate}
@@ -920,7 +922,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>End Date</Label>
+                      <Label>{t.admin?.offerForm?.endDate || "End Date"}</Label>
                       <Input
                         type="date"
                         value={formData.availabilityDates.endDate}
@@ -942,7 +944,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         {/* Highlights */}
         <Card className="rounded-sm bg-white">
           <CardHeader>
-            <CardTitle>Highlights</CardTitle>
+            <CardTitle>{t.admin?.offerForm?.contentHighlights || "Highlights"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {langData.highlights.map((highlight, index) => (
@@ -951,7 +953,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   value={highlight}
                   onChange={(e) => updateLangArrayItem(lang, "highlights", index, e.target.value)}
                   disabled={isViewMode}
-                  placeholder="Enter highlight"
+                  placeholder={t.admin?.offerForm?.enterHighlight || "Enter highlight"}
                   className="rounded-sm bg-gray-50"
                 />
                 {!isViewMode && (
@@ -964,7 +966,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
             {!isViewMode && (
               <Button variant="outline" onClick={() => addLangArrayItem(lang, "highlights")} className="gap-2 rounded-sm">
                 <Plus className="h-4 w-4" />
-                Add Highlight
+                {t.admin?.offerForm?.addHighlight || "Add Highlight"}
               </Button>
             )}
           </CardContent>
@@ -973,7 +975,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         {/* Content Sections */}
         <Card className="rounded-sm bg-white">
           <CardHeader>
-            <CardTitle>Content Sections</CardTitle>
+            <CardTitle>{t.admin?.offerForm?.contentSections || "Content Sections"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {langData.sections.map((section, index) => (
@@ -990,14 +992,14 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   value={section.title}
                   onChange={(e) => updateLangSection(lang, index, "title", e.target.value)}
                   disabled={isViewMode}
-                  placeholder="Section title"
+                  placeholder={t.admin?.offerForm?.sectionTitle || "Section title"}
                   className="rounded-sm bg-gray-50"
                 />
                 <Textarea
                   value={section.content}
                   onChange={(e) => updateLangSection(lang, index, "content", e.target.value)}
                   disabled={isViewMode}
-                  placeholder="Section content"
+                  placeholder={t.admin?.offerForm?.sectionContent || "Section content"}
                   rows={3}
                   className="rounded-sm bg-gray-50"
                 />
@@ -1006,7 +1008,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
             {!isViewMode && (
               <Button variant="outline" onClick={() => addLangSection(lang)} className="gap-2 rounded-sm">
                 <Plus className="h-4 w-4" />
-                Add Section
+                {t.admin?.offerForm?.addSection || "Add Section"}
               </Button>
             )}
           </CardContent>
@@ -1015,7 +1017,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         {/* Itinerary */}
         <Card className="rounded-sm bg-white">
           <CardHeader>
-            <CardTitle>Itinerary</CardTitle>
+            <CardTitle>{t.admin?.offerForm?.contentItinerary || "Itinerary"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {langData.itinerary.map((item, index) => (
@@ -1024,14 +1026,14 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   value={item.time}
                   onChange={(e) => updateLangItinerary(lang, index, "time", e.target.value)}
                   disabled={isViewMode}
-                  placeholder="Time"
+                  placeholder={t.admin?.offerForm?.time || "Time"}
                   className="w-32 rounded-sm bg-gray-50"
                 />
                 <Input
                   value={item.activity}
                   onChange={(e) => updateLangItinerary(lang, index, "activity", e.target.value)}
                   disabled={isViewMode}
-                  placeholder="Activity"
+                  placeholder={t.admin?.offerForm?.activity || "Activity"}
                   className="flex-1 rounded-sm bg-gray-50"
                 />
                 {!isViewMode && (
@@ -1044,7 +1046,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
             {!isViewMode && (
               <Button variant="outline" onClick={() => addLangItinerary(lang)} className="gap-2 rounded-sm">
                 <Plus className="h-4 w-4" />
-                Add Itinerary Item
+                {t.admin?.offerForm?.addItinerary || "Add Itinerary Item"}
               </Button>
             )}
           </CardContent>
@@ -1053,7 +1055,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         {/* Tips */}
         <Card className="rounded-sm bg-white">
           <CardHeader>
-            <CardTitle>Tips</CardTitle>
+            <CardTitle>{t.admin?.offerForm?.contentTips || "Tips"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {langData.tips.map((tip, index) => (
@@ -1062,7 +1064,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   value={tip}
                   onChange={(e) => updateLangArrayItem(lang, "tips", index, e.target.value)}
                   disabled={isViewMode}
-                  placeholder="Enter tip"
+                  placeholder={t.admin?.offerForm?.addTip || "Enter tip"}
                   className="rounded-sm bg-gray-50"
                 />
                 {!isViewMode && (
@@ -1075,7 +1077,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
             {!isViewMode && (
               <Button variant="outline" onClick={() => addLangArrayItem(lang, "tips")} className="gap-2 rounded-sm">
                 <Plus className="h-4 w-4" />
-                Add Tip
+                {t.admin?.offerForm?.addTip || "Add Tip"}
               </Button>
             )}
           </CardContent>
@@ -1084,7 +1086,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         {/* Included Items */}
         <Card className="rounded-sm bg-white">
           <CardHeader>
-            <CardTitle>Included Items</CardTitle>
+            <CardTitle>{t.admin?.offerForm?.contentIncluded || "Included Items"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {langData.includedItems.map((item, index) => (
@@ -1093,7 +1095,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   value={item}
                   onChange={(e) => updateLangArrayItem(lang, "includedItems", index, e.target.value)}
                   disabled={isViewMode}
-                  placeholder="Enter included item"
+                  placeholder={t.admin?.offerForm?.addItem || "Enter included item"}
                   className="rounded-sm bg-gray-50"
                 />
                 {!isViewMode && (
@@ -1106,7 +1108,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
             {!isViewMode && (
               <Button variant="outline" onClick={() => addLangArrayItem(lang, "includedItems")} className="gap-2 rounded-sm">
                 <Plus className="h-4 w-4" />
-                Add Included Item
+                {t.admin?.offerForm?.addItem || "Add Included Item"}
               </Button>
             )}
           </CardContent>
@@ -1115,7 +1117,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         {/* Excluded Items */}
         <Card className="rounded-sm bg-white">
           <CardHeader>
-            <CardTitle>Excluded Items</CardTitle>
+            <CardTitle>{t.admin?.offerForm?.contentExcluded || "Excluded Items"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {langData.excludedItems.map((item, index) => (
@@ -1124,7 +1126,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   value={item}
                   onChange={(e) => updateLangArrayItem(lang, "excludedItems", index, e.target.value)}
                   disabled={isViewMode}
-                  placeholder="Enter excluded item"
+                  placeholder={t.admin?.offerForm?.addItem || "Enter excluded item"}
                   className="rounded-sm bg-gray-50"
                 />
                 {!isViewMode && (
@@ -1137,7 +1139,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
             {!isViewMode && (
               <Button variant="outline" onClick={() => addLangArrayItem(lang, "excludedItems")} className="gap-2 rounded-sm">
                 <Plus className="h-4 w-4" />
-                Add Excluded Item
+                {t.admin?.offerForm?.addItem || "Add Excluded Item"}
               </Button>
             )}
           </CardContent>
@@ -1151,7 +1153,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ImageIcon className="h-5 w-5" />
-                  Main Image
+                  {t.admin?.offerForm?.mainImage || "Main Image"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1173,12 +1175,12 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                     {uploadingMainImage ? (
                       <>
                         <span className="h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
-                        Uploading...
+                        {t.admin?.offerForm?.uploading || "Uploading..."}
                       </>
                     ) : (
                       <>
                         <Upload className="h-4 w-4" />
-                        Upload Main Image
+                        {t.admin?.offerForm?.uploadMainImage || "Upload Main Image"}
                       </>
                     )}
                   </Button>
@@ -1230,7 +1232,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   </div>
                 ) : (
                   <div className="w-full h-48 rounded-sm border border-dashed bg-muted/50 flex items-center justify-center">
-                    <p className="text-sm text-muted-foreground">No main image</p>
+                    <p className="text-sm text-muted-foreground">{t.admin?.offers?.noFound?.replace('{type}', t.admin?.offerForm?.mainImage?.toLowerCase()) || "No main image"}</p>
                   </div>
                 )}
               </CardContent>
@@ -1240,7 +1242,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ImageIcon className="h-5 w-5" />
-                  Thumbnail Images
+                  {t.admin?.offerForm?.galleryImages || "Thumbnail Images"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1263,12 +1265,12 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                     {uploadingThumbnails ? (
                       <>
                         <span className="h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
-                        Uploading...
+                        {t.admin?.offerForm?.uploading || "Uploading..."}
                       </>
                     ) : (
                       <>
                         <Upload className="h-4 w-4" />
-                        Upload Thumbnails
+                        {t.admin?.offerForm?.uploadThumbnails || "Upload Thumbnails"}
                       </>
                     )}
                   </Button>
@@ -1327,7 +1329,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Video className="h-5 w-5" />
-                  Video
+                  {t.admin?.offerForm?.videoUrl || "Video"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1349,12 +1351,12 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                     {uploadingVideo ? (
                       <>
                         <span className="h-4 w-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
-                        Uploading...
+                        {t.admin?.offerForm?.uploading || "Uploading..."}
                       </>
                     ) : (
                       <>
                         <Upload className="h-4 w-4" />
-                        Upload Video
+                        {t.admin?.offerForm?.uploadVideo || "Upload Video"}
                       </>
                     )}
                   </Button>
@@ -1384,15 +1386,15 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                 <Separator />
                 <Card className="rounded-sm bg-white">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      Transfer Route
-                    </CardTitle>
-                  </CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    {t.admin?.offerForm?.transferDetails || "Transfer Route"}
+                  </CardTitle>
+                </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>From</Label>
+                        <Label>{t.admin?.offerForm?.fromLocation || "From"}</Label>
                         <Input
                           value={formData.transferDetails?.from || ""}
                           onChange={(e) => setFormData(prev => ({
@@ -1405,7 +1407,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>To</Label>
+                        <Label>{t.admin?.offerForm?.toLocation || "To"}</Label>
                         <Input
                           value={formData.transferDetails?.to || ""}
                           onChange={(e) => setFormData(prev => ({
@@ -1420,7 +1422,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Transfer Duration</Label>
+                        <Label>{t.admin?.offerForm?.duration || "Transfer Duration"}</Label>
                         <Input
                           value={formData.transferDetails?.duration || ""}
                           onChange={(e) => setFormData(prev => ({
@@ -1433,7 +1435,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Distance</Label>
+                        <Label>{t.admin?.offerForm?.distance || "Distance"}</Label>
                         <Input
                           value={formData.transferDetails?.distance || ""}
                           onChange={(e) => setFormData(prev => ({
@@ -1453,7 +1455,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Car className="h-5 w-5" />
-                      Vehicle Options
+                      {t.admin?.offerForm?.vehicleOptions || "Vehicle Options"}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -1472,14 +1474,14 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                             value={option.type}
                             onChange={(e) => updateVehicleOption(index, "type", e.target.value)}
                             disabled={isViewMode}
-                            placeholder="Type (e.g., Sedan)"
+                            placeholder={t.admin?.offerForm?.vehicleType || "Type"}
                             className="rounded-sm bg-gray-50"
                           />
                           <Input
                             value={option.capacity}
                             onChange={(e) => updateVehicleOption(index, "capacity", e.target.value)}
                             disabled={isViewMode}
-                            placeholder="Capacity"
+                            placeholder={t.admin?.offerForm?.capacity || "Capacity"}
                             className="rounded-sm bg-gray-50"
                           />
                           <Input
@@ -1495,7 +1497,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                           value={option.features.join(", ")}
                           onChange={(e) => updateVehicleOption(index, "features", e.target.value.split(", ").filter(f => f))}
                           disabled={isViewMode}
-                          placeholder="Features (comma-separated)"
+                          placeholder={t.admin?.offerForm?.features || "Features"}
                           className="rounded-sm bg-gray-50"
                         />
                       </div>
@@ -1503,7 +1505,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                     {!isViewMode && (
                       <Button variant="outline" onClick={addVehicleOption} className="gap-2 rounded-sm">
                         <Plus className="h-4 w-4" />
-                        Add Vehicle Option
+                        {t.admin?.offerForm?.addOption || "Add Vehicle Option"}
                       </Button>
                     )}
                   </CardContent>
@@ -1523,11 +1525,11 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => router.push(backUrl)} className="gap-2 rounded-sm">
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t.admin?.offerForm?.backToList?.replace('{type}', getOfferTypeName()) || "Back"}
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              {isAddMode ? "Create" : isViewMode ? "View" : "Edit"} {getOfferTypeName()}
+              {isAddMode ? (t.admin?.offerForm?.create || "Create") : isViewMode ? (t.admin?.common?.view || "View") : (t.admin?.offerForm?.edit || "Edit")} {getOfferTypeName()}
             </h1>
             {!isAddMode && (
               <p className="text-sm text-muted-foreground">{formData.languages.en.title || "Untitled"}</p>
@@ -1539,11 +1541,11 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
             <>
               <Button variant="outline" onClick={handleEdit} className="gap-2 rounded-sm">
                 <Pencil className="h-4 w-4" />
-                Edit
+                {t.admin?.offerForm?.edit || "Edit"}
               </Button>
               <Button variant="destructive" onClick={handleDelete} className="gap-2 rounded-sm">
                 <Trash2 className="h-4 w-4" />
-                Delete
+                {t.admin?.offerForm?.delete || "Delete"}
               </Button>
             </>
           ) : (
@@ -1575,7 +1577,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
           <CardContent className="flex items-center gap-3 p-4">
             <AlertCircle className="h-5 w-5 text-destructive" />
             <div>
-              <p className="text-sm font-medium text-destructive">Error saving offer</p>
+              <p className="text-sm font-medium text-destructive">{t.admin?.offerForm?.errorSaving || "Error saving offer"}</p>
               <p className="text-xs text-destructive/80">{saveError}</p>
             </div>
           </CardContent>

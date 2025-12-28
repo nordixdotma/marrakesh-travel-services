@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { offersApi, adminApi, ApiError } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 interface Excursion {
   id: string
@@ -26,6 +27,7 @@ interface Excursion {
 }
 
 export default function AdminExcursionsPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [excursions, setExcursions] = useState<Excursion[]>([])
@@ -56,8 +58,8 @@ export default function AdminExcursionsPage() {
         
         setExcursions(transformedExcursions)
       } catch (err) {
-        const apiError = err as ApiError
-        setError(apiError.message || 'Failed to load excursions')
+        const apiError = err as any
+        setError(apiError.message || t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.offers?.titles?.excursions || 'excursions') || 'Failed to load excursions')
         console.error('Error fetching excursions:', err)
       } finally {
         setIsLoading(false)
@@ -100,7 +102,7 @@ export default function AdminExcursionsPage() {
       setIsDeleting(true)
       await adminApi.deleteExcursion(excursionToDelete)
       setExcursions(excursions.filter(excursion => excursion.id !== excursionToDelete))
-      toast.success('Excursion deleted successfully')
+      toast.success(t.admin?.common?.deleteSuccess || 'Excursion deleted successfully')
       setDeleteDialogOpen(false)
       setExcursionToDelete(null)
     } catch (err) {
@@ -118,9 +120,9 @@ export default function AdminExcursionsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Excursions</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t.admin?.offers?.titles?.excursions || "Excursions"}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your excursions. {isLoading ? 'Loading...' : `${excursions.length} total excursions.`}
+            {t.admin?.offers?.total?.replace('{count}', excursions.length.toString()).replace('{type}', t.admin?.offers?.titles?.excursions || 'excursions') || `Manage your excursions. ${isLoading ? 'Loading...' : `${excursions.length} total excursions.`}`}
           </p>
         </div>
         <Button onClick={handleCreate} className="gap-2 rounded-sm">
@@ -133,7 +135,7 @@ export default function AdminExcursionsPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search excursions..."
+          placeholder={t.admin?.offers?.search?.replace('{type}', t.admin?.offers?.titles?.excursions || 'excursions') || "Search excursions..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 rounded-sm bg-white"
@@ -146,7 +148,7 @@ export default function AdminExcursionsPage() {
           <CardContent className="flex items-center gap-3 p-4">
             <AlertCircle className="h-5 w-5 text-destructive" />
             <div>
-              <p className="text-sm font-medium text-destructive">Error loading excursions</p>
+              <p className="text-sm font-medium text-destructive">{t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.offers?.titles?.excursions || 'excursions') || "Error loading excursions"}</p>
               <p className="text-xs text-destructive/80">{error}</p>
             </div>
           </CardContent>
@@ -158,7 +160,7 @@ export default function AdminExcursionsPage() {
         <Card className="border-dashed rounded-sm bg-white">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-sm text-muted-foreground">Loading excursions...</p>
+            <p className="text-sm text-muted-foreground">{t.admin?.offers?.loading?.replace('{type}', t.admin?.offers?.titles?.excursions || 'excursions') || "Loading excursions..."}</p>
           </CardContent>
         </Card>
       )}
@@ -200,7 +202,7 @@ export default function AdminExcursionsPage() {
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-sm truncate">{offer.title || 'Untitled Excursion'}</h3>
+                <h3 className="font-medium text-sm truncate">{offer.title || (t.admin?.common?.untitled || 'Untitled')}</h3>
                 <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
@@ -253,11 +255,11 @@ export default function AdminExcursionsPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Compass className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No excursions found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.offers?.noFound?.replace('{type}', t.admin?.offers?.titles?.excursions || 'excursions') || "No excursions found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery
-                ? "No excursions match your search criteria. Try a different search term."
-                : "Your excursions will appear here once you start adding them to your catalog."}
+                ? (t.admin?.offers?.noResults?.replace('{type}', t.admin?.offers?.titles?.excursions || 'excursions') || "No excursions match your search criteria. Try a different search term.")
+                : (t.admin?.offers?.emptyState?.replace('{type}', t.admin?.offers?.titles?.excursions || 'excursions') || "Your excursions will appear here once you start adding them to your catalog.")}
             </p>
           </CardContent>
         </Card>
@@ -267,9 +269,9 @@ export default function AdminExcursionsPage() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px] rounded-sm">
           <DialogHeader>
-            <DialogTitle>Delete Excursion</DialogTitle>
+            <DialogTitle>{t.admin?.offers?.deleteTitle?.replace('{type}', t.admin?.pages?.excursions || 'Excursion') || "Delete Excursion"}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this excursion? This action cannot be undone.
+              {t.admin?.offers?.deleteConfirm?.replace('{type}', t.admin?.pages?.excursions || 'excursion') || "Are you sure you want to delete this excursion? This action cannot be undone."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -282,7 +284,7 @@ export default function AdminExcursionsPage() {
               disabled={isDeleting}
               className="rounded-sm"
             >
-              Cancel
+              {t.admin?.common?.cancel || "Cancel"}
             </Button>
             <Button
               variant="destructive"
@@ -293,10 +295,10 @@ export default function AdminExcursionsPage() {
               {isDeleting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
+                  {t.admin?.common?.deleting || "Deleting..."}
                 </>
               ) : (
-                'Delete'
+                t.admin?.common?.delete || 'Delete'
               )}
             </Button>
           </DialogFooter>

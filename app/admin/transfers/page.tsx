@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { adminApi, ApiError } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 interface Transfer {
   id: string
@@ -29,6 +30,7 @@ interface Transfer {
 }
 
 export default function AdminTransfersPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [transfers, setTransfers] = useState<Transfer[]>([])
@@ -47,8 +49,8 @@ export default function AdminTransfersPage() {
         setTransfers(response.transfers || [])
       } catch (err: any) {
         console.error('Error fetching transfers:', err)
-        setError(err.message || 'Failed to load transfers')
-        toast.error('Failed to load transfers', {
+        setError(err.message || t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.offers?.titles?.transfers || 'transfers') || 'Failed to load transfers')
+        toast.error(t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.offers?.titles?.transfers || 'transfers') || 'Failed to load transfers', {
           description: err.message || 'Please try again later',
         })
       } finally {
@@ -94,7 +96,7 @@ export default function AdminTransfersPage() {
       setIsDeleting(true)
       await adminApi.deleteTransfer(transferToDelete)
       setTransfers(transfers.filter(transfer => transfer.id !== transferToDelete))
-      toast.success('Transfer deleted successfully')
+      toast.success(t.admin?.common?.deleteSuccess || 'Transfer deleted successfully')
       setDeleteDialogOpen(false)
       setTransferToDelete(null)
     } catch (err) {
@@ -122,10 +124,10 @@ export default function AdminTransfersPage() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <Car className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading transfers</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">{t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.offers?.titles?.transfers || 'transfers') || "Error loading transfers"}</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
           <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
-            Retry
+            {t.admin?.common?.retry || "Retry"}
           </Button>
         </CardContent>
       </Card>
@@ -137,9 +139,9 @@ export default function AdminTransfersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Transfers</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t.admin?.offers?.titles?.transfers || "Transfers"}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your transfers. {transfers.length} total transfers.
+            {t.admin?.offers?.total?.replace('{count}', transfers.length.toString()).replace('{type}', t.admin?.offers?.titles?.transfers || 'transfers') || `Manage your transfers. ${transfers.length} total transfers.`}
           </p>
         </div>
         <Button onClick={handleCreate} className="gap-2 rounded-sm">
@@ -152,7 +154,7 @@ export default function AdminTransfersPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search transfers..."
+          placeholder={t.admin?.offers?.search?.replace('{type}', t.admin?.offers?.titles?.transfers || 'transfers') || "Search transfers..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 rounded-sm bg-white"
@@ -196,7 +198,7 @@ export default function AdminTransfersPage() {
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm truncate">{title}</h3>
+                  <h3 className="font-medium text-sm truncate">{title || (t.admin?.common?.untitled || 'Untitled')}</h3>
                   <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
@@ -247,11 +249,11 @@ export default function AdminTransfersPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Car className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No transfers found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.offers?.noFound?.replace('{type}', t.admin?.offers?.titles?.transfers || 'transfers') || "No transfers found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery
-                ? "No transfers match your search criteria. Try a different search term."
-                : "Your transfers will appear here once you start adding them to your catalog."}
+                ? (t.admin?.offers?.noResults?.replace('{type}', t.admin?.offers?.titles?.transfers || 'transfers') || "No transfers match your search criteria. Try a different search term.")
+                : (t.admin?.offers?.emptyState?.replace('{type}', t.admin?.offers?.titles?.transfers || 'transfers') || "Your transfers will appear here once you start adding them to your catalog.")}
             </p>
           </CardContent>
         </Card>
@@ -261,9 +263,9 @@ export default function AdminTransfersPage() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px] rounded-sm">
           <DialogHeader>
-            <DialogTitle>Delete Transfer</DialogTitle>
+            <DialogTitle>{t.admin?.offers?.deleteTitle?.replace('{type}', t.admin?.pages?.transfers || 'Transfer') || "Delete Transfer"}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this transfer? This action cannot be undone.
+              {t.admin?.offers?.deleteConfirm?.replace('{type}', t.admin?.pages?.transfers || 'transfer') || "Are you sure you want to delete this transfer? This action cannot be undone."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -276,7 +278,7 @@ export default function AdminTransfersPage() {
               disabled={isDeleting}
               className="rounded-sm"
             >
-              Cancel
+              {t.admin?.common?.cancel || "Cancel"}
             </Button>
             <Button
               variant="destructive"
@@ -287,10 +289,10 @@ export default function AdminTransfersPage() {
               {isDeleting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
+                  {t.admin?.common?.deleting || "Deleting..."}
                 </>
               ) : (
-                'Delete'
+                t.admin?.common?.delete || 'Delete'
               )}
             </Button>
           </DialogFooter>

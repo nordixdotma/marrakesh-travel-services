@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select"
 import { adminApi } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 type BookingStatus = "all" | "pending" | "confirmed" | "completed" | "cancelled"
 
@@ -48,6 +49,7 @@ interface Booking {
 }
 
 export default function AdminBookingsPage() {
+  const { t } = useLanguage()
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<BookingStatus>("all")
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -64,8 +66,8 @@ export default function AdminBookingsPage() {
         setBookings(response.bookings || [])
       } catch (err: any) {
         console.error('Error fetching bookings:', err)
-        setError(err.message || 'Failed to load bookings')
-        toast.error('Failed to load bookings', {
+        setError(err.message || t.admin?.bookings?.errorLoading || 'Failed to load bookings')
+        toast.error(t.admin?.bookings?.errorLoading || 'Failed to load bookings', {
           description: err.message || 'Please try again later',
         })
       } finally {
@@ -143,10 +145,10 @@ export default function AdminBookingsPage() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <CalendarCheck className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading bookings</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">{t.admin?.bookings?.errorLoading || "Error loading bookings"}</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
           <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
-            Retry
+            {t.admin?.dashboard?.retry || "Retry"}
           </Button>
         </CardContent>
       </Card>
@@ -157,9 +159,9 @@ export default function AdminBookingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t.admin?.bookings?.title || "Bookings"}</h1>
         <p className="text-sm text-muted-foreground">
-          Manage customer bookings and reservations. {bookings.length} total bookings.
+          {t.admin?.bookings?.description?.replace('{count}', String(bookings.length)) || `Manage customer bookings and reservations. ${bookings.length} total bookings.`}
         </p>
       </div>
 
@@ -168,7 +170,7 @@ export default function AdminBookingsPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search bookings..."
+            placeholder={t.admin?.bookings?.searchPlaceholder || "Search bookings..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 rounded-sm bg-white"
@@ -181,14 +183,14 @@ export default function AdminBookingsPage() {
             onValueChange={(value) => setStatusFilter(value as BookingStatus)}
           >
             <SelectTrigger className="w-[140px] bg-white">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t.admin?.common?.status || "Status"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="all">{t.admin?.bookings?.statusAll || "All Status"}</SelectItem>
+              <SelectItem value="pending">{t.admin?.bookings?.statusPending || "Pending"}</SelectItem>
+              <SelectItem value="confirmed">{t.admin?.bookings?.statusConfirmed || "Confirmed"}</SelectItem>
+              <SelectItem value="completed">{t.admin?.bookings?.statusCompleted || "Completed"}</SelectItem>
+              <SelectItem value="cancelled">{t.admin?.bookings?.statusCancelled || "Cancelled"}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -214,7 +216,7 @@ export default function AdminBookingsPage() {
                     {booking.affiliateCode && (
                       <div className="mt-2 flex items-center gap-2">
                         <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                          Affiliate: {booking.affiliateCode}
+                          {t.admin?.bookings?.affiliate || "Affiliate"}: {booking.affiliateCode}
                         </Badge>
                         {booking.affiliateName && (
                           <span className="text-xs text-muted-foreground">({booking.affiliateName})</span>
@@ -254,7 +256,7 @@ export default function AdminBookingsPage() {
                     <Link href={`/admin/bookings/${booking.id}`}>
                       <Button variant="outline" size="sm" className="gap-1 rounded-sm">
                         <Eye className="h-3.5 w-3.5" />
-                        Details
+                        {t.admin?.bookings?.details || "Details"}
                       </Button>
                     </Link>
                   </div>
@@ -269,11 +271,11 @@ export default function AdminBookingsPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <CalendarCheck className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No bookings found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.bookings?.noBookingsFound || "No bookings found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery || statusFilter !== "all"
-                ? "No bookings match your search criteria. Try different filters."
-                : "Customer bookings will appear here once you start receiving reservations."}
+                ? (t.admin?.bookings?.noMatch || "No bookings match your search criteria. Try different filters.")
+                : (t.admin?.bookings?.emptyState || "Customer bookings will appear here once you start receiving reservations.")}
             </p>
           </CardContent>
         </Card>

@@ -13,6 +13,7 @@ import {
   Package,
   X,
 } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -30,6 +31,7 @@ interface Offer {
 
 export default function CreatePromoCodePage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [loadingOffers, setLoadingOffers] = useState(true)
@@ -80,8 +82,8 @@ export default function CreatePromoCodePage() {
         setOffers(allOffers)
       } catch (err: any) {
         console.error('Error fetching offers:', err)
-        toast.error('Failed to load offers', {
-          description: err.message || 'Please try again later',
+        toast.error(t.admin?.promoCodes?.form?.noOffers || 'Failed to load offers', {
+          description: err.message || t.admin?.common?.errorOccurred || 'Please try again later',
         })
       } finally {
         setLoadingOffers(false)
@@ -98,21 +100,21 @@ export default function CreatePromoCodePage() {
     try {
       // Validate required fields
       if (!formData.code || !formData.discountValue || !formData.validFrom || !formData.validTo) {
-        throw new Error('Please fill in all required fields (Code, Discount Value, Valid From, Valid To)')
+        throw new Error(t.admin?.promoCodes?.form?.validationError || 'Please fill in all required fields (Code, Discount Value, Valid From, Valid To)')
       }
 
       if (formData.discountValue <= 0) {
-        throw new Error('Discount value must be greater than 0')
+        throw new Error(t.admin?.promoCodes?.form?.discountError || 'Discount value must be greater than 0')
       }
 
       if (formData.discountType === "PERCENTAGE" && formData.discountValue > 100) {
-        throw new Error('Percentage discount cannot exceed 100%')
+        throw new Error(t.admin?.promoCodes?.form?.percentageError || 'Percentage discount cannot exceed 100%')
       }
 
       const validFromDate = new Date(formData.validFrom)
       const validToDate = new Date(formData.validTo)
       if (validToDate <= validFromDate) {
-        throw new Error('Valid To date must be after Valid From date')
+        throw new Error(t.admin?.promoCodes?.form?.dateError || 'Valid To date must be after Valid From date')
       }
 
       const requestData = {
@@ -130,8 +132,8 @@ export default function CreatePromoCodePage() {
 
       await adminApi.createPromoCode(requestData)
 
-      toast.success('Promo code created successfully!', {
-        description: "The promo code has been added to your promotions.",
+      toast.success(t.admin?.promoCodes?.form?.successCreated || 'Promo code created successfully!', {
+        description: t.admin?.promoCodes?.form?.successCreatedDesc || "The promo code has been added to your promotions.",
         duration: 3000,
       })
       
@@ -140,9 +142,9 @@ export default function CreatePromoCodePage() {
       }, 500)
     } catch (error: any) {
       console.error('Error saving promo code:', error)
-      const errorMessage = error.message || 'Failed to save promo code. Please try again.'
+      const errorMessage = error.message || t.admin?.promoCodes?.form?.errorCreating || 'Failed to save promo code. Please try again.'
       setSaveError(errorMessage)
-      toast.error('Failed to save', {
+      toast.error(t.admin?.offerForm?.errorSaving || 'Failed to save', {
         description: errorMessage,
         duration: 5000,
       })
@@ -189,7 +191,7 @@ export default function CreatePromoCodePage() {
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => router.push("/admin/promo-codes")} className="gap-2 rounded-sm">
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t.admin?.common?.back || "Back"}
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Create Promo Code</h1>
@@ -197,7 +199,7 @@ export default function CreatePromoCodePage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => router.push("/admin/promo-codes")} className="rounded-sm bg-gray-50">
-            Cancel
+            {t.admin?.offerForm?.cancel || "Cancel"}
           </Button>
           <Button onClick={handleSave} className="gap-2 rounded-sm" disabled={isSaving}>
             {isSaving ? (
@@ -220,7 +222,7 @@ export default function CreatePromoCodePage() {
         <Card className="border-destructive/50 bg-destructive/10 rounded-sm">
           <CardContent className="flex items-center gap-3 p-4">
             <div>
-              <p className="text-sm font-medium text-destructive">Error creating promo code</p>
+              <p className="text-sm font-medium text-destructive">{t.admin?.promoCodes?.form?.errorCreating || "Error creating promo code"}</p>
               <p className="text-xs text-destructive/80">{saveError}</p>
             </div>
           </CardContent>
@@ -234,12 +236,12 @@ export default function CreatePromoCodePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Ticket className="h-5 w-5" />
-                Basic Information
+                {t.admin?.offerForm?.basicInfo || "Basic Information"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Promo Code *</Label>
+                <Label>{t.admin?.promoCodes?.form?.code || "Promo Code"} *</Label>
                 <Input
                   value={formData.code}
                   onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
@@ -251,7 +253,7 @@ export default function CreatePromoCodePage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Discount Type *</Label>
+                <Label>{t.admin?.promoCodes?.form?.discountType || "Discount Type"} *</Label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -263,7 +265,7 @@ export default function CreatePromoCodePage() {
                       className="rounded-sm"
                     />
                     <Percent className="h-4 w-4" />
-                    <span>Percentage</span>
+                    <span>{t.admin?.promoCodes?.form?.percentage || "Percentage"}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -275,14 +277,14 @@ export default function CreatePromoCodePage() {
                       className="rounded-sm"
                     />
                     <DollarSign className="h-4 w-4" />
-                    <span>Fixed Amount</span>
+                    <span>{t.admin?.promoCodes?.form?.fixedAmount || "Fixed Amount"}</span>
                   </label>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label>
-                  Discount Value * {formData.discountType === "PERCENTAGE" ? "(%)" : "(MAD)"}
+                  {t.admin?.promoCodes?.form?.discountValue || "Discount Value"} * {formData.discountType === "PERCENTAGE" ? "(%)" : "(MAD)"}
                 </Label>
                 <Input
                   type="number"
@@ -298,7 +300,7 @@ export default function CreatePromoCodePage() {
 
               {formData.discountType === "PERCENTAGE" && (
                 <div className="space-y-2">
-                  <Label>Maximum Discount (MAD) - Optional</Label>
+                  <Label>{t.admin?.promoCodes?.form?.maxDiscount || "Maximum Discount (MAD) - Optional"}</Label>
                   <Input
                     type="number"
                     value={formData.maxDiscount}
@@ -313,7 +315,7 @@ export default function CreatePromoCodePage() {
               )}
 
               <div className="space-y-2">
-                <Label>Minimum Purchase (MAD) - Optional</Label>
+                <Label>{t.admin?.promoCodes?.form?.minPurchase || "Minimum Purchase (MAD) - Optional"}</Label>
                 <Input
                   type="number"
                   value={formData.minPurchase}
@@ -332,13 +334,13 @@ export default function CreatePromoCodePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Validity Period
+                {t.admin?.promoCodes?.form?.validityPeriod || "Validity Period"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Valid From *</Label>
+                  <Label>{t.admin?.promoCodes?.form?.validFrom || "Valid From"} *</Label>
                   <Input
                     type="datetime-local"
                     value={formData.validFrom}
@@ -347,7 +349,7 @@ export default function CreatePromoCodePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Valid To *</Label>
+                  <Label>{t.admin?.promoCodes?.form?.validTo || "Valid To"} *</Label>
                   <Input
                     type="datetime-local"
                     value={formData.validTo}
@@ -361,11 +363,11 @@ export default function CreatePromoCodePage() {
 
           <Card className="rounded-sm bg-white">
             <CardHeader>
-              <CardTitle>Usage Limits</CardTitle>
+              <CardTitle>{t.admin?.promoCodes?.form?.usageLimits || "Usage Limits"}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Usage Limit - Optional</Label>
+                <Label>{t.admin?.promoCodes?.form?.usageLimit || "Usage Limit - Optional"}</Label>
                 <Input
                   type="number"
                   value={formData.usageLimit}
@@ -385,7 +387,9 @@ export default function CreatePromoCodePage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                   className="rounded-sm"
                 />
-                <Label htmlFor="isActive" className="cursor-pointer">Active (promo code is enabled)</Label>
+                <Label htmlFor="isActive" className="cursor-pointer">
+                  {t.admin?.promoCodes?.form?.activeLabel || "Active (promo code is enabled)"}
+                </Label>
               </div>
             </CardContent>
           </Card>
@@ -398,7 +402,7 @@ export default function CreatePromoCodePage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
-                  Link to Offers
+                  {t.admin?.promoCodes?.form?.linkOffers || "Link to Offers"}
                 </CardTitle>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={selectAllOffers} className="rounded-sm text-xs">
@@ -451,7 +455,7 @@ export default function CreatePromoCodePage() {
               {formData.selectedOfferIds.length > 0 && (
                 <div className="pt-4 border-t">
                   <p className="text-sm text-muted-foreground">
-                    {formData.selectedOfferIds.length} offer{formData.selectedOfferIds.length !== 1 ? 's' : ''} selected
+                    {t.admin?.promoCodes?.form?.selectedCount?.replace('{count}', formData.selectedOfferIds.length.toString()) || `${formData.selectedOfferIds.length} offer(s) selected`}
                   </p>
                 </div>
               )}

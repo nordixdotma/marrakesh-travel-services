@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { adminApi, ApiError } from "@/lib/api"
 import { toast } from "sonner"
+import { useLanguage } from "@/components/language-provider"
 
 interface PackageData {
   id: string
@@ -26,6 +27,7 @@ interface PackageData {
 }
 
 export default function AdminPackagesPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [packages, setPackages] = useState<PackageData[]>([])
@@ -44,8 +46,8 @@ export default function AdminPackagesPage() {
         setPackages(response.packages || [])
       } catch (err: any) {
         console.error('Error fetching packages:', err)
-        setError(err.message || 'Failed to load packages')
-        toast.error('Failed to load packages', {
+        setError(err.message || t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.offers?.titles?.packages || 'packages') || 'Failed to load packages')
+        toast.error(t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.offers?.titles?.packages || 'packages') || 'Failed to load packages', {
           description: err.message || 'Please try again later',
         })
       } finally {
@@ -89,7 +91,7 @@ export default function AdminPackagesPage() {
       setIsDeleting(true)
       await adminApi.deletePackage(packageToDelete)
       setPackages(packages.filter(pkg => pkg.id !== packageToDelete))
-      toast.success('Package deleted successfully')
+      toast.success(t.admin?.common?.deleteSuccess || 'Package deleted successfully')
       setDeleteDialogOpen(false)
       setPackageToDelete(null)
     } catch (err) {
@@ -117,10 +119,10 @@ export default function AdminPackagesPage() {
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
             <Package className="h-8 w-8 text-destructive" />
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-destructive">Error loading packages</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">{t.admin?.offers?.errorLoading?.replace('{type}', t.admin?.offers?.titles?.packages || 'packages') || "Error loading packages"}</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">{error}</p>
           <Button onClick={() => window.location.reload()} variant="outline" className="rounded-sm">
-            Retry
+            {t.admin?.common?.retry || "Retry"}
           </Button>
         </CardContent>
       </Card>
@@ -132,14 +134,14 @@ export default function AdminPackagesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Packages</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t.admin?.offers?.titles?.packages || "Packages"}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your packages. {packages.length} total packages.
+            {t.admin?.offers?.total?.replace('{count}', packages.length.toString()).replace('{type}', t.admin?.offers?.titles?.packages || 'packages') || `Manage your packages. ${packages.length} total packages.`}
           </p>
         </div>
         <Button onClick={handleCreate} className="gap-2 rounded-sm">
           <Plus className="h-4 w-4" />
-          Create Package
+          {t.admin?.common?.create || "Create"} {t.admin?.offers?.titles?.package || "Package"}
         </Button>
       </div>
 
@@ -147,7 +149,7 @@ export default function AdminPackagesPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search packages..."
+          placeholder={t.admin?.offers?.search?.replace('{type}', t.admin?.offers?.titles?.packages || 'packages') || "Search packages..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 rounded-sm bg-white"
@@ -211,7 +213,7 @@ export default function AdminPackagesPage() {
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm truncate">{title}</h3>
+                  <h3 className="font-medium text-sm truncate">{title || (t.admin?.common?.untitled || 'Untitled')}</h3>
                   <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
@@ -262,11 +264,11 @@ export default function AdminPackagesPage() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Package className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No packages found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.admin?.offers?.noFound?.replace('{type}', t.admin?.offers?.titles?.packages || 'packages') || "No packages found"}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery
-                ? "No packages match your search criteria. Try a different search term."
-                : "Your packages will appear here once you start adding them to your catalog."}
+                ? (t.admin?.offers?.noResults?.replace('{type}', t.admin?.offers?.titles?.packages || 'packages') || "No packages match your search criteria. Try a different search term.")
+                : (t.admin?.offers?.emptyState?.replace('{type}', t.admin?.offers?.titles?.packages || 'packages') || "Your packages will appear here once you start adding them to your catalog.")}
             </p>
           </CardContent>
         </Card>
@@ -276,9 +278,9 @@ export default function AdminPackagesPage() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px] rounded-sm">
           <DialogHeader>
-            <DialogTitle>Delete Package</DialogTitle>
+            <DialogTitle>{t.admin?.offers?.deleteTitle?.replace('{type}', t.admin?.pages?.packages || 'Package') || "Delete Package"}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this package? This action cannot be undone.
+              {t.admin?.offers?.deleteConfirm?.replace('{type}', t.admin?.pages?.packages || 'package') || "Are you sure you want to delete this package? This action cannot be undone."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -291,7 +293,7 @@ export default function AdminPackagesPage() {
               disabled={isDeleting}
               className="rounded-sm"
             >
-              Cancel
+              {t.admin?.common?.cancel || "Cancel"}
             </Button>
             <Button
               variant="destructive"
@@ -302,10 +304,10 @@ export default function AdminPackagesPage() {
               {isDeleting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
+                  {t.admin?.common?.deleting || "Deleting..."}
                 </>
               ) : (
-                'Delete'
+                t.admin?.common?.delete || 'Delete'
               )}
             </Button>
           </DialogFooter>

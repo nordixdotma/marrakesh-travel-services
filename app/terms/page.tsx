@@ -8,9 +8,11 @@ import { Container } from "@/components/ui/container"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 import { useLanguage } from "@/components/language-provider"
+import { useSiteSettings } from "@/hooks/use-site-settings"
 
 export default function TermsPage() {
   const { t } = useLanguage()
+  const { settings } = useSiteSettings()
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
 
   const sections = [

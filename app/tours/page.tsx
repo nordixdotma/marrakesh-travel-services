@@ -12,6 +12,7 @@ import { type Offer } from "@/lib/offers-data"
 import { useLanguage } from "@/components/language-provider"
 import { offersApi, type ApiError } from "@/lib/api"
 import { Loader2 } from "lucide-react"
+import { useSiteSettings } from "@/hooks/use-site-settings"
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 
@@ -21,6 +22,7 @@ function ToursContent() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const cityParam = searchParams.get('city')
+  const { settings } = useSiteSettings()
   
   const pageType = "tours"
   const [allOffers, setAllOffers] = useState<Offer[]>([])
@@ -164,7 +166,10 @@ function ToursContent() {
   return (
     <main className="w-full">
       <Header />
-      <PageHero title={t.pageHero.tours} backgroundImage="https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
+      <PageHero 
+        title={t.pageHero.tours} 
+        backgroundImage={settings.hero_tours || "https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"} 
+      />
 
       <section className="py-6 md:py-12 bg-gray-50">
         <Container className="max-w-6xl px-2 md:px-4">

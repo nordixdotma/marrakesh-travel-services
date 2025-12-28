@@ -109,7 +109,7 @@ export default function SupportPage() {
             </p>
           </div>
           <a
-            href="https://wa.me/212661044503"
+            href={`https://wa.me/${settings.whatsapp_number || '212661044503'}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-medium transition-colors shrink-0"

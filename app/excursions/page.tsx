@@ -12,6 +12,7 @@ import { type Offer } from "@/lib/offers-data"
 import { useLanguage } from "@/components/language-provider"
 import { offersApi, type ApiError } from "@/lib/api"
 import { Loader2 } from "lucide-react"
+import { useSiteSettings } from "@/hooks/use-site-settings"
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 
@@ -21,6 +22,7 @@ function ExcursionsContent() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const cityParam = searchParams.get('city')
+  const { settings } = useSiteSettings()
   
   const pageType = "excursions"
   const [allOffers, setAllOffers] = useState<Offer[]>([])

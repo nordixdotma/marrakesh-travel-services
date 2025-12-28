@@ -436,6 +436,170 @@ export const adminApi = {
       booking: any
     }>(`/admin/bookings/${id}/status`, { status })
   },
+  // Team management (SUPER_ADMIN only)
+  getTeamMembers: async (limit: number = 100, offset: number = 0) => {
+    const client = new ApiClient()
+    const params = new URLSearchParams()
+    params.append('limit', limit.toString())
+    params.append('offset', offset.toString())
+    return client.get<{
+      teamMembers: Array<{
+        id: string
+        username: string
+        email: string
+        role: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR'
+        last_login: string | null
+        created_at: string
+        permissions: Array<{
+          page: string
+          can_read: boolean
+          can_write: boolean
+          can_delete: boolean
+        }>
+      }>
+      total: number
+      limit: number
+      offset: number
+    }>(`/admin/team?${params.toString()}`)
+  },
+  getTeamMemberById: async (id: string) => {
+    const client = new ApiClient()
+    return client.get<{
+      teamMember: {
+        id: string
+        username: string
+        email: string
+        role: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR'
+        last_login: string | null
+        created_at: string
+        permissions: Array<{
+          page: string
+          can_read: boolean
+          can_write: boolean
+          can_delete: boolean
+        }>
+      }
+    }>(`/admin/team/${id}`)
+  },
+  createTeamMember: async (data: {
+    username: string
+    email: string
+    password: string
+    permissions?: Array<{
+      page: string
+      can_read: boolean
+      can_write: boolean
+      can_delete: boolean
+    }>
+  }) => {
+    const client = new ApiClient()
+    return client.post<{
+      message: string
+      teamMember: {
+        id: string
+        username: string
+        email: string
+        role: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR'
+        created_at: string
+        permissions: Array<{
+          page: string
+          can_read: boolean
+          can_write: boolean
+          can_delete: boolean
+        }>
+      }
+    }>('/admin/team', data)
+  },
+  updateTeamMember: async (id: string, data: {
+    username?: string
+    email?: string
+    password?: string
+    permissions?: Array<{
+      page: string
+      can_read: boolean
+      can_write: boolean
+      can_delete: boolean
+    }>
+  }) => {
+    const client = new ApiClient()
+    return client.patch<{
+      message: string
+      teamMember: {
+        id: string
+        username: string
+        email: string
+        role: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR'
+        last_login: string | null
+        created_at: string
+        permissions: Array<{
+          page: string
+          can_read: boolean
+          can_write: boolean
+          can_delete: boolean
+        }>
+      }
+    }>(`/admin/team/${id}`, data)
+  },
+  deleteTeamMember: async (id: string) => {
+    const client = new ApiClient()
+    return client.delete<{ message: string }>(`/admin/team/${id}`)
+  },
+  // Get current admin's permissions
+  getMyPermissions: async () => {
+    const client = new ApiClient()
+    return client.get<{
+      admin: {
+        id: string
+        username: string
+        email: string
+        role: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR'
+      }
+      permissions: Array<{
+        page: string
+        can_read: boolean
+        can_write: boolean
+        can_delete: boolean
+      }>
+    }>('/admin/me/permissions')
+  },
+  // Site Settings
+  getSiteSettings: async () => {
+    const client = new ApiClient()
+    return client.get<{
+      settings: Record<string, string>
+    }>('/settings')
+  },
+  getAllSiteSettings: async () => {
+    const client = new ApiClient()
+    return client.get<{
+      settings: Array<{
+        id: string
+        setting_key: string
+        setting_value: string | null
+        description: string | null
+        created_at: string
+        updated_at: string
+      }>
+    }>('/admin/settings')
+  },
+  updateSiteSettings: async (settings: Array<{
+    setting_key: string
+    setting_value?: string
+    description?: string
+  }>) => {
+    const client = new ApiClient()
+    return client.patch<{
+      message: string
+      settings: Array<{
+        id: string
+        setting_key: string
+        setting_value: string | null
+        description: string | null
+        created_at: string
+        updated_at: string
+      }>
+    }>('/admin/settings', { settings })
+  },
 }
 
 // Booking API methods

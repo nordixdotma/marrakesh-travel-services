@@ -8,9 +8,11 @@ import AboutUs from "@/components/about-us"
 import { Container } from "@/components/ui/container"
 import { MapPin, Users, Award, Heart, CheckCircle, Globe, Zap, ArrowRight } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
+import { useSiteSettings } from "@/hooks/use-site-settings"
 
 export default function AboutPage() {
   const { t } = useLanguage()
+  const { settings } = useSiteSettings()
 
   const values = [
     {

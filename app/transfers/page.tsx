@@ -11,6 +11,7 @@ import { useLanguage } from "@/components/language-provider"
 import { type Offer } from "@/lib/offers-data"
 import { offersApi, type ApiError } from "@/lib/api"
 import { Loader2 } from "lucide-react"
+import { useSiteSettings } from "@/hooks/use-site-settings"
 import SearchFilter, { type Filters } from "@/components/search-filter"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 
@@ -20,6 +21,7 @@ function TransfersContent() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const cityParam = searchParams.get('city')
+  const { settings } = useSiteSettings()
   
   const pageType = "transfers"
   const [allOffers, setAllOffers] = useState<Offer[]>([])
@@ -175,7 +177,7 @@ function TransfersContent() {
         <Header />
         <PageHero
           title={t.pageHero.transfers}
-          backgroundImage="https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          backgroundImage={settings.hero_transfers || "https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
         />
         <section className="py-6 md:py-12 bg-gray-50">
           <Container className="max-w-6xl px-2 md:px-4">
@@ -196,7 +198,7 @@ function TransfersContent() {
         <Header />
         <PageHero
           title={t.pageHero.transfers}
-          backgroundImage="https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          backgroundImage={settings.hero_transfers || "https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
         />
         <section className="py-6 md:py-12 bg-gray-50">
           <Container className="max-w-6xl px-2 md:px-4">

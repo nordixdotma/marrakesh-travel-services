@@ -10,9 +10,11 @@ import { Container } from "@/components/ui/container"
 import { Phone, Mail, MapPin, Clock, Send, MessageCircle, ArrowRight } from "lucide-react"
 import { useState } from "react"
 import { useLanguage } from "@/components/language-provider"
+import { useSiteSettings } from "@/hooks/use-site-settings"
 
 export default function ContactPage() {
   const { t } = useLanguage()
+  const { settings } = useSiteSettings()
   
   const [formData, setFormData] = useState({
     name: "",

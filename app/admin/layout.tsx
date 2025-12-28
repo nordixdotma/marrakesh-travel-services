@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, createContext, useContext } from "react"
+import { useState, useEffect, createContext, useContext, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
@@ -21,14 +21,24 @@ import {
   Package,
   Users2,
   Ticket,
+  Shield,
+  Settings,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { adminApi } from "@/lib/api"
 
 
 // Auth Context
 interface AdminAuthContextType {
   isAuthenticated: boolean
   logout: () => void
+}
+
+interface Permission {
+  page: string
+  can_read: boolean
+  can_write: boolean
+  can_delete: boolean
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined)
@@ -48,25 +58,31 @@ interface NavItem {
   badge?: number
 }
 
-const navItems: NavItem[] = [
-  { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-  { title: "Tours", href: "/admin/tours", icon: Map },
-  { title: "Excursions", href: "/admin/excursions", icon: Compass },
-  { title: "Activities", href: "/admin/activities", icon: Activity },
-  { title: "Transfers", href: "/admin/transfers", icon: Car },
-  { title: "Packages", href: "/admin/packages", icon: Package },
-  { title: "Bookings", href: "/admin/bookings", icon: CalendarCheck },
-  { title: "Payments", href: "/admin/payments", icon: CreditCard },
-  { title: "Users", href: "/admin/users", icon: Users },
-  { title: "Reviews", href: "/admin/reviews", icon: Star },
-  { title: "Affiliates", href: "/admin/affiliates", icon: Users2 },
-  { title: "Promo Codes", href: "/admin/promo-codes", icon: Ticket },
-]
+// Map of page identifiers to navigation items
+const pageToNavItem: Record<string, NavItem> = {
+  'dashboard': { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  'tours': { title: "Tours", href: "/admin/tours", icon: Map },
+  'excursions': { title: "Excursions", href: "/admin/excursions", icon: Compass },
+  'activities': { title: "Activities", href: "/admin/activities", icon: Activity },
+  'transfers': { title: "Transfers", href: "/admin/transfers", icon: Car },
+  'packages': { title: "Packages", href: "/admin/packages", icon: Package },
+  'bookings': { title: "Bookings", href: "/admin/bookings", icon: CalendarCheck },
+  'payments': { title: "Payments", href: "/admin/payments", icon: CreditCard },
+  'users': { title: "Users", href: "/admin/users", icon: Users },
+  'reviews': { title: "Reviews", href: "/admin/reviews", icon: Star },
+  'affiliates': { title: "Affiliates", href: "/admin/affiliates", icon: Users2 },
+  'promo-codes': { title: "Promo Codes", href: "/admin/promo-codes", icon: Ticket },
+  'team': { title: "Team", href: "/admin/team", icon: Shield },
+  'settings': { title: "Settings", href: "/admin/settings", icon: Settings },
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [permissions, setPermissions] = useState<Permission[]>([])
+  const [adminRole, setAdminRole] = useState<'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR' | null>(null)
+  const [permissionsLoading, setPermissionsLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -119,6 +135,51 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       router.push("/admin/login")
     }
   }, [isAuthenticated, isLoading, isLoginPage, router])
+
+  // Fetch admin permissions when authenticated
+  useEffect(() => {
+    const fetchPermissions = async () => {
+      if (!isAuthenticated || isLoginPage) {
+        setPermissionsLoading(false)
+        return
+      }
+
+      try {
+        setPermissionsLoading(true)
+        const response = await adminApi.getMyPermissions()
+        setPermissions(response.permissions || [])
+        setAdminRole(response.admin.role)
+      } catch (error) {
+        console.error('Failed to fetch permissions:', error)
+        // On error, show all items (fallback to allow access)
+        setPermissions([])
+        setAdminRole(null)
+      } finally {
+        setPermissionsLoading(false)
+      }
+    }
+
+    fetchPermissions()
+  }, [isAuthenticated, isLoginPage])
+
+  // Filter navigation items based on permissions
+  const filteredNavItems = useMemo(() => {
+    // SUPER_ADMIN sees everything
+    if (adminRole === 'SUPER_ADMIN') {
+      return Object.values(pageToNavItem)
+    }
+
+    // For other admins, filter based on read permissions
+    const allowedPages = new Set(
+      permissions
+        .filter(p => p.can_read)
+        .map(p => p.page)
+    )
+
+    return Object.entries(pageToNavItem)
+      .filter(([page]) => allowedPages.has(page))
+      .map(([_, navItem]) => navItem)
+  }, [permissions, adminRole])
 
   const logout = () => {
     setIsAuthenticated(false)
@@ -189,35 +250,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           {/* Navigation */}
           <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100%-4rem-4.5rem)]">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={cn(
-                    "flex items-center justify-between px-3 py-2 rounded-sm transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground font-medium"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.title}</span>
-                  </div>
-                  {item.badge && (
-                    <span className={cn(
-                      "text-xs px-2 py-0.5 rounded-sm font-medium",
-                      isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary"
-                    )}>
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              )
-            })}
+            {permissionsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="h-4 w-4 border-2 border-primary border-r-transparent rounded-full animate-spin" />
+              </div>
+            ) : (
+              filteredNavItems.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center justify-between px-3 py-2 rounded-sm transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground font-medium"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.title}</span>
+                    </div>
+                    {item.badge && (
+                      <span className={cn(
+                        "text-xs px-2 py-0.5 rounded-sm font-medium",
+                        isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary"
+                      )}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })
+            )}
           </nav>
 
           {/* Sidebar Footer */}

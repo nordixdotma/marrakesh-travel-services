@@ -19,7 +19,8 @@ export const generateVoucherPDF = async (data: VoucherData) => {
 
   // =============== COLOR PALETTE ===============
   const colors = {
-    gold: [191, 155, 48] as const,      // #BF9B30 - Primary Gold
+    primary: [44, 56, 99] as const,     // #2c3863 - Website Primary Blue
+    secondary: [250, 195, 96] as const, // #fac360 - Website Secondary Gold
     darkGray: [31, 41, 55] as const,    // #1F2937 - Dark text
     lightGray: [107, 114, 128] as const, // #6B7280 - Muted text
     borderGray: [229, 231, 235] as const, // #E5E7EB - Borders
@@ -52,58 +53,52 @@ export const generateVoucherPDF = async (data: VoucherData) => {
     const s = status?.toLowerCase()
     if (s === 'confirmed' || s === 'completed') return colors.green
     if (s === 'pending') return colors.orange
-    return colors.darkGray
+    return colors.primary
   }
 
   // =============== HEADER SECTION ===============
-  const headerHeight = 50
+  const headerHeight = 35
   
-  // Header background with gradient effect
-  setColor(colors.darkGray, 'fill')
+  // Header background
+  setColor(colors.primary, 'fill')
   doc.rect(0, 0, pageWidth, headerHeight, "F")
   
-  // Gold accent bar
-  setColor(colors.gold, 'fill')
-  doc.rect(0, headerHeight - 4, pageWidth, 4, "F")
+  // Secondary accent bar at the bottom of header
+  setColor(colors.secondary, 'fill')
+  doc.rect(0, headerHeight - 2, pageWidth, 2, "F")
 
   // Logo area
   try {
-    doc.addImage("/logo.png", "PNG", margin, 8, 32, 32)
+    doc.addImage("/logo.png", "PNG", margin, 5, 25, 25)
   } catch {
     // Fallback text logo
     setColor(colors.white)
-    doc.setFontSize(24)
+    doc.setFontSize(20)
     doc.setFont("helvetica", "bold")
-    doc.text("MTS", margin, 24)
+    doc.text("MTS", margin, 18)
   }
 
-  // Company name and tagline
+  // Company info
   setColor(colors.white)
-  doc.setFontSize(14)
+  doc.setFontSize(12)
   doc.setFont("helvetica", "bold")
-  doc.text("Marrakesh Travel Services", margin + 38, 20)
+  doc.text("Marrakesh Travel Services", margin + 30, 15)
   
-  setColor(colors.gold)
-  doc.setFontSize(9)
+  setColor(colors.secondary)
+  doc.setFontSize(8)
   doc.setFont("helvetica", "normal")
-  doc.text("www.marrakechtravelservices.com", margin + 38, 28)
+  doc.text("www.marrakeshtravelservices.com", margin + 30, 22)
 
-  // Voucher badge (right side)
-  const badgeWidth = 50
-  const badgeX = pageWidth - margin - badgeWidth
-  setColor(colors.gold, 'fill')
-  doc.roundedRect(badgeX, 10, badgeWidth, 18, 3, 3, "F")
-  setColor(colors.darkGray)
-  doc.setFontSize(11)
-  doc.setFont("helvetica", "bold")
-  doc.text(vt.title.toUpperCase(), badgeX + (badgeWidth / 2), 21, { align: 'center' })
-
-  // Date generated
+  // Date generated & Voucher Title (Clean text instead of badge)
   setColor(colors.white)
   doc.setFontSize(8)
   doc.setFont("helvetica", "normal")
   const downloadDate = new Date().toLocaleDateString()
-  doc.text(`${t.header?.downloadDate || 'Generated'}: ${downloadDate}`, pageWidth - margin, 36, { align: 'right' })
+  doc.text(`${t.header?.downloadDate || 'Generated'}: ${downloadDate}`, pageWidth - margin, 27, { align: 'right' })
+  
+  doc.setFontSize(14)
+  doc.setFont("helvetica", "bold")
+  doc.text(vt.title.toUpperCase(), pageWidth - margin, 18, { align: 'right' })
 
   currentY = headerHeight + 10
 
@@ -147,7 +142,7 @@ export const generateVoucherPDF = async (data: VoucherData) => {
   currentY += 28
 
   // =============== SERVICE DETAILS SECTION ===============
-  setColor(colors.gold)
+  setColor(colors.secondary)
   doc.setFontSize(10)
   doc.setFont("helvetica", "bold")
   doc.text(vt.serviceInfo?.toUpperCase() || 'SERVICE INFORMATION', margin, currentY)
@@ -155,23 +150,22 @@ export const generateVoucherPDF = async (data: VoucherData) => {
   currentY += 6
 
   // Offer Title
-  setColor(colors.darkGray)
+  setColor(colors.primary)
   doc.setFontSize(16)
   doc.setFont("helvetica", "bold")
   const titleLines = doc.splitTextToSize(offer.title || offer.name || "Experience", contentWidth - 10)
   doc.text(titleLines, margin, currentY + 5)
   currentY += (titleLines.length * 7) + 5
 
-  // Offer Description (if available)
-  if (offer.description) {
-    setColor(colors.lightGray)
-    doc.setFontSize(9)
+  // Offer Overview/Description
+  const overview = offer.detailedDescription?.overview || offer.description
+  if (overview) {
+    setColor(colors.darkGray)
+    doc.setFontSize(10)
     doc.setFont("helvetica", "normal")
-    const descLines = doc.splitTextToSize(offer.description, contentWidth - 10)
-    // Limit to 3 lines max
-    const limitedDesc = descLines.slice(0, 3)
-    doc.text(limitedDesc, margin, currentY)
-    currentY += (limitedDesc.length * 4) + 4
+    const overviewLines = doc.splitTextToSize(overview, contentWidth - 10)
+    doc.text(overviewLines, margin, currentY)
+    currentY += (overviewLines.length * 5) + 6
   }
 
   // Service Quick Info Row
@@ -215,22 +209,16 @@ export const generateVoucherPDF = async (data: VoucherData) => {
     doc.setFontSize(8)
     doc.setFont("helvetica", "normal")
     
-    const maxItems = 5
-    const includedToShow = offer.includedItems.slice(0, maxItems)
-    includedToShow.forEach((item: string) => {
-      const truncatedItem = item.length > 40 ? item.substring(0, 37) + '...' : item
-      doc.text(`• ${truncatedItem}`, margin + 2, currentY + 4)
-      currentY += 4
+    offer.includedItems.forEach((item: string, idx: number) => {
+      // Split item text if it's too long
+      const itemLines = doc.splitTextToSize(`• ${item}`, contentWidth - 20)
+      doc.text(itemLines, margin + 2, currentY + 4)
+      currentY += (itemLines.length * 4)
     })
-    if (offer.includedItems.length > maxItems) {
-      setColor(colors.lightGray)
-      doc.text(`  +${offer.includedItems.length - maxItems} more...`, margin + 2, currentY + 4)
-      currentY += 4
-    }
     currentY += 4
   }
 
-  // Excluded Items (compact)
+  // Excluded Items
   if (offer.excludedItems && offer.excludedItems.length > 0) {
     setColor(colors.orange)
     doc.setFontSize(9)
@@ -242,19 +230,17 @@ export const generateVoucherPDF = async (data: VoucherData) => {
     doc.setFontSize(8)
     doc.setFont("helvetica", "normal")
     
-    const maxItems = 3
-    const excludedToShow = offer.excludedItems.slice(0, maxItems)
-    excludedToShow.forEach((item: string) => {
-      const truncatedItem = item.length > 40 ? item.substring(0, 37) + '...' : item
-      doc.text(`• ${truncatedItem}`, margin + 2, currentY + 4)
-      currentY += 4
+    offer.excludedItems.forEach((item: string) => {
+      const itemLines = doc.splitTextToSize(`• ${item}`, contentWidth - 20)
+      doc.text(itemLines, margin + 2, currentY + 4)
+      currentY += (itemLines.length * 4)
     })
     currentY += 4
   }
 
-  // Highlights (if available)
+  // Highlights
   if (offer.detailedDescription?.highlights && offer.detailedDescription.highlights.length > 0) {
-    setColor(colors.gold)
+    setColor(colors.primary)
     doc.setFontSize(9)
     doc.setFont("helvetica", "bold")
     doc.text('★ ' + (t.offerDetails?.highlights || 'Highlights'), margin, currentY)
@@ -264,12 +250,10 @@ export const generateVoucherPDF = async (data: VoucherData) => {
     doc.setFontSize(8)
     doc.setFont("helvetica", "normal")
     
-    const maxHighlights = 4
-    const highlightsToShow = offer.detailedDescription.highlights.slice(0, maxHighlights)
-    highlightsToShow.forEach((highlight: string) => {
-      const truncatedHighlight = highlight.length > 50 ? highlight.substring(0, 47) + '...' : highlight
-      doc.text(`• ${truncatedHighlight}`, margin + 2, currentY + 4)
-      currentY += 4
+    offer.detailedDescription.highlights.forEach((highlight: string) => {
+      const hLines = doc.splitTextToSize(`• ${highlight}`, contentWidth - 20)
+      doc.text(hLines, margin + 2, currentY + 4)
+      currentY += (hLines.length * 4)
     })
     currentY += 4
   }
@@ -281,7 +265,7 @@ export const generateVoucherPDF = async (data: VoucherData) => {
   const twoColStart = currentY
 
   // Guest Info (Left Column)
-  setColor(colors.gold)
+  setColor(colors.secondary)
   doc.setFontSize(10)
   doc.setFont("helvetica", "bold")
   doc.text(vt.guestInfo?.toUpperCase() || 'GUEST INFORMATION', margin, currentY)
@@ -309,7 +293,7 @@ export const generateVoucherPDF = async (data: VoucherData) => {
   let rightColY = twoColStart
   const rightColX = margin + halfWidth + 10
 
-  setColor(colors.gold)
+  setColor(colors.secondary)
   doc.setFontSize(10)
   doc.setFont("helvetica", "bold")
   doc.text(vt.groupSize?.toUpperCase() || 'GROUP SIZE', rightColX, rightColY)
@@ -345,7 +329,7 @@ export const generateVoucherPDF = async (data: VoucherData) => {
   currentY += 8
 
   // =============== PAYMENT SUMMARY ===============
-  setColor(colors.gold)
+  setColor(colors.secondary)
   doc.setFontSize(10)
   doc.setFont("helvetica", "bold")
   doc.text(vt.paymentInfo?.toUpperCase() || 'PAYMENT SUMMARY', margin, currentY)
@@ -393,7 +377,7 @@ export const generateVoucherPDF = async (data: VoucherData) => {
   doc.setFontSize(11)
   doc.setFont("helvetica", "bold")
   doc.text(vt.totalPrice || 'TOTAL', margin + 6, priceY)
-  setColor(colors.gold)
+  setColor(colors.secondary)
   doc.setFontSize(14)
   doc.setFont("helvetica", "bold")
   const totalPrice = parseFloat(booking.total_price || 0).toFixed(2)
@@ -426,11 +410,11 @@ export const generateVoucherPDF = async (data: VoucherData) => {
   const footerHeight = 25
   const footerY = pageHeight - footerHeight
 
-  setColor(colors.darkGray, 'fill')
+  setColor(colors.primary, 'fill')
   doc.rect(0, footerY, pageWidth, footerHeight, "F")
 
-  // Gold accent line at top of footer
-  setColor(colors.gold, 'fill')
+  // Secondary accent line at top of footer
+  setColor(colors.secondary, 'fill')
   doc.rect(0, footerY, pageWidth, 2, "F")
 
   // Footer content
@@ -443,7 +427,7 @@ export const generateVoucherPDF = async (data: VoucherData) => {
   doc.text(footerLines, pageWidth / 2, footerY + 10, { align: 'center' })
 
   // Contact info
-  setColor(colors.gold)
+  setColor(colors.secondary)
   doc.setFontSize(8)
   doc.setFont("helvetica", "bold")
   const contactText = `${vt.contactUs || 'Contact'}: support@marrakechtravelservices.com | +212 661-044503`

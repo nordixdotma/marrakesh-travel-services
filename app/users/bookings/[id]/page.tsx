@@ -5,6 +5,7 @@ import Link from "next/link"
 import { notFound, useRouter } from "next/navigation"
 import { 
   ChevronLeft, 
+  ChevronRight,
   Calendar, 
   Clock, 
   MapPin, 
@@ -258,7 +259,9 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
                   )}
                 </div>
                 <div className="flex-1 space-y-3">
-                  <h3 className="font-semibold text-lg">{offerTitle}</h3>
+                  <Link href={`/offers/${offer.id}`} className="block group">
+                    <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">{offerTitle}</h3>
+                  </Link>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="w-4 h-4 text-primary" />
@@ -381,6 +384,15 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
                 ) : (
                   t.users?.bookingDetails?.downloadVoucher || "Download Voucher"
                 )}
+              </Button>
+
+              <Button 
+                className="w-full mt-2" 
+                variant="ghost"
+                onClick={() => router.push(`/offers/${offer.id}`)}
+              >
+                <ChevronRight className="w-4 h-4 mr-2" />
+                {t.users?.bookings?.viewOffer || "View Offer"}
               </Button>
             </CardContent>
           </Card>

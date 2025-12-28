@@ -422,6 +422,7 @@ export const en = {
       noPastDescription: "Your completed bookings will appear here.",
       browseTours: "Browse Tours",
       confirmed: "Confirmed",
+      viewOffer: "View Offer",
     },
     favorites: {
       pageTitle: "My Favorites",

@@ -424,6 +424,7 @@ export const fr: TranslationKeys = {
       noPastDescription: "Vos réservations terminées apparaîtront ici.",
       browseTours: "Parcourir les Tours",
       confirmed: "Confirmé",
+      viewOffer: "Voir l'offre",
     },
     favorites: {
       pageTitle: "Mes Favoris",

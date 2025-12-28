@@ -301,20 +301,35 @@ export default function BookingsPage() {
                           {getStatusBadge(booking.status).label}
                         </span>
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-8 text-xs gap-1 hover:bg-primary/10 hover:text-primary"
-                        onClick={(e) => handleDownload(booking, e)}
-                        disabled={isDownloading === booking.id}
-                      >
-                        {isDownloading === booking.id ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Clock className="h-3 w-3" />
-                        )}
-                        {t.users?.bookingDetails?.downloadVoucher || "Download"}
-                      </Button>
+                      <div className="flex gap-1 flex-wrap justify-end">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-8 text-xs gap-1 hover:bg-primary/10 hover:text-primary"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            router.push(`/offers/${booking.offer_id}`)
+                          }}
+                        >
+                          <ChevronRight className="h-3 w-3" />
+                          {t.users.bookings.viewOffer}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-8 text-xs gap-1 hover:bg-primary/10 hover:text-primary"
+                          onClick={(e) => handleDownload(booking, e)}
+                          disabled={isDownloading === booking.id}
+                        >
+                          {isDownloading === booking.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Clock className="h-3 w-3" />
+                          )}
+                          {t.users?.bookingDetails?.downloadVoucher || "Download"}
+                        </Button>
+                      </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
@@ -381,11 +396,26 @@ export default function BookingsPage() {
                       <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">{booking.offerTitle}</p>
                       <p className="text-sm text-muted-foreground">{formatDate(booking.date)}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">MAD {booking.total_price}</p>
-                      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getStatusBadge(booking.status).className}`}>
-                        {getStatusBadge(booking.status).label}
-                      </span>
+                    <div className="text-right flex flex-col items-end gap-2">
+                      <div>
+                        <p className="font-medium">MAD {booking.total_price}</p>
+                        <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getStatusBadge(booking.status).className}`}>
+                          {getStatusBadge(booking.status).label}
+                        </span>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 text-xs gap-1 hover:bg-primary/10 hover:text-primary"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          router.push(`/offers/${booking.offer_id}`)
+                        }}
+                      >
+                        <ChevronRight className="h-3 w-3" />
+                        {t.users.bookings.viewOffer}
+                      </Button>
                     </div>
                   </div>
                 </Link>

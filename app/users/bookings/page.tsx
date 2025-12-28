@@ -10,6 +10,8 @@ import { bookingApi, type ApiError } from "@/lib/api"
 import { useAuth } from "@/components/login-modal"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { generateVoucherPDF } from "@/lib/voucher-utils"
+import { offersApi, userApi } from "@/lib/api"
 
 interface Booking {
   id: string
@@ -33,6 +35,34 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isDownloading, setIsDownloading] = useState<string | null>(null)
+
+  const handleDownload = async (booking: Booking, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    try {
+      setIsDownloading(booking.id)
+      
+      // Fetch full details needed for voucher
+      const offerResponse = await offersApi.getOfferById(booking.offer_id, language)
+      const userProfileResponse = await userApi.getProfile()
+      
+      await generateVoucherPDF({ 
+        booking, 
+        offer: offerResponse.offer, 
+        userProfile: userProfileResponse.user, 
+        t 
+      })
+      
+      toast.success("Voucher downloaded successfully")
+    } catch (err) {
+      console.error("Error generating voucher:", err)
+      toast.error("Failed to generate voucher")
+    } finally {
+      setIsDownloading(null)
+    }
+  }
 
   useEffect(() => {
     // Check for token and user in localStorage first
@@ -264,11 +294,27 @@ export default function BookingsPage() {
                         )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-primary">MAD {booking.total_price}</p>
-                      <span className={`inline-flex px-2 py-0.5 mt-1 text-xs font-medium rounded-full ${getStatusBadge(booking.status).className}`}>
-                        {getStatusBadge(booking.status).label}
-                      </span>
+                    <div className="text-right flex flex-col items-end gap-2 px-2">
+                      <div>
+                        <p className="font-semibold text-primary">MAD {booking.total_price}</p>
+                        <span className={`inline-flex px-2 py-0.5 mt-1 text-xs font-medium rounded-full ${getStatusBadge(booking.status).className}`}>
+                          {getStatusBadge(booking.status).label}
+                        </span>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 text-xs gap-1 hover:bg-primary/10 hover:text-primary"
+                        onClick={(e) => handleDownload(booking, e)}
+                        disabled={isDownloading === booking.id}
+                      >
+                        {isDownloading === booking.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Clock className="h-3 w-3" />
+                        )}
+                        {t.users?.bookingDetails?.downloadVoucher || "Download"}
+                      </Button>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>

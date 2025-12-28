@@ -16,6 +16,7 @@ export const es: TranslationKeys = {
     myAccount: "Mi Cuenta",
     language: "Idioma",
     services: "Servicios",
+    downloadDate: "Fecha de descarga",
   },
 
   // Footer
@@ -510,6 +511,26 @@ export const es: TranslationKeys = {
         cancelled: "Cancelado",
         upcoming: "Próximo",
       },
+      voucher: {
+        title: "BONO DE RESERVA",
+        bookingId: "ID de Reserva",
+        bookingDate: "Fecha de Reserva",
+        status: "Estado",
+        serviceInfo: "Información del Servicio",
+        departure: "Salida",
+        guestInfo: "Información de los Huéspedes",
+        name: "Nombre",
+        email: "Correo electrónico",
+        phone: "Teléfono",
+        groupSize: "Tamaño del Grupo",
+        adults: "Adultos",
+        children: "Niños",
+        paymentInfo: "Información de Pago",
+        totalPrice: "Precio Total",
+        note: "Nota",
+        footerText: "Gracias por elegir Marrakesh Travel Services. Por favor presente este bono (digital o impreso) al inicio de su experiencia.",
+        contactUs: "Contáctenos",
+      }
     },
   },
 

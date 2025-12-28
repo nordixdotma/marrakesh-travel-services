@@ -14,6 +14,7 @@ export const en = {
     myAccount: "My Account",
     language: "Language",
     services: "Services",
+    downloadDate: "Download Date",
   },
 
   // Footer
@@ -507,6 +508,26 @@ export const en = {
         cancelled: "Cancelled",
         upcoming: "Upcoming",
       },
+      voucher: {
+        title: "BOOKING VOUCHER",
+        bookingId: "Booking ID",
+        bookingDate: "Booking Date",
+        status: "Status",
+        serviceInfo: "Service Information",
+        departure: "Departure",
+        guestInfo: "Guest Information",
+        name: "Name",
+        email: "Email",
+        phone: "Phone",
+        groupSize: "Group Size",
+        adults: "Adults",
+        children: "Children",
+        paymentInfo: "Payment Information",
+        totalPrice: "Total Price",
+        note: "Note",
+        footerText: "Thank you for choosing Marrakesh Travel Services. Please present this voucher (digital or printed) at the start of your experience.",
+        contactUs: "Contact Us",
+      }
     },
   },
 

@@ -26,6 +26,7 @@ import { useLanguage } from "@/components/language-provider"
 import { bookingApi, offersApi, userApi, type ApiError } from "@/lib/api"
 import { useAuth } from "@/components/login-modal"
 import { toast } from "sonner"
+import { generateVoucherPDF } from "@/lib/voucher-utils"
 
 interface BookingDetailsPageProps {
   params: Promise<{ id: string }>
@@ -117,6 +118,21 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
 
     fetchBooking()
   }, [resolvedParams.id, isLoggedIn, language, router])
+
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  const handleDownload = async () => {
+    try {
+      setIsDownloading(true)
+      await generateVoucherPDF({ booking, offer, userProfile, t })
+      toast.success("Voucher downloaded successfully")
+    } catch (err) {
+      console.error("Error generating voucher:", err)
+      toast.error("Failed to generate voucher")
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -351,8 +367,20 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
                 </div>
               </div>
 
-              <Button className="w-full mt-6" variant="outline">
-                {t.users?.bookingDetails?.downloadVoucher || "Download Voucher"}
+              <Button 
+                className="w-full mt-6" 
+                variant="outline"
+                onClick={handleDownload}
+                disabled={isDownloading}
+              >
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {t.common?.loading || "Loading..."}
+                  </>
+                ) : (
+                  t.users?.bookingDetails?.downloadVoucher || "Download Voucher"
+                )}
               </Button>
             </CardContent>
           </Card>

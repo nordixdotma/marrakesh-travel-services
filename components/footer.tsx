@@ -160,18 +160,6 @@ export default function Footer() {
               <a href="/terms" className="hover:text-white transition-colors">
                 {t.footer.terms}
               </a>
-              <span className="text-white/30">|</span>
-              <span>
-                {t.footer.madeBy}{" "}
-                <a
-                  href="https://la360.ma/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-amber-400 hover:text-amber-300 font-medium transition-colors"
-                >
-                  LA360
-                </a>
-              </span>
             </div>
           </div>
         </div>

@@ -22,7 +22,17 @@ function ToursContent() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const cityParam = searchParams.get('city')
-  const { settings } = useSiteSettings()
+  const { settings, loading: settingsLoading } = useSiteSettings()
+  
+  // Debug log for hero image
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && !settingsLoading) {
+      console.log('🎨 Tours page - Hero image settings:', {
+        hero_tours: settings.hero_tours,
+        allSettings: settings
+      })
+    }
+  }, [settings.hero_tours, settingsLoading])
   
   const pageType = "tours"
   const [allOffers, setAllOffers] = useState<Offer[]>([])
@@ -168,7 +178,8 @@ function ToursContent() {
       <Header />
       <PageHero 
         title={t.pageHero.tours} 
-        backgroundImage={settings.hero_tours || "https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"} 
+        backgroundImage={settings.hero_tours || "https://images.unsplash.com/photo-1705765280660-cf50ae71d87d?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
+        key={settings.hero_tours} // Force re-render when hero image changes
       />
 
       <section className="py-6 md:py-12 bg-gray-50">

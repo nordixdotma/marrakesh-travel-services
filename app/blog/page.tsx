@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -7,16 +8,66 @@ import FloatingContact from "@/components/floating-contact"
 import PageHero from "@/components/page-hero"
 import { Container } from "@/components/ui/container"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Calendar, User } from "lucide-react"
+import { ArrowRight, Calendar, User, Loader2 } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
-import { blogPosts, getTranslatedBlog } from "@/lib/offers-data"
 import { useSiteSettings } from "@/hooks/use-site-settings"
+import { blogApi, type ApiError } from "@/lib/api"
+import { toast } from "sonner"
+
+interface BlogPost {
+  id: string
+  title: Record<string, string>
+  content: Record<string, string>
+  author: string
+  main_image: string | null
+  publish_date: string | null
+  thumbnail_images: Array<{
+    id: string
+    image_url: string
+    image_order: number
+  }>
+}
 
 export default function BlogPage() {
   const { t, language } = useLanguage()
   const { settings } = useSiteSettings()
+  const [posts, setPosts] = useState<BlogPost[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const translatedPosts = blogPosts.map((post) => getTranslatedBlog(post, language))
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true)
+        const response = await blogApi.getAllBlogPosts()
+        setPosts(response.blogPosts)
+      } catch (err) {
+        const apiError = err as ApiError
+        console.error('Error fetching blog posts:', err)
+        toast.error('Failed to load blog posts')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPosts()
+  }, [])
+
+  const translatedPosts = posts.map((post) => {
+    const lang = language || 'fr'
+    const title = post.title[lang] || post.title['fr'] || post.title['en'] || ''
+    const content = post.content[lang] || post.content['fr'] || post.content['en'] || ''
+    const description = content.substring(0, 200) + (content.length > 200 ? '...' : '')
+    
+    return {
+      id: post.id,
+      title,
+      description,
+      content,
+      author: post.author,
+      mainImage: post.main_image || '/placeholder.jpg',
+      publishDate: post.publish_date || new Date().toISOString(),
+    }
+  })
 
   return (
     <main className="w-full">
@@ -38,71 +89,86 @@ export default function BlogPage() {
             </p>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          )}
+
           {/* Blog Posts */}
-          <div className="space-y-12 md:space-y-16">
-            {translatedPosts.map((post, index) => {
-              const isImageLeft = index % 2 === 0
+          {!loading && translatedPosts.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No blog posts available yet.</p>
+            </div>
+          )}
 
-              return (
-                <article 
-                  key={post.id}
-                  className={`flex flex-col ${isImageLeft ? 'md:flex-row' : 'md:flex-row-reverse'} gap-8 md:gap-12 items-center`}
-                >
-                  {/* Image */}
-                  <div className="w-full md:w-1/2">
-                    <div className="relative aspect-4/3 rounded-2xl overflow-hidden shadow-lg group">
-                      <img
-                        src={post.mainImage}
-                        alt={post.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
-                    </div>
-                  </div>
+          {!loading && translatedPosts.length > 0 && (
+            <div className="space-y-12 md:space-y-16">
+              {translatedPosts.map((post, index) => {
+                const isImageLeft = index % 2 === 0
 
-                  {/* Content */}
-                  <div className="w-full md:w-1/2 space-y-4">
-                    {/* Meta */}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar size={14} className="text-primary" />
-                        <span>
-                          {new Date(post.publishDate).toLocaleDateString(
-                            language === "fr" ? "fr-FR" : language === "es" ? "es-ES" : "en-US",
-                            { month: "long", day: "numeric", year: "numeric" }
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <User size={14} className="text-primary" />
-                        <span>{post.author}</span>
+                return (
+                  <article 
+                    key={post.id}
+                    className={`flex flex-col ${isImageLeft ? 'md:flex-row' : 'md:flex-row-reverse'} gap-8 md:gap-12 items-center`}
+                  >
+                    {/* Image */}
+                    <div className="w-full md:w-1/2">
+                      <div className="relative aspect-4/3 rounded-2xl overflow-hidden shadow-lg group">
+                        <img
+                          src={post.mainImage}
+                          alt={post.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
                       </div>
                     </div>
 
-                    {/* Title */}
-                    <h3 className="text-2xl md:text-3xl font-bold text-foreground font-trajan-pro leading-tight">
-                      {post.title}
-                    </h3>
+                    {/* Content */}
+                    <div className="w-full md:w-1/2 space-y-4">
+                      {/* Meta */}
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar size={14} className="text-primary" />
+                          <span>
+                            {new Date(post.publishDate).toLocaleDateString(
+                              language === "fr" ? "fr-FR" : language === "es" ? "es-ES" : "en-US",
+                              { month: "long", day: "numeric", year: "numeric" }
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <User size={14} className="text-primary" />
+                          <span>{post.author}</span>
+                        </div>
+                      </div>
 
-                    {/* Description */}
-                    <p className="text-muted-foreground leading-relaxed">
-                      {post.description}
-                    </p>
+                      {/* Title */}
+                      <h3 className="text-2xl md:text-3xl font-bold text-foreground font-trajan-pro leading-tight">
+                        {post.title}
+                      </h3>
 
-                    {/* CTA Button */}
-                    <Link href={`/blog/${post.id}`}>
-                      <Button 
-                        className="mt-4 bg-primary hover:bg-primary/90 text-white rounded-full px-6 py-2 group cursor-pointer"
-                      >
-                        {t.blog.readMore}
-                        <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
-                      </Button>
-                    </Link>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
+                      {/* Description */}
+                      <p className="text-muted-foreground leading-relaxed">
+                        {post.description}
+                      </p>
+
+                      {/* CTA Button */}
+                      <Link href={`/blog/${post.id}`}>
+                        <Button 
+                          className="mt-4 bg-primary hover:bg-primary/90 text-white rounded-full px-6 py-2 group cursor-pointer"
+                        >
+                          {t.blog.readMore}
+                          <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
         </Container>
       </section>
 

@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useRef, useEffect, useMemo } from "react"
-import { Search, SlidersHorizontal, X, Calendar, DollarSign, MapPin, ChevronDown, Check } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 import type { OfferType } from "@/lib/offers-data"
 import { cn } from "@/lib/utils"
-import { useLanguage } from "@/components/language-provider"
+import { Calendar, Check, ChevronDown, DollarSign, MapPin, Search, SlidersHorizontal, X } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 const CITIES_DATA = [
   "Agadir", "Al Hoceima", "Asilah", "Azemmour", "Azrou", "Beni Mellal",

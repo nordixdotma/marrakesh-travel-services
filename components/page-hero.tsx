@@ -12,27 +12,33 @@ export default function PageHero({ title, backgroundImage, showOverlay = true }:
     ? backgroundImage 
     : '/placeholder.jpg'
   
+  // Add cache busting for localhost URLs to force refresh
+  const finalImageUrl = imageUrl && imageUrl.includes('localhost:3030')
+    ? `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${Date.now()}`
+    : imageUrl
+  
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
-    console.log('🎨 PageHero image:', { backgroundImage, imageUrl, showOverlay })
+    console.log('🎨 PageHero image:', { title, backgroundImage, imageUrl, finalImageUrl, showOverlay })
   }
   
   return (
     <section className="relative h-[50dvh] md:h-[60dvh] w-full flex items-end overflow-hidden bg-muted">
       {/* Background Image */}
-      {imageUrl && (
+      {finalImageUrl && (
         <img
-          src={imageUrl}
+          key={finalImageUrl} // Force re-render when URL changes
+          src={finalImageUrl}
           alt={title}
           className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => {
-            console.error('❌ Image failed to load:', imageUrl)
+            console.error('❌ Image failed to load:', finalImageUrl)
             const target = e.target as HTMLImageElement
             target.src = '/placeholder.jpg'
           }}
           onLoad={() => {
             if (process.env.NODE_ENV === 'development') {
-              console.log('✅ Image loaded successfully:', imageUrl)
+              console.log('✅ Image loaded successfully:', finalImageUrl)
             }
           }}
         />

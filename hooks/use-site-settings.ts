@@ -39,9 +39,6 @@ export function useSiteSettings() {
       // Use the public settings endpoint with cache busting
       const response = await fetch(`${apiUrl}/settings?t=${Date.now()}`, {
         cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
       })
       if (response.ok) {
         const data = await response.json()
@@ -76,6 +73,9 @@ export function useSiteSettings() {
 
     // Listen for custom event to refresh settings
     const handleSettingsUpdate = () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 Settings update event received, refreshing...')
+      }
       fetchSettings()
     }
     

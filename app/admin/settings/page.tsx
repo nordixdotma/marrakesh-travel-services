@@ -154,7 +154,11 @@ export default function AdminSettingsPage() {
       
       // Dispatch event to notify other components to refresh settings
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('settings-updated'))
+        const event = new Event('settings-updated')
+        window.dispatchEvent(event)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📢 Settings update event dispatched')
+        }
       }
     } catch (err: any) {
       console.error('Error saving settings:', err)

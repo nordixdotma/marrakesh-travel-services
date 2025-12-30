@@ -24,6 +24,7 @@ import {
   Ticket,
   Shield,
   Settings,
+  FileText,
 } from "lucide-react"
 import { adminApi } from "@/lib/api"
 import { useLanguage } from "@/components/language-provider"
@@ -76,6 +77,7 @@ const pageToNavItem: Record<string, NavItem> = {
   'promo-codes': { title: "Promo Codes", href: "/admin/promo-codes", icon: Ticket },
   'team': { title: "Team", href: "/admin/team", icon: Shield },
   'settings': { title: "Settings", href: "/admin/settings", icon: Settings },
+  'blog': { title: "Blog", href: "/admin/blog", icon: FileText },
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

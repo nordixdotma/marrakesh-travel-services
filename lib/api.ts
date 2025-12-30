@@ -380,6 +380,30 @@ export const adminApi = {
     params.append('offset', offset.toString())
     return client.get<{ users: any[] }>(`/admin/users?${params.toString()}`)
   },
+  getUserById: async (id: string) => {
+    const client = new ApiClient()
+    return client.get<{
+      user: {
+        id: string
+        name: string
+        email: string | null
+        phone: string | null
+        role: string
+        isActive: boolean
+        createdAt: string
+        bookingsCount: number
+      }
+      bookings: Array<{
+        id: string
+        offerTitle: string
+        offerType: string
+        status: string
+        totalPrice: number
+        date: string
+        createdAt: string
+      }>
+    }>(`/admin/users/${id}`)
+  },
   getReviews: async (status?: string, limit: number = 100, offset: number = 0) => {
     const client = new ApiClient()
     const params = new URLSearchParams()
@@ -600,6 +624,113 @@ export const adminApi = {
       }>
     }>('/admin/settings', { settings })
   },
+  // Blog Posts
+  getAllBlogPosts: async () => {
+    const client = new ApiClient()
+    return client.get<{
+      blogPosts: Array<{
+        id: string
+        title: Record<string, string>
+        content: Record<string, string>
+        author: string
+        main_image: string | null
+        publish_date: string | null
+        is_published: boolean
+        created_at: string
+        updated_at: string
+        thumbnail_images: Array<{
+          id: string
+          image_url: string
+          image_order: number
+        }>
+      }>
+    }>('/admin/blog')
+  },
+  getBlogPostById: async (id: string) => {
+    const client = new ApiClient()
+    return client.get<{
+      blogPost: {
+        id: string
+        title: Record<string, string>
+        content: Record<string, string>
+        author: string
+        main_image: string | null
+        publish_date: string | null
+        is_published: boolean
+        created_at: string
+        updated_at: string
+        thumbnail_images: Array<{
+          id: string
+          image_url: string
+          image_order: number
+        }>
+      }
+    }>(`/admin/blog/${id}`)
+  },
+  createBlogPost: async (data: {
+    title: Record<string, string>
+    content: Record<string, string>
+    author: string
+    mainImage?: string
+    thumbnailImages?: string[]
+    publishDate?: string
+    isPublished?: boolean
+  }) => {
+    const client = new ApiClient()
+    return client.post<{
+      message: string
+      blogPost: {
+        id: string
+        title: Record<string, string>
+        content: Record<string, string>
+        author: string
+        main_image: string | null
+        publish_date: string | null
+        is_published: boolean
+        created_at: string
+        updated_at: string
+        thumbnail_images: Array<{
+          id: string
+          image_url: string
+          image_order: number
+        }>
+      }
+    }>('/admin/blog', data)
+  },
+  updateBlogPost: async (id: string, data: {
+    title?: Record<string, string>
+    content?: Record<string, string>
+    author?: string
+    mainImage?: string
+    thumbnailImages?: string[]
+    publishDate?: string
+    isPublished?: boolean
+  }) => {
+    const client = new ApiClient()
+    return client.put<{
+      message: string
+      blogPost: {
+        id: string
+        title: Record<string, string>
+        content: Record<string, string>
+        author: string
+        main_image: string | null
+        publish_date: string | null
+        is_published: boolean
+        created_at: string
+        updated_at: string
+        thumbnail_images: Array<{
+          id: string
+          image_url: string
+          image_order: number
+        }>
+      }
+    }>(`/admin/blog/${id}`, data)
+  },
+  deleteBlogPost: async (id: string) => {
+    const client = new ApiClient()
+    return client.delete<{ message: string }>(`/admin/blog/${id}`)
+  },
 }
 
 // Booking API methods
@@ -658,6 +789,28 @@ export const bookingApi = {
   getBookingById: async (id: string) => {
     const client = new ApiClient()
     return client.get<{ booking: any }>(`/bookings/${id}`)
+  },
+  getBookingByReference: async (reference: string) => {
+    // This is a public endpoint, no auth required
+    const url = `${API_BASE_URL}/bookings/reference/${reference}`
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new ApiError(
+        errorData.message || 'Failed to get booking',
+        errorData.error
+      )
+    }
+    
+    return response.json() as Promise<{
+      booking: any
+    }>
   },
 }
 
@@ -789,6 +942,50 @@ export const uploadApi = {
 
     const data = await response.json()
     return data.files.map((f: any) => f.url)
+  },
+}
+
+// Blog API methods (public)
+export const blogApi = {
+  getAllBlogPosts: async () => {
+    const client = new ApiClient()
+    return client.get<{
+      blogPosts: Array<{
+        id: string
+        title: Record<string, string>
+        content: Record<string, string>
+        author: string
+        main_image: string | null
+        publish_date: string | null
+        created_at: string
+        updated_at: string
+        thumbnail_images: Array<{
+          id: string
+          image_url: string
+          image_order: number
+        }>
+      }>
+    }>('/blog')
+  },
+  getBlogPostById: async (id: string) => {
+    const client = new ApiClient()
+    return client.get<{
+      blogPost: {
+        id: string
+        title: Record<string, string>
+        content: Record<string, string>
+        author: string
+        main_image: string | null
+        publish_date: string | null
+        created_at: string
+        updated_at: string
+        thumbnail_images: Array<{
+          id: string
+          image_url: string
+          image_order: number
+        }>
+      }
+    }>(`/blog/${id}`)
   },
 }
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { useMemo } from "react"
+import { useEffect, useState } from "react"
 import {
   ArrowLeft,
   User,
@@ -11,13 +11,36 @@ import {
   CalendarCheck,
   MapPin,
   Clock,
+  Loader2,
 } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { users, bookings } from "@/lib/admin-data"
+import { adminApi, type ApiError } from "@/lib/api"
+import { toast } from "sonner"
+
+interface UserData {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+  role: string
+  isActive: boolean
+  createdAt: string
+  bookingsCount: number
+}
+
+interface Booking {
+  id: string
+  offerTitle: string
+  offerType: string
+  status: string
+  totalPrice: number
+  date: string
+  createdAt: string
+}
 
 export default function UserDetailPage() {
   const params = useParams()
@@ -25,13 +48,39 @@ export default function UserDetailPage() {
   const { t } = useLanguage()
   const userId = params.id as string
 
-  const user = useMemo(() => users.find(u => u.id === userId), [userId])
-  const userBookings = useMemo(
-    () => bookings.filter(b => b.customerEmail === user?.email).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    ),
-    [user]
-  )
+  const [user, setUser] = useState<UserData | null>(null)
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await adminApi.getUserById(userId)
+        setUser(response.user)
+        setBookings(response.bookings || [])
+      } catch (err) {
+        const apiError = err as ApiError
+        console.error('Error fetching user:', err)
+        setError(apiError.message || 'Failed to load user')
+        if (apiError.status === 404) {
+          toast.error('User not found')
+        } else {
+          toast.error('Failed to load user', {
+            description: apiError.message || 'Please try again later',
+          })
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (userId) {
+      fetchUser()
+    }
+  }, [userId])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -42,7 +91,7 @@ export default function UserDetailPage() {
   }
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "confirmed":
         return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
       case "pending":
@@ -56,7 +105,21 @@ export default function UserDetailPage() {
     }
   }
 
-  if (!user) {
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Button variant="ghost" onClick={() => router.push("/admin/users")} className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Users
+        </Button>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !user) {
     return (
       <div className="space-y-6">
         <Button variant="ghost" onClick={() => router.push("/admin/users")} className="gap-2">
@@ -67,7 +130,9 @@ export default function UserDetailPage() {
           <CardContent className="flex flex-col items-center justify-center py-16">
             <User className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">{t.admin?.users?.notFound || "User not found"}</h3>
-            <p className="text-sm text-muted-foreground">{t.admin?.users?.notFoundDesc || "The user you're looking for doesn't exist."}</p>
+            <p className="text-sm text-muted-foreground">
+              {error || t.admin?.users?.notFoundDesc || "The user you're looking for doesn't exist."}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -107,7 +172,7 @@ export default function UserDetailPage() {
             </div>
             <div className="text-center">
               <h3 className="font-semibold text-lg">{user.name}</h3>
-              <p className="text-sm text-muted-foreground">{t.admin?.users?.customer || "Customer"}</p>
+              <p className="text-sm text-muted-foreground capitalize">{user.role}</p>
             </div>
             <Separator />
             <div className="space-y-3">
@@ -131,6 +196,10 @@ export default function UserDetailPage() {
                 <CalendarCheck className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{user.bookingsCount} total bookings</span>
               </div>
+              <div className="flex items-center gap-3">
+                <div className={`h-2 w-2 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className="text-sm">{user.isActive ? 'Active' : 'Inactive'}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -144,9 +213,9 @@ export default function UserDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {userBookings.length > 0 ? (
+            {bookings.length > 0 ? (
               <div className="space-y-3">
-                {userBookings.map((booking) => (
+                {bookings.map((booking) => (
                   <div
                     key={booking.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-sm hover:bg-muted/30 transition-colors"

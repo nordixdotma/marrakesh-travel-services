@@ -1857,6 +1857,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     const amount = totalAmount.toFixed(2)
                     const okUrl = `${window.location.origin}/payment/success?bookingRef=${orderId}`
                     const failUrl = `${window.location.origin}/payment/failed?bookingRef=${orderId}`
+                    const callbackUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030'}/api/v1/payments/cmi-callback`
                     const storetype = '3D_PAY_HOSTING'
                     const hashAlgorithm = 'ver3'
                     const currency = '504' // MAD currency code
@@ -1867,6 +1868,11 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                       // URL de test: https://testpayment.cmi.co.ma/fim/est3Dgate
                       // NOTE: username is NOT used in CMI official examples - removed
                       const clientId = process.env.NEXT_PUBLIC_CMI_CLIENT_ID || '600005522' // Test ClientId
+                      
+                      // Get customer information from form data or user data
+                      const customerName = formData.fullName || user?.name || ''
+                      const customerEmail = formData.email || user?.email || ''
+                      const customerPhone = formData.phone || user?.phone || ''
                       
                       // Prepare all parameters for hash calculation (EXACTLY as per CMI PHP example 1.PaymentRequest.php)
                       // Only include parameters that are in the official example
@@ -1883,18 +1889,19 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                         lang: 'fr',
                         refreshtime: '5',
                         oid: orderId,
-                        // Optional fields from PHP example (can be empty strings)
-                        callbackUrl: '', // Optional
-                        shopurl: '', // Optional
-                        BillToName: '', // Optional
-                        BillToCompany: '', // Optional
-                        BillToStreet1: '', // Optional
-                        BillToCity: '', // Optional
-                        BillToStateProv: '', // Optional
-                        BillToPostalCode: '', // Optional
-                        BillToCountry: currency, // Use currency code as default
-                        email: '', // Optional
-                        tel: '', // Optional
+                        // Callback URL for automatic payment confirmation
+                        callbackUrl: callbackUrl,
+                        shopurl: window.location.origin,
+                        // Customer information (BillTo fields)
+                        BillToName: customerName || '',
+                        BillToCompany: '',
+                        BillToStreet1: '',
+                        BillToCity: '',
+                        BillToStateProv: '',
+                        BillToPostalCode: '',
+                        BillToCountry: '504', // Morocco country code
+                        email: customerEmail || '',
+                        tel: customerPhone || '',
                         // DO NOT include AutoRedirect - it's not in the PHP example
                       }
 
@@ -1914,7 +1921,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                       // Build form data with all parameters (EXACTLY as per CMI PHP example 2.SendData.php)
                       // Must match EXACTLY what was sent for hash calculation
                       // Amount should be in decimal format (e.g., "800.00") as per CMI documentation
-                      const formData: Record<string, string> = {
+                      const cmiFormData: Record<string, string> = {
                         clientid: hashRequestData.clientid,
                         amount: hashResponse.formattedAmount || amount, // Use formatted amount from backend (decimal format: "800.00")
                         okUrl: hashRequestData.okUrl,
@@ -1948,21 +1955,21 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                         action: cmiForm.action,
                         method: cmiForm.method,
                         target: cmiForm.target,
-                        formDataKeys: Object.keys(formData),
+                        formDataKeys: Object.keys(cmiFormData),
                         formData: {
-                          ...formData,
+                          ...cmiFormData,
                           HASH: hashResponse.hash.substring(0, 30) + '...',
                         },
                         hashLength: hashResponse.hash.length,
                       })
                       
                       // Log the exact order of parameters as they will be sent
-                      const formKeys = Object.keys(formData).sort()
+                      const formKeys = Object.keys(cmiFormData).sort()
                       console.log('📋 CMI Form Parameters (sorted):', formKeys)
-                      console.log('📝 CMI Form Values:', formKeys.map(key => `${key}=${formData[key]}`).join('&'))
+                      console.log('📝 CMI Form Values:', formKeys.map(key => `${key}=${cmiFormData[key]}`).join('&'))
                       
                       // Create hidden inputs for form
-                      Object.entries(formData).forEach(([key, value]) => {
+                      Object.entries(cmiFormData).forEach(([key, value]) => {
                         const input = document.createElement('input')
                         input.type = 'hidden'
                         input.name = key

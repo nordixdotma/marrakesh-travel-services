@@ -110,7 +110,7 @@ export default function UserDetailPage() {
       <div className="space-y-6">
         <Button variant="ghost" onClick={() => router.push("/admin/users")} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
-          Back to Users
+          {t.admin?.common?.back || "Back to Users"}
         </Button>
         <div className="flex items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

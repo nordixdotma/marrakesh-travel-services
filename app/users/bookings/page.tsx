@@ -296,7 +296,7 @@ export default function BookingsPage() {
                     </div>
                     <div className="text-right flex flex-col items-end gap-2 px-2">
                       <div>
-                        <p className="font-semibold text-primary">MAD {booking.total_price}</p>
+                        <p className="font-semibold text-primary">€ {booking.total_price}</p>
                         <span className={`inline-flex px-2 py-0.5 mt-1 text-xs font-medium rounded-full ${getStatusBadge(booking.status).className}`}>
                           {getStatusBadge(booking.status).label}
                         </span>
@@ -398,7 +398,7 @@ export default function BookingsPage() {
                     </div>
                     <div className="text-right flex flex-col items-end gap-2">
                       <div>
-                        <p className="font-medium">MAD {booking.total_price}</p>
+                        <p className="font-medium">€ {booking.total_price}</p>
                         <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getStatusBadge(booking.status).className}`}>
                           {getStatusBadge(booking.status).label}
                         </span>

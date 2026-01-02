@@ -136,7 +136,7 @@ function FailedContent() {
                   <Banknote className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-xs text-muted-foreground">Montant</p>
-                    <p className="text-sm font-semibold">{booking.totalPrice?.toFixed(2) || '0.00'} MAD</p>
+                    <p className="text-sm font-semibold">{booking.totalPrice?.toFixed(2) || '0.00'} €</p>
                   </div>
                 </div>
               </div>

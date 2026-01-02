@@ -51,6 +51,20 @@ interface FormData {
   id: string
   type: OfferType
   departCity: string
+  pricingType: 'per_group' | 'per_person'
+  // Per group pricing
+  groupPricing?: {
+    personsPerGroup: number
+    price: number
+  }
+  // Per person pricing
+  personPricing?: {
+    priceFor2: number
+    priceFor4: number
+    priceFor6: number
+    priceFor8: number
+  }
+  // Legacy fields (kept for backward compatibility)
   priceAdult: number
   priceChild: number
   availabilityDates: { startDate: string; endDate: string }
@@ -107,6 +121,17 @@ const offerToFormData = (offer: Offer | undefined, type: OfferType): FormData =>
       id: "",
       type,
       departCity: "",
+      pricingType: 'per_person' as 'per_group' | 'per_person',
+      groupPricing: {
+        personsPerGroup: 0,
+        price: 0,
+      },
+      personPricing: {
+        priceFor2: 0,
+        priceFor4: 0,
+        priceFor6: 0,
+        priceFor8: 0,
+      },
       priceAdult: 0,
       priceChild: 0,
       availabilityDates: { startDate: "", endDate: "" },
@@ -151,23 +176,69 @@ const offerToFormData = (offer: Offer | undefined, type: OfferType): FormData =>
     return baseData
   }
 
+  // Helper function to parse sections and extract itinerary and tips
+  const parseSections = (sections: any[]): { sections: any[], itinerary: any[], tips: string[] } => {
+    if (!Array.isArray(sections)) return { sections: [], itinerary: [], tips: [] }
+    
+    const regularSections: any[] = []
+    const itinerary: any[] = []
+    const tips: string[] = []
+    
+    sections.forEach((section: any) => {
+      if (section.type === 'itinerary') {
+        itinerary.push({ time: section.time || '', activity: section.activity || '' })
+      } else if (section.type === 'tips') {
+        if (Array.isArray(section.items)) {
+          tips.push(...section.items)
+        } else if (typeof section === 'string') {
+          tips.push(section)
+        }
+      } else {
+        // Regular section
+        regularSections.push({
+          title: section.title || section.type === 'section' ? section.title : '',
+          content: section.content || ''
+        })
+      }
+    })
+    
+    return { sections: regularSections, itinerary, tips }
+  }
+
   // Convert offer to form data
+  const parsedEn = parseSections(offer.detailedDescription.sections || [])
   const baseLanguageData: LanguageData = {
     title: offer.title,
     description: offer.description,
     overview: offer.detailedDescription.overview,
     highlights: offer.detailedDescription.highlights || [],
-    sections: offer.detailedDescription.sections || [],
-    itinerary: offer.detailedDescription.itinerary || [],
-    tips: offer.detailedDescription.tips || [],
+    sections: parsedEn.sections,
+    itinerary: offer.detailedDescription.itinerary?.length > 0 ? offer.detailedDescription.itinerary : parsedEn.itinerary,
+    tips: offer.detailedDescription.tips?.length > 0 ? offer.detailedDescription.tips : parsedEn.tips,
     includedItems: offer.includedItems || [],
     excludedItems: offer.excludedItems || [],
+  }
+
+  // Determine pricing type and structure from offer data
+  const pricingType = (offer as any).pricingType || 'per_person'
+  const groupPricing = (offer as any).groupPricing || {
+    personsPerGroup: 0,
+    price: 0,
+  }
+  const personPricing = (offer as any).personPricing || {
+    priceFor2: offer.priceAdult || 0,
+    priceFor4: offer.priceAdult ? offer.priceAdult * 2 : 0,
+    priceFor6: offer.priceAdult ? offer.priceAdult * 3 : 0,
+    priceFor8: offer.priceAdult ? offer.priceAdult * 4 : 0,
   }
 
   return {
     id: offer.id,
     type: offer.type,
     departCity: offer.departCity,
+    pricingType,
+    groupPricing,
+    personPricing,
     priceAdult: offer.priceAdult,
     priceChild: offer.priceChild,
     availabilityDates: offer.availabilityDates,
@@ -179,28 +250,42 @@ const offerToFormData = (offer: Offer | undefined, type: OfferType): FormData =>
     video: offer.video || "",
     languages: {
       en: { ...baseLanguageData },
-      fr: offer.translations?.fr ? {
-        title: offer.translations.fr.title || "",
-        description: offer.translations.fr.description || "",
-        overview: offer.translations.fr.detailedDescription?.overview || "",
-        highlights: offer.translations.fr.detailedDescription?.highlights || [],
-        sections: offer.translations.fr.detailedDescription?.sections || [],
-        itinerary: offer.translations.fr.detailedDescription?.itinerary || [],
-        tips: offer.translations.fr.detailedDescription?.tips || [],
-        includedItems: offer.translations.fr.includedItems || [],
-        excludedItems: offer.translations.fr.excludedItems || [],
-      } : createEmptyLanguageData(),
-      es: offer.translations?.es ? {
-        title: offer.translations.es.title || "",
-        description: offer.translations.es.description || "",
-        overview: offer.translations.es.detailedDescription?.overview || "",
-        highlights: offer.translations.es.detailedDescription?.highlights || [],
-        sections: offer.translations.es.detailedDescription?.sections || [],
-        itinerary: offer.translations.es.detailedDescription?.itinerary || [],
-        tips: offer.translations.es.detailedDescription?.tips || [],
-        includedItems: offer.translations.es.includedItems || [],
-        excludedItems: offer.translations.es.excludedItems || [],
-      } : createEmptyLanguageData(),
+      fr: offer.translations?.fr ? (() => {
+        const parsedFr = parseSections(offer.translations.fr.detailedDescription?.sections || [])
+        return {
+          title: offer.translations.fr.title || "",
+          description: offer.translations.fr.description || "",
+          overview: offer.translations.fr.detailedDescription?.overview || "",
+          highlights: offer.translations.fr.detailedDescription?.highlights || [],
+          sections: parsedFr.sections,
+          itinerary: offer.translations.fr.detailedDescription?.itinerary?.length > 0 
+            ? offer.translations.fr.detailedDescription.itinerary 
+            : parsedFr.itinerary,
+          tips: offer.translations.fr.detailedDescription?.tips?.length > 0 
+            ? offer.translations.fr.detailedDescription.tips 
+            : parsedFr.tips,
+          includedItems: offer.translations.fr.includedItems || [],
+          excludedItems: offer.translations.fr.excludedItems || [],
+        }
+      })() : createEmptyLanguageData(),
+      es: offer.translations?.es ? (() => {
+        const parsedEs = parseSections(offer.translations.es.detailedDescription?.sections || [])
+        return {
+          title: offer.translations.es.title || "",
+          description: offer.translations.es.description || "",
+          overview: offer.translations.es.detailedDescription?.overview || "",
+          highlights: offer.translations.es.detailedDescription?.highlights || [],
+          sections: parsedEs.sections,
+          itinerary: offer.translations.es.detailedDescription?.itinerary?.length > 0 
+            ? offer.translations.es.detailedDescription.itinerary 
+            : parsedEs.itinerary,
+          tips: offer.translations.es.detailedDescription?.tips?.length > 0 
+            ? offer.translations.es.detailedDescription.tips 
+            : parsedEs.tips,
+          includedItems: offer.translations.es.includedItems || [],
+          excludedItems: offer.translations.es.excludedItems || [],
+        }
+      })() : createEmptyLanguageData(),
     },
     // Extract transfer details if it's a transfer
     transferDetails: type === 'transfers' ? (offer.transferDetails || {
@@ -281,8 +366,20 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
         }
       } else {
         // Other offer types need pricing and availability
-        if (!formData.departCity || !formData.priceAdult || !formData.priceChild) {
-          throw new Error(t.admin?.offerForm?.validationError || 'Please fill in all required fields (Departure City, Adult Price, Child Price)')
+        if (!formData.departCity) {
+          throw new Error(t.admin?.offerForm?.validationError || 'Please fill in all required fields (Departure City)')
+        }
+
+        // Validate pricing based on type
+        if (formData.pricingType === 'per_group') {
+          if (!formData.groupPricing?.personsPerGroup || !formData.groupPricing?.price) {
+            throw new Error(t.admin?.offerForm?.validationError || 'Please fill in group pricing details')
+          }
+        } else if (formData.pricingType === 'per_person') {
+          if (!formData.personPricing?.priceFor2 && !formData.personPricing?.priceFor4 && 
+              !formData.personPricing?.priceFor6 && !formData.personPricing?.priceFor8) {
+            throw new Error(t.admin?.offerForm?.validationError || 'Please fill in at least one person pricing')
+          }
         }
 
         if (!formData.availabilityDates.startDate || !formData.availabilityDates.endDate) {
@@ -291,19 +388,60 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
       }
 
       // Prepare translations array
+      // Include all languages (en, fr, es) even if some don't have titles
       const translations = ['en', 'fr', 'es'].map(lang => {
         const langData = formData.languages[lang as Language]
+        
+        // Build sections array including regular sections, itinerary, and tips
+        const sectionsArray: any[] = []
+        
+        // Add regular sections
+        langData.sections
+          .filter(s => s.title.trim() || s.content.trim())
+          .forEach(section => {
+            sectionsArray.push({
+              type: 'section',
+              title: section.title,
+              content: section.content
+            })
+          })
+        
+        // Add itinerary items
+        if (langData.itinerary && langData.itinerary.length > 0) {
+          langData.itinerary
+            .filter(item => item.time.trim() || item.activity.trim())
+            .forEach(item => {
+              sectionsArray.push({
+                type: 'itinerary',
+                time: item.time,
+                activity: item.activity
+              })
+            })
+        }
+        
+        // Add tips
+        if (langData.tips && langData.tips.length > 0) {
+          const tipsItems = langData.tips.filter(t => t.trim())
+          if (tipsItems.length > 0) {
+            sectionsArray.push({
+              type: 'tips',
+              items: tipsItems
+            })
+          }
+        }
+        
         return {
           language: lang,
           title: langData.title || '',
           description: langData.description || '',
           overview: langData.overview || '',
           highlights: langData.highlights.filter(h => h.trim()),
-          sections: langData.sections.filter(s => s.title.trim() || s.content.trim()),
+          sections: sectionsArray,
           includedItems: langData.includedItems.filter(i => i.trim()),
           excludedItems: langData.excludedItems.filter(e => e.trim()),
         }
-      }).filter(t => t.title.trim()) // Only include translations with titles
+      })
+      // Don't filter out translations - always include all three languages
 
       // Prepare images array
       const images = []
@@ -339,23 +477,49 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
 
       // Add type-specific fields
       if (offerType === 'tours') {
-        requestData.priceAdult = formData.priceAdult
-        requestData.priceChild = formData.priceChild
+        requestData.pricingType = formData.pricingType
+        if (formData.pricingType === 'per_group') {
+          requestData.groupPricing = formData.groupPricing
+          // Keep legacy fields for backward compatibility
+          requestData.priceAdult = formData.groupPricing?.price || 0
+          requestData.priceChild = 0
+        } else {
+          requestData.personPricing = formData.personPricing
+          // Keep legacy fields for backward compatibility (use priceFor2 as base)
+          requestData.priceAdult = formData.personPricing?.priceFor2 || 0
+          requestData.priceChild = 0
+        }
         requestData.availabilityStart = formData.availabilityDates.startDate
         requestData.availabilityEnd = formData.availabilityDates.endDate
         requestData.duration = formData.duration || null
         requestData.difficulty = formData.difficulty || null
         requestData.groupSize = formData.groupSize || null
       } else if (offerType === 'excursions') {
-        requestData.priceAdult = formData.priceAdult
-        requestData.priceChild = formData.priceChild
+        requestData.pricingType = formData.pricingType
+        if (formData.pricingType === 'per_group') {
+          requestData.groupPricing = formData.groupPricing
+          requestData.priceAdult = formData.groupPricing?.price || 0
+          requestData.priceChild = 0
+        } else {
+          requestData.personPricing = formData.personPricing
+          requestData.priceAdult = formData.personPricing?.priceFor2 || 0
+          requestData.priceChild = 0
+        }
         requestData.availabilityStart = formData.availabilityDates.startDate
         requestData.availabilityEnd = formData.availabilityDates.endDate
         requestData.duration = formData.duration || null
         requestData.difficulty = formData.difficulty || null
       } else if (offerType === 'activities') {
-        requestData.priceAdult = formData.priceAdult
-        requestData.priceChild = formData.priceChild
+        requestData.pricingType = formData.pricingType
+        if (formData.pricingType === 'per_group') {
+          requestData.groupPricing = formData.groupPricing
+          requestData.priceAdult = formData.groupPricing?.price || 0
+          requestData.priceChild = 0
+        } else {
+          requestData.personPricing = formData.personPricing
+          requestData.priceAdult = formData.personPricing?.priceFor2 || 0
+          requestData.priceChild = 0
+        }
         requestData.availabilityStart = formData.availabilityDates.startDate
         requestData.availabilityEnd = formData.availabilityDates.endDate
         requestData.duration = formData.duration || null
@@ -865,34 +1029,177 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Banknote className="h-5 w-5" />
-                    {t.admin?.offerForm?.pricingAvailability || "Pricing (MAD)"}
+                    {t.admin?.offerForm?.pricingAvailability || "Pricing (€)"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>{t.admin?.offerForm?.priceAdult || "Adult Price (MAD)"}</Label>
-                      <Input
-                        type="number"
-                        value={formData.priceAdult}
-                        onChange={(e) => setFormData(prev => ({ ...prev, priceAdult: Number(e.target.value) }))}
-                        disabled={isViewMode}
-                        placeholder="0"
-                        className="rounded-sm bg-gray-50"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t.admin?.offerForm?.priceChild || "Child Price (MAD)"}</Label>
-                      <Input
-                        type="number"
-                        value={formData.priceChild}
-                        onChange={(e) => setFormData(prev => ({ ...prev, priceChild: Number(e.target.value) }))}
-                        disabled={isViewMode}
-                        placeholder="0"
-                        className="rounded-sm bg-gray-50"
-                      />
+                  {/* Pricing Type Selector */}
+                  <div className="space-y-2">
+                    <Label>{t.admin?.offerForm?.pricingType || "Pricing Type"}</Label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="pricingType"
+                          value="per_group"
+                          checked={formData.pricingType === 'per_group'}
+                          onChange={(e) => setFormData(prev => ({ 
+                            ...prev, 
+                            pricingType: 'per_group' as const,
+                            groupPricing: prev.groupPricing || { personsPerGroup: 0, price: 0 }
+                          }))}
+                          disabled={isViewMode}
+                          className="rounded-sm"
+                        />
+                        <span>{t.admin?.offerForm?.perGroup || "Par groupe"}</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="pricingType"
+                          value="per_person"
+                          checked={formData.pricingType === 'per_person'}
+                          onChange={(e) => setFormData(prev => ({ 
+                            ...prev, 
+                            pricingType: 'per_person' as const,
+                            personPricing: prev.personPricing || { priceFor2: 0, priceFor4: 0, priceFor6: 0, priceFor8: 0 }
+                          }))}
+                          disabled={isViewMode}
+                          className="rounded-sm"
+                        />
+                        <span>{t.admin?.offerForm?.perPerson || "Par personne"}</span>
+                      </label>
                     </div>
                   </div>
+
+                  {/* Per Group Pricing */}
+                  {formData.pricingType === 'per_group' && (
+                    <div className="space-y-4 border-t pt-4">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label>{t.admin?.offerForm?.personsPerGroup || "Nombre de personnes par groupe"}</Label>
+                          <Input
+                            type="number"
+                            value={formData.groupPricing?.personsPerGroup || 0}
+                            onChange={(e) => setFormData(prev => ({ 
+                              ...prev, 
+                              groupPricing: {
+                                ...prev.groupPricing!,
+                                personsPerGroup: Number(e.target.value)
+                              }
+                            }))}
+                            disabled={isViewMode}
+                            placeholder="0"
+                            className="rounded-sm bg-gray-50"
+                            min="1"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>{t.admin?.offerForm?.groupPrice || "Prix du groupe (€)"}</Label>
+                          <Input
+                            type="number"
+                            value={formData.groupPricing?.price || 0}
+                            onChange={(e) => setFormData(prev => ({ 
+                              ...prev, 
+                              groupPricing: {
+                                ...prev.groupPricing!,
+                                price: Number(e.target.value)
+                              }
+                            }))}
+                            disabled={isViewMode}
+                            placeholder="0"
+                            className="rounded-sm bg-gray-50"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Per Person Pricing */}
+                  {formData.pricingType === 'per_person' && (
+                    <div className="space-y-4 border-t pt-4">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label>{t.admin?.offerForm?.priceFor2 || "Prix pour 2 personnes (€)"}</Label>
+                          <Input
+                            type="number"
+                            value={formData.personPricing?.priceFor2 || 0}
+                            onChange={(e) => setFormData(prev => ({ 
+                              ...prev, 
+                              personPricing: {
+                                ...prev.personPricing!,
+                                priceFor2: Number(e.target.value)
+                              }
+                            }))}
+                            disabled={isViewMode}
+                            placeholder="0"
+                            className="rounded-sm bg-gray-50"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>{t.admin?.offerForm?.priceFor4 || "Prix pour 4 personnes (€)"}</Label>
+                          <Input
+                            type="number"
+                            value={formData.personPricing?.priceFor4 || 0}
+                            onChange={(e) => setFormData(prev => ({ 
+                              ...prev, 
+                              personPricing: {
+                                ...prev.personPricing!,
+                                priceFor4: Number(e.target.value)
+                              }
+                            }))}
+                            disabled={isViewMode}
+                            placeholder="0"
+                            className="rounded-sm bg-gray-50"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>{t.admin?.offerForm?.priceFor6 || "Prix pour 6 personnes (€)"}</Label>
+                          <Input
+                            type="number"
+                            value={formData.personPricing?.priceFor6 || 0}
+                            onChange={(e) => setFormData(prev => ({ 
+                              ...prev, 
+                              personPricing: {
+                                ...prev.personPricing!,
+                                priceFor6: Number(e.target.value)
+                              }
+                            }))}
+                            disabled={isViewMode}
+                            placeholder="0"
+                            className="rounded-sm bg-gray-50"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>{t.admin?.offerForm?.priceFor8 || "Prix pour 8 personnes (€)"}</Label>
+                          <Input
+                            type="number"
+                            value={formData.personPricing?.priceFor8 || 0}
+                            onChange={(e) => setFormData(prev => ({ 
+                              ...prev, 
+                              personPricing: {
+                                ...prev.personPricing!,
+                                priceFor8: Number(e.target.value)
+                              }
+                            }))}
+                            disabled={isViewMode}
+                            placeholder="0"
+                            className="rounded-sm bg-gray-50"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -1489,7 +1796,7 @@ export function OfferForm({ mode, offerType, offer, onModeChange, backUrl }: Off
                             value={option.price}
                             onChange={(e) => updateVehicleOption(index, "price", Number(e.target.value))}
                             disabled={isViewMode}
-                            placeholder="Price (MAD)"
+                            placeholder="Price (€)"
                             className="rounded-sm bg-gray-50"
                           />
                         </div>

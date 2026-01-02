@@ -357,13 +357,13 @@ export default function AdminDashboardPage() {
                   <p className="text-xs text-muted-foreground">{t.admin?.dashboard?.allTime || "All time"}</p>
                 </div>
               </div>
-              <p className="text-lg font-bold">{stats.totalRevenue.toLocaleString()} MAD</p>
+              <p className="text-lg font-bold">{stats.totalRevenue.toLocaleString()} €</p>
             </div>
             <div className="space-y-3">
               {monthlyStats.slice(-3).reverse().map((stat, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{stat.month} {new Date().getFullYear()}</span>
-                  <span className="text-sm font-medium">{stat.revenue.toLocaleString()} MAD</span>
+                  <span className="text-sm font-medium">{stat.revenue.toLocaleString()} €</span>
                 </div>
               ))}
             </div>
@@ -400,7 +400,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <div className="flex items-center gap-3 ml-4">
                       <div className="text-right hidden sm:block">
-                        <p className="text-sm font-medium">{booking.totalPrice} MAD</p>
+                        <p className="text-sm font-medium">{booking.totalPrice} €</p>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {formatDate(booking.createdAt)}

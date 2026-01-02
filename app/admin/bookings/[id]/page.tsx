@@ -323,7 +323,7 @@ export default function BookingDetailsPage() {
               <Banknote className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Total Price</p>
-                <p className="text-lg font-bold">{booking.totalPrice?.toFixed(2) || '0.00'} MAD</p>
+                <p className="text-lg font-bold">{booking.totalPrice?.toFixed(2) || '0.00'} €</p>
               </div>
             </div>
             <Separator />

@@ -57,22 +57,54 @@ function ActivitiesDetailContent() {
         // Extract thumbnail images
         const thumbnailImages = backendOffer.images?.filter((img: any) => img.type === 'GALLERY').map((img: any) => img.url) || []
         
+        // Helper function to parse sections and extract itinerary and tips
+        const parseSections = (sections: any[]): { sections: any[], itinerary: any[], tips: string[] } => {
+          if (!Array.isArray(sections)) return { sections: [], itinerary: [], tips: [] }
+          
+          const regularSections: any[] = []
+          const itinerary: any[] = []
+          const tips: string[] = []
+          
+          sections.forEach((section: any) => {
+            if (section.type === 'itinerary') {
+              itinerary.push({ time: section.time || '', activity: section.activity || '' })
+            } else if (section.type === 'tips') {
+              if (Array.isArray(section.items)) {
+                tips.push(...section.items)
+              } else if (typeof section === 'string') {
+                tips.push(section)
+              }
+            } else {
+              // Regular section
+              regularSections.push({
+                title: section.title || (section.type === 'section' ? section.title : ''),
+                content: section.content || ''
+              })
+            }
+          })
+          
+          return { sections: regularSections, itinerary, tips }
+        }
+
         // Helper function to create translation object from backend data
-        const createTranslation = (langOffer: any) => ({
-          title: langOffer?.title || '',
-          description: langOffer?.description || '',
-          detailedDescription: {
-            overview: langOffer?.overview || '',
-            highlights: langOffer?.highlights || [],
-            sections: langOffer?.sections || [],
-            itinerary: [],
-            tips: [],
-            duration: langOffer?.activityDetails?.duration || '',
-            groupSize: langOffer?.activityDetails?.group_size || '',
-          },
-          includedItems: langOffer?.included_items || [],
-          excludedItems: langOffer?.excluded_items || [],
-        })
+        const createTranslation = (langOffer: any) => {
+          const parsed = parseSections(langOffer?.sections || [])
+          return {
+            title: langOffer?.title || '',
+            description: langOffer?.description || '',
+            detailedDescription: {
+              overview: langOffer?.overview || '',
+              highlights: langOffer?.highlights || [],
+              sections: parsed.sections,
+              itinerary: parsed.itinerary,
+              tips: parsed.tips,
+              duration: langOffer?.activityDetails?.duration || '',
+              groupSize: langOffer?.activityDetails?.group_size || '',
+            },
+            includedItems: langOffer?.included_items || [],
+            excludedItems: langOffer?.excluded_items || [],
+          }
+        }
         
         const transformedOffer: Offer = {
           id: backendOffer.id,
@@ -89,15 +121,18 @@ function ActivitiesDetailContent() {
             startDate: availabilityStart ? new Date(availabilityStart).toISOString().split('T')[0] : '',
             endDate: availabilityEnd ? new Date(availabilityEnd).toISOString().split('T')[0] : '',
           },
-          detailedDescription: {
-            overview: backendOffer.overview || '',
-            highlights: backendOffer.highlights || [],
-            sections: backendOffer.sections || [],
-            itinerary: [],
-            tips: [],
-            duration: backendOffer.activityDetails?.duration || '',
-            groupSize: backendOffer.activityDetails?.group_size || '',
-          },
+          detailedDescription: (() => {
+            const parsed = parseSections(backendOffer.sections || [])
+            return {
+              overview: backendOffer.overview || '',
+              highlights: backendOffer.highlights || [],
+              sections: parsed.sections,
+              itinerary: parsed.itinerary,
+              tips: parsed.tips,
+              duration: backendOffer.activityDetails?.duration || '',
+              groupSize: backendOffer.activityDetails?.group_size || '',
+            }
+          })(),
           includedItems: backendOffer.included_items || [],
           excludedItems: backendOffer.excluded_items || [],
           // Include translations for all languages

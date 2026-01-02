@@ -364,7 +364,7 @@ export default function AffiliateDetailPage() {
                 <span className="text-sm text-muted-foreground">Total Commission</span>
               </div>
               <span className="font-semibold text-green-600">
-                {affiliate.totalCommission?.toFixed(2) || '0.00'} MAD
+                {affiliate.totalCommission?.toFixed(2) || '0.00'} €
               </span>
             </div>
           </CardContent>
@@ -392,7 +392,7 @@ export default function AffiliateDetailPage() {
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>{formatDate(commission.bookingDate)}</span>
                       <span className="font-semibold text-green-600">
-                        {commission.amount.toFixed(2)} MAD
+                        {commission.amount.toFixed(2)} €
                       </span>
                     </div>
                   </div>

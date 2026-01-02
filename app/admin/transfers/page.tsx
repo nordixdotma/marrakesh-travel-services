@@ -206,7 +206,7 @@ export default function AdminTransfersPage() {
                     </div>
                     {transfer.priceAdult || transfer.price_adult ? (
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">{transfer.priceAdult || transfer.price_adult} MAD</span>/adult
+                        <span className="font-medium">{transfer.priceAdult || transfer.price_adult} €</span>/adult
                       </div>
                     ) : null}
                   </div>

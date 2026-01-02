@@ -210,7 +210,7 @@ export default function AdminExcursionsPage() {
                   </div>
                   {offer.priceAdult !== undefined && (
                     <div className="flex items-center gap-1">
-                      <span className="font-medium">{offer.priceAdult} MAD</span>/adult
+                      <span className="font-medium">{offer.priceAdult} €</span>/adult
                     </div>
                   )}
                 </div>

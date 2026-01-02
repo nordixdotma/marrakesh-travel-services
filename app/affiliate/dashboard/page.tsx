@@ -106,7 +106,7 @@ export default function AffiliateDashboardPage() {
     },
     {
       title: language === "fr" ? "Revenus" : language === "es" ? "Ingresos" : "Revenue",
-      value: `${stats.totalRevenue.toFixed(2)} MAD`,
+      value: `${stats.totalRevenue.toFixed(2)} €`,
       change: "",
       icon: DollarSign,
       color: "text-green-600",
@@ -207,10 +207,10 @@ export default function AffiliateDashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-foreground">
-                      {parseFloat(booking.total_price || 0).toFixed(2)} MAD
+                      {parseFloat(booking.total_price || 0).toFixed(2)} €
                     </p>
                     <p className="text-xs text-green-600">
-                      {language === "fr" ? "Commis" : language === "es" ? "Comisión" : "Commission"}: {parseFloat(booking.commission_amount || 0).toFixed(2)} MAD
+                      {language === "fr" ? "Commis" : language === "es" ? "Comisión" : "Commission"}: {parseFloat(booking.commission_amount || 0).toFixed(2)} €
                     </p>
                   </div>
                 </div>

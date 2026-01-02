@@ -344,20 +344,20 @@ export default function BookingDetailsPage({ params }: BookingDetailsPageProps) 
               <div className="space-y-3 text-sm">
                 {booking.adults > 0 && offer.priceAdult && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">{booking.adults} {t.offerDetails?.reservationForm?.adults || "Adults"} × MAD {offer.priceAdult}</span>
-                    <span>MAD {booking.adults * parseFloat(offer.priceAdult)}</span>
+                    <span className="text-muted-foreground">{booking.adults} {t.offerDetails?.reservationForm?.adults || "Adults"} × € {offer.priceAdult}</span>
+                    <span>€ {booking.adults * parseFloat(offer.priceAdult)}</span>
                   </div>
                 )}
                 {(booking.children || 0) > 0 && offer.priceChild && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">{booking.children} {t.offerDetails?.reservationForm?.children || "Children"} × MAD {offer.priceChild}</span>
-                    <span>MAD {booking.children * parseFloat(offer.priceChild)}</span>
+                    <span className="text-muted-foreground">{booking.children} {t.offerDetails?.reservationForm?.children || "Children"} × € {offer.priceChild}</span>
+                    <span>€ {booking.children * parseFloat(offer.priceChild)}</span>
                   </div>
                 )}
                 <Separator className="my-2" />
                 <div className="flex justify-between font-bold text-lg">
                   <span>{t.users?.bookingDetails?.total || "Total"}</span>
-                  <span className="text-primary">MAD {parseFloat(booking.total_price) || 0}</span>
+                  <span className="text-primary">€ {parseFloat(booking.total_price) || 0}</span>
                 </div>
               </div>
 

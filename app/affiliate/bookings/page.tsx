@@ -219,10 +219,10 @@ export default function AffiliateBookingsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                      {booking.amount.toFixed(2)} MAD
+                      {booking.amount.toFixed(2)} €
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
-                      {booking.commission.toFixed(2)} MAD
+                      {booking.commission.toFixed(2)} €
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(booking.status)}`}>
@@ -270,7 +270,7 @@ export default function AffiliateBookingsPage() {
               {language === "fr" ? "Revenus totaux" : language === "es" ? "Ingresos totales" : "Total Revenue"}
             </p>
             <p className="text-2xl font-bold text-foreground">
-              {bookings.reduce((sum, b) => sum + b.amount, 0)} MAD
+              {bookings.reduce((sum, b) => sum + b.amount, 0)} €
             </p>
           </div>
           <div className="p-4 bg-muted/50 rounded-lg">
@@ -278,7 +278,7 @@ export default function AffiliateBookingsPage() {
               {language === "fr" ? "Commissions totales" : language === "es" ? "Comisiones totales" : "Total Commissions"}
             </p>
             <p className="text-2xl font-bold text-green-600">
-              {bookings.reduce((sum, b) => sum + b.commission, 0)} MAD
+              {bookings.reduce((sum, b) => sum + b.commission, 0)} €
             </p>
           </div>
         </div>

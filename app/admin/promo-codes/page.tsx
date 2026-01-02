@@ -106,9 +106,9 @@ export default function AdminPromoCodesPage() {
 
   const getDiscountDisplay = (promo: PromoCode) => {
     if (promo.discountType === 'percentage') {
-      return `${promo.discountValue}%${promo.maxDiscount ? ` (max ${promo.maxDiscount} MAD)` : ''}`
+      return `${promo.discountValue}%${promo.maxDiscount ? ` (max ${promo.maxDiscount} €)` : ''}`
     } else {
-      return `${promo.discountValue} MAD`
+      return `${promo.discountValue} €`
     }
   }
 
@@ -203,7 +203,7 @@ export default function AdminPromoCodesPage() {
                       <span className="text-sm font-medium">{getDiscountDisplay(promo)}</span>
                       {promo.minPurchase && (
                         <span className="text-xs text-muted-foreground">
-                          (min {promo.minPurchase} MAD)
+                          (min {promo.minPurchase} €)
                         </span>
                       )}
                     </div>

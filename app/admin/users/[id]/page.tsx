@@ -235,7 +235,7 @@ export default function UserDetailPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <p className="font-medium">{booking.totalPrice} MAD</p>
+                        <p className="font-medium">{booking.totalPrice} €</p>
                         <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
                           <Clock className="h-3 w-3" />
                           {formatDate(booking.createdAt)}

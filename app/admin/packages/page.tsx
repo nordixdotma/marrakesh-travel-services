@@ -221,7 +221,7 @@ export default function AdminPackagesPage() {
                     </div>
                     {pkg.priceAdult || pkg.price_adult ? (
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">{pkg.priceAdult || pkg.price_adult} MAD</span>/adult
+                        <span className="font-medium">{pkg.priceAdult || pkg.price_adult} €</span>/adult
                       </div>
                     ) : null}
                   </div>

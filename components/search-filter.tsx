@@ -193,10 +193,10 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
               <DollarSign className="w-3 h-3" />
               {minPrice !== "" && maxPrice !== "" 
-                ? `MAD ${minPrice} - MAD ${maxPrice}` 
+                ? `€ ${minPrice} - € ${maxPrice}` 
                 : minPrice !== "" 
-                  ? `${t.searchFilter.fromPrice} MAD ${minPrice}` 
-                  : `${t.searchFilter.upToPrice} MAD ${maxPrice}`}
+                  ? `${t.searchFilter.fromPrice} € ${minPrice}` 
+                  : `${t.searchFilter.upToPrice} € ${maxPrice}`}
               <button onClick={() => { setMinPrice(""); setMaxPrice(""); emit() }} className="ml-1 hover:bg-primary/20 rounded-full p-0.5">
                 <X className="w-3 h-3" />
               </button>
@@ -252,7 +252,7 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
                 </label>
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">MAD</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">€</span>
                     <input
                       type="number"
                       value={minPrice as any}
@@ -265,7 +265,7 @@ export default function SearchFilter({ onChange, initial, showCategoryFilter = t
                   </div>
                   <span className="text-muted-foreground text-sm">–</span>
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">MAD</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">€</span>
                     <input
                       type="number"
                       value={maxPrice as any}

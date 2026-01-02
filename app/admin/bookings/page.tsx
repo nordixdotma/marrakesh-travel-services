@@ -238,7 +238,7 @@ export default function AdminBookingsPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-1 font-medium">
-                      <span>{booking.totalPrice} MAD</span>
+                      <span>{booking.totalPrice} €</span>
                     </div>
                   </div>
 

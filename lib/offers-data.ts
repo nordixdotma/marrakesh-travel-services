@@ -29,6 +29,18 @@ export interface OfferTranslations {
   excludedItems: string[]
 }
 
+export interface GroupPricing {
+  personsPerGroup: number
+  price: number
+}
+
+export interface PersonPricing {
+  priceFor2: number
+  priceFor4: number
+  priceFor6: number
+  priceFor8: number
+}
+
 export interface Offer {
   id: string
   type: OfferType
@@ -48,6 +60,9 @@ export interface Offer {
   excludedItems: string[]
   priceAdult: number
   priceChild: number
+  pricingType?: 'per_group' | 'per_person'
+  groupPricing?: GroupPricing
+  personPricing?: PersonPricing
   availabilityDates: {
     startDate: string
     endDate: string

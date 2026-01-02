@@ -161,15 +161,27 @@ const OffersGrid = memo(function OffersGrid({ offers }: OffersGridProps) {
             className="offer-card rounded-sm md:rounded-lg bg-background border border-border transition-all duration-300 hover:border-primary overflow-hidden hover:shadow-lg group flex flex-col relative h-full"
           >
             <div className="relative overflow-hidden h-52 md:h-56 lg:h-64">
-              <Image
-                src={offer.mainImage || "/placeholder.svg"}
-                alt={offer.title}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                priority={index < 3}
-                loading={index < 3 ? undefined : "lazy"}
-              />
+              {offer.mainImage && (offer.mainImage.includes('localhost:3030') || offer.mainImage.includes('api.marrakeshtravelservices.com')) ? (
+                <img
+                  src={offer.mainImage || "/placeholder.svg"}
+                  alt={offer.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.src = '/placeholder.svg'
+                  }}
+                />
+              ) : (
+                <Image
+                  src={offer.mainImage || "/placeholder.svg"}
+                  alt={offer.title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  priority={index < 3}
+                  loading={index < 3 ? undefined : "lazy"}
+                />
+              )}
               <button
                 onClick={(e) => handleToggleFavorite(e, offer.id, offer.type)}
                 disabled={isToggling === offer.id}
@@ -225,7 +237,7 @@ const OffersGrid = memo(function OffersGrid({ offers }: OffersGridProps) {
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-[9px] sm:text-xs text-secondary opacity-90">{t?.common?.from ?? "From"}</p>
-                    <p className="text-[13px] md:text-base font-semibold text-primary-foreground">MAD {offer.priceAdult}</p>
+                    <p className="text-[13px] md:text-base font-semibold text-primary-foreground">€ {offer.priceAdult}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] sm:text-xs text-secondary opacity-90">{offer.type === "transfers" ? (t?.offerDetails?.perVehicle ?? "per vehicle") : (t?.common?.perPerson ?? "per person")}</p>

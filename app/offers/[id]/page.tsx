@@ -294,6 +294,9 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
         const backendOffer = response.offer
         
         // Extract pricing data
+        const pricingType = backendOffer.pricingType || backendOffer.pricing?.pricing_type || 'per_person'
+        const groupPricing = backendOffer.groupPricing || backendOffer.pricing?.pricing_data?.groupPricing
+        const personPricing = backendOffer.personPricing || backendOffer.pricing?.pricing_data?.personPricing
         const priceAdult = backendOffer.pricing?.price_adult || backendOffer.price_adult
         const priceChild = backendOffer.pricing?.price_child || backendOffer.price_child
         const availabilityStart = backendOffer.pricing?.availability_start || backendOffer.availability_start
@@ -393,6 +396,17 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
           departCity: backendOffer.depart_city || 'Marrakech',
           priceAdult: priceAdult ? parseFloat(priceAdult) : 0,
           priceChild: priceChild ? parseFloat(priceChild) : 0,
+          pricingType: pricingType,
+          groupPricing: groupPricing ? {
+            personsPerGroup: groupPricing.personsPerGroup || 0,
+            price: groupPricing.price || 0,
+          } : undefined,
+          personPricing: personPricing ? {
+            priceFor2: personPricing.priceFor2 || 0,
+            priceFor4: personPricing.priceFor4 || 0,
+            priceFor6: personPricing.priceFor6 || 0,
+            priceFor8: personPricing.priceFor8 || 0,
+          } : undefined,
           mainImage: mainImage,
           thumbnailImages: thumbnailImages,
           video: backendOffer.video || '',
@@ -432,7 +446,35 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
       return { subtotal: 0, discount: 0, total: 0 }
     }
     
-    const subtotal = formData.adults * (offer.priceAdult ?? 0) + formData.children * (offer.priceChild ?? 0)
+    let subtotal = 0
+    
+    // Calculate price based on pricing type
+    if (offer.pricingType === 'per_group' && offer.groupPricing) {
+      // Per group pricing: calculate number of groups needed
+      const totalPersons = formData.adults + formData.children
+      const personsPerGroup = offer.groupPricing.personsPerGroup || 1
+      const numberOfGroups = Math.ceil(totalPersons / personsPerGroup)
+      subtotal = numberOfGroups * offer.groupPricing.price
+    } else if (offer.pricingType === 'per_person' && offer.personPricing) {
+      // Per person pricing: use the appropriate price tier
+      const totalPersons = formData.adults + formData.children
+      let pricePerPerson = 0
+      
+      if (totalPersons <= 2) {
+        pricePerPerson = offer.personPricing.priceFor2 || 0
+      } else if (totalPersons <= 4) {
+        pricePerPerson = offer.personPricing.priceFor4 || 0
+      } else if (totalPersons <= 6) {
+        pricePerPerson = offer.personPricing.priceFor6 || 0
+      } else {
+        pricePerPerson = offer.personPricing.priceFor8 || 0
+      }
+      
+      subtotal = totalPersons * pricePerPerson
+    } else {
+      // Legacy pricing: per person (adult/child)
+      subtotal = formData.adults * (offer.priceAdult ?? 0) + formData.children * (offer.priceChild ?? 0)
+    }
     
     let discount = 0
     if (promoCodeDetails?.isValid && subtotal > 0) {
@@ -1062,7 +1104,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold text-primary">MAD {vehicle.price}</p>
+                            <p className="text-lg font-bold text-primary">€ {vehicle.price}</p>
                             <p className="text-xs text-muted-foreground">{t.offerDetails.perVehicle}</p>
                           </div>
                         </div>
@@ -1280,35 +1322,78 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
               )}
 
               {/* Pricing Cards - Hide for transfers and packages */}
-              {offer.type !== "transfers" && offer.type !== "packages" && (offer.priceAdult !== undefined || offer.priceChild !== undefined) && (
+              {offer.type !== "transfers" && offer.type !== "packages" && (
                 <div className="bg-background rounded-xl p-3.5 md:p-5 border border-border/50 shadow-sm">
                   <h3 className="font-semibold text-foreground mb-3">{t.offerDetails.pricing}</h3>
-                  <div className="grid grid-cols-2 gap-2 md:gap-3">
-                    {offer.priceAdult !== undefined && (
-                      <div className="relative p-2.5 md:p-4 rounded-xl bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20">
-                        <div className="flex items-center gap-2 mb-1 md:mb-2">
-                          <User size={14} className="text-primary" />
-                          <span className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.adult}</span>
-                        </div>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-lg md:text-2xl font-bold text-foreground">MAD {offer.priceAdult}</span>
-                          <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">{t.offerDetails.perPerson}</span>
-                        </div>
+                  {offer.pricingType === 'per_group' && offer.groupPricing ? (
+                    <div className="p-2.5 md:p-4 rounded-xl bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20">
+                      <div className="flex items-center gap-2 mb-1 md:mb-2">
+                        <Users size={14} className="text-primary" />
+                        <span className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.group}</span>
                       </div>
-                    )}
-                    {offer.priceChild !== undefined && (
-                      <div className="relative p-2.5 md:p-4 rounded-xl bg-linear-to-br from-blue-500/5 to-blue-500/10 border border-blue-500/20">
-                        <div className="flex items-center gap-2 mb-1 md:mb-2">
-                          <Users size={14} className="text-blue-500" />
-                          <span className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.child}</span>
-                        </div>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-lg md:text-2xl font-bold text-foreground">MAD {offer.priceChild}</span>
-                          <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">{t.offerDetails.perChild}</span>
-                        </div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-lg md:text-2xl font-bold text-foreground">€ {offer.groupPricing.price}</span>
+                        <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">/{offer.groupPricing.personsPerGroup} {t.offerDetails.persons}</span>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : offer.pricingType === 'per_person' && offer.personPricing ? (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        {offer.personPricing.priceFor2 > 0 && (
+                          <div className="p-2.5 md:p-3 rounded-lg bg-muted/50 border border-border/50">
+                            <div className="text-[10px] md:text-xs text-muted-foreground mb-1">{t.offerDetails.for2Persons}</div>
+                            <div className="text-sm md:text-lg font-bold text-foreground">€ {offer.personPricing.priceFor2}</div>
+                          </div>
+                        )}
+                        {offer.personPricing.priceFor4 > 0 && (
+                          <div className="p-2.5 md:p-3 rounded-lg bg-muted/50 border border-border/50">
+                            <div className="text-[10px] md:text-xs text-muted-foreground mb-1">{t.offerDetails.for4Persons}</div>
+                            <div className="text-sm md:text-lg font-bold text-foreground">€ {offer.personPricing.priceFor4}</div>
+                          </div>
+                        )}
+                        {offer.personPricing.priceFor6 > 0 && (
+                          <div className="p-2.5 md:p-3 rounded-lg bg-muted/50 border border-border/50">
+                            <div className="text-[10px] md:text-xs text-muted-foreground mb-1">{t.offerDetails.for6Persons}</div>
+                            <div className="text-sm md:text-lg font-bold text-foreground">€ {offer.personPricing.priceFor6}</div>
+                          </div>
+                        )}
+                        {offer.personPricing.priceFor8 > 0 && (
+                          <div className="p-2.5 md:p-3 rounded-lg bg-muted/50 border border-border/50">
+                            <div className="text-[10px] md:text-xs text-muted-foreground mb-1">{t.offerDetails.for8Persons}</div>
+                            <div className="text-sm md:text-lg font-bold text-foreground">€ {offer.personPricing.priceFor8}</div>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">{t.offerDetails.perPerson}</p>
+                    </div>
+                  ) : (offer.priceAdult !== undefined || offer.priceChild !== undefined) ? (
+                    <div className="grid grid-cols-2 gap-2 md:gap-3">
+                      {offer.priceAdult !== undefined && (
+                        <div className="relative p-2.5 md:p-4 rounded-xl bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20">
+                          <div className="flex items-center gap-2 mb-1 md:mb-2">
+                            <User size={14} className="text-primary" />
+                            <span className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.adult}</span>
+                          </div>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-lg md:text-2xl font-bold text-foreground">€ {offer.priceAdult}</span>
+                            <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">{t.offerDetails.perPerson}</span>
+                          </div>
+                        </div>
+                      )}
+                      {offer.priceChild !== undefined && (
+                        <div className="relative p-2.5 md:p-4 rounded-xl bg-linear-to-br from-blue-500/5 to-blue-500/10 border border-blue-500/20">
+                          <div className="flex items-center gap-2 mb-1 md:mb-2">
+                            <Users size={14} className="text-blue-500" />
+                            <span className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">{t.offerDetails.child}</span>
+                          </div>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-lg md:text-2xl font-bold text-foreground">€ {offer.priceChild}</span>
+                            <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">{t.offerDetails.perChild}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               )}
 
@@ -1345,12 +1430,20 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
             <div className="lg:col-span-1">
               <div className="sticky top-24 bg-background rounded-2xl border border-border/50 shadow-lg overflow-hidden">
                 {/* Price Header */}
-                {offer.type !== "packages" && offer.priceAdult !== undefined && (
+                {offer.type !== "packages" && (
                   <div className="p-4 bg-linear-to-r from-primary to-primary/80 text-primary-foreground">
                     <div className="flex items-baseline gap-2">
                       <span className="text-sm opacity-90">{t.offerDetails.reservationForm.fromPrice}</span>
-                      <span className="text-3xl font-bold">MAD {offer.priceAdult}</span>
-                      <span className="text-sm opacity-90">{offer.type === "transfers" ? "/" + t.offerDetails.perVehicle.split(" ")[1] : t.offerDetails.perPerson}</span>
+                      <span className="text-3xl font-bold">€ {
+                        offer.pricingType === 'per_group' && offer.groupPricing ? offer.groupPricing.price :
+                        offer.pricingType === 'per_person' && offer.personPricing ? offer.personPricing.priceFor2 :
+                        offer.priceAdult || 0
+                      }</span>
+                      <span className="text-sm opacity-90">{
+                        offer.type === "transfers" ? "/" + t.offerDetails.perVehicle.split(" ")[1] :
+                        offer.pricingType === 'per_group' && offer.groupPricing ? `/${offer.groupPricing.personsPerGroup} ${t.offerDetails.persons}` :
+                        t.offerDetails.perPerson
+                      }</span>
                     </div>
                   </div>
                 )}
@@ -1535,7 +1628,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     )}
                     {promoCodeDetails?.isValid && (
                       <p className="text-[10px] text-green-600 font-medium">
-                        ✓ Promo code applied! You save {promoCodeDetails.discountType === 'PERCENTAGE' ? `${promoCodeDetails.discountValue}%` : `MAD ${promoCodeDetails.discountValue}`}
+                        ✓ Promo code applied! You save {promoCodeDetails.discountType === 'PERCENTAGE' ? `${promoCodeDetails.discountValue}%` : `€ ${promoCodeDetails.discountValue}`}
                       </p>
                     )}
                     {!promoCodeDetails && !isValidatingPromoCode && (
@@ -1564,28 +1657,58 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     <div className="p-2.5 md:p-3 bg-muted/50 rounded-lg space-y-1.5 md:space-y-2">
                       <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
                         <span>{t.offerDetails.reservationForm.transfer} ({formData.adults} {formData.adults > 1 ? t.offerDetails.reservationForm.passengers : t.offerDetails.reservationForm.passenger})</span>
-                        <span>{t.offerDetails.reservationForm.fromPrice} MAD {offer.priceAdult}</span>
+                        <span>{t.offerDetails.reservationForm.fromPrice} € {offer.priceAdult}</span>
                       </div>
                       <div className="flex justify-between font-semibold text-foreground pt-1.5 md:pt-2 border-t border-border/50">
                         <span className="text-xs md:text-base">{t.offerDetails.reservationForm.startingFrom}</span>
-                        <span className="text-sm md:text-lg text-primary">MAD {offer.priceAdult}</span>
+                        <span className="text-sm md:text-lg text-primary">€ {offer.priceAdult}</span>
                       </div>
                       <p className="text-[9px] md:text-[10px] text-muted-foreground">{t.offerDetails.reservationForm.finalPriceNote}</p>
                     </div>
-                  ) : offer.type !== "packages" && (offer.priceAdult !== undefined || offer.priceChild !== undefined) && (
+                  ) : offer.type !== "packages" && (
                     <div className="p-2.5 md:p-3 bg-muted/50 rounded-lg space-y-1.5 md:space-y-2">
-                      {offer.priceAdult !== undefined && (
-                        <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
-                          <span>{formData.adults} {t.offerDetails.reservationForm.adults} × MAD {offer.priceAdult}</span>
-                          <span>MAD {formData.adults * offer.priceAdult}</span>
-                        </div>
-                      )}
-                      {formData.children > 0 && offer.priceChild !== undefined && (
-                        <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
-                          <span>{formData.children} {t.offerDetails.reservationForm.children} × MAD {offer.priceChild}</span>
-                          <span>MAD {formData.children * offer.priceChild}</span>
-                        </div>
-                      )}
+                      {offer.pricingType === 'per_group' && offer.groupPricing ? (
+                        <>
+                          <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
+                            <span>
+                              {Math.ceil((formData.adults + formData.children) / (offer.groupPricing.personsPerGroup || 1))} {t.offerDetails.group} × € {offer.groupPricing.price}
+                            </span>
+                            <span>€ {Math.ceil((formData.adults + formData.children) / (offer.groupPricing.personsPerGroup || 1)) * offer.groupPricing.price}</span>
+                          </div>
+                          <div className="text-[10px] text-muted-foreground">
+                            ({formData.adults + formData.children} {t.offerDetails.persons} / {offer.groupPricing.personsPerGroup} {t.offerDetails.perGroup})
+                          </div>
+                        </>
+                      ) : offer.pricingType === 'per_person' && offer.personPricing ? (
+                        <>
+                          <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
+                            <span>
+                              {formData.adults + formData.children} {t.offerDetails.persons} × € {
+                                (formData.adults + formData.children) <= 2 ? offer.personPricing.priceFor2 :
+                                (formData.adults + formData.children) <= 4 ? offer.personPricing.priceFor4 :
+                                (formData.adults + formData.children) <= 6 ? offer.personPricing.priceFor6 :
+                                offer.personPricing.priceFor8
+                              }
+                            </span>
+                            <span>€ {calculateTotalPrice.subtotal}</span>
+                          </div>
+                        </>
+                      ) : (offer.priceAdult !== undefined || offer.priceChild !== undefined) ? (
+                        <>
+                          {offer.priceAdult !== undefined && (
+                            <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
+                              <span>{formData.adults} {t.offerDetails.reservationForm.adults} × € {offer.priceAdult}</span>
+                              <span>€ {formData.adults * offer.priceAdult}</span>
+                            </div>
+                          )}
+                          {formData.children > 0 && offer.priceChild !== undefined && (
+                            <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
+                              <span>{formData.children} {t.offerDetails.reservationForm.children} × € {offer.priceChild}</span>
+                              <span>€ {formData.children * offer.priceChild}</span>
+                            </div>
+                          )}
+                        </>
+                      ) : null}
                       {formData.infants > 0 && (
                         <div className="flex justify-between text-[11px] md:text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
@@ -1604,11 +1727,11 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                                   <Ticket size={10} className="text-primary" />
                                   Subtotal
                                 </span>
-                                <span>MAD {calculateTotalPrice.subtotal.toFixed(2)}</span>
+                                <span>€ {calculateTotalPrice.subtotal.toFixed(2)}</span>
                               </div>
                               <div className="flex justify-between text-xs text-green-600 font-medium">
-                                <span>Discount ({promoCodeDetails.discountType === 'PERCENTAGE' ? `${promoCodeDetails.discountValue}%` : `MAD ${promoCodeDetails.discountValue}`})</span>
-                                <span>- MAD {calculateTotalPrice.discount.toFixed(2)}</span>
+                                <span>Discount ({promoCodeDetails.discountType === 'PERCENTAGE' ? `${promoCodeDetails.discountValue}%` : `€ ${promoCodeDetails.discountValue}`})</span>
+                                <span>- € {calculateTotalPrice.discount.toFixed(2)}</span>
                               </div>
                             </>
                           ) : (
@@ -1625,7 +1748,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                       )}
                       <div className="flex justify-between font-semibold text-foreground pt-2 border-t border-border/50">
                         <span>{t.offerDetails.reservationForm.total}</span>
-                        <span className="text-lg text-primary">MAD {totalPrice.toFixed(2)}</span>
+                        <span className="text-lg text-primary">€ {totalPrice.toFixed(2)}</span>
                       </div>
                     </div>
                   )}
@@ -1790,7 +1913,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                   <span className="font-semibold text-foreground">
                     {offer.type === 'packages' 
                       ? 'Custom Quote' 
-                      : `MAD ${calculateTotalPrice.total.toFixed(2)}`
+                      : `€ ${calculateTotalPrice.total.toFixed(2)}`
                     }
                   </span>
                 </div>
@@ -1860,7 +1983,7 @@ export default function OfferDetailsPage({ params }: OfferDetailsPageProps) {
                     const callbackUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030'}/api/v1/payments/cmi-callback`
                     const storetype = '3D_PAY_HOSTING'
                     const hashAlgorithm = 'ver3'
-                    const currency = '504' // MAD currency code
+                    const currency = '978' // EUR currency code
                     
                     try {
                       // Use test environment credentials (as per CMI documentation)

@@ -350,7 +350,7 @@ export const generateVoucherPDF = async (data: VoucherData) => {
     doc.setFont("helvetica", "normal")
     doc.text(`${booking.adults} × ${vt.adults || 'Adults'}`, margin + 6, priceY)
     doc.setFont("helvetica", "bold")
-    doc.text(`MAD ${(booking.adults * parseFloat(adultPrice)).toFixed(2)}`, priceRightX, priceY, { align: 'right' })
+    doc.text(`€ ${(booking.adults * parseFloat(adultPrice)).toFixed(2)}`, priceRightX, priceY, { align: 'right' })
     priceY += 6
   }
 
@@ -362,7 +362,7 @@ export const generateVoucherPDF = async (data: VoucherData) => {
     doc.setFont("helvetica", "normal")
     doc.text(`${booking.children} × ${vt.children || 'Children'}`, margin + 6, priceY)
     doc.setFont("helvetica", "bold")
-    doc.text(`MAD ${(booking.children * parseFloat(childPrice)).toFixed(2)}`, priceRightX, priceY, { align: 'right' })
+    doc.text(`€ ${(booking.children * parseFloat(childPrice)).toFixed(2)}`, priceRightX, priceY, { align: 'right' })
     priceY += 6
   }
 
@@ -381,7 +381,7 @@ export const generateVoucherPDF = async (data: VoucherData) => {
   doc.setFontSize(14)
   doc.setFont("helvetica", "bold")
   const totalPrice = parseFloat(booking.total_price || 0).toFixed(2)
-  doc.text(`MAD ${totalPrice}`, priceRightX, priceY, { align: 'right' })
+  doc.text(`€ ${totalPrice}`, priceRightX, priceY, { align: 'right' })
 
   currentY += 42
 

@@ -284,7 +284,7 @@ export default function CreatePromoCodePage() {
 
               <div className="space-y-2">
                 <Label>
-                  {t.admin?.promoCodes?.form?.discountValue || "Discount Value"} * {formData.discountType === "PERCENTAGE" ? "(%)" : "(MAD)"}
+                  {t.admin?.promoCodes?.form?.discountValue || "Discount Value"} * {formData.discountType === "PERCENTAGE" ? "(%)" : "(€)"}
                 </Label>
                 <Input
                   type="number"
@@ -300,7 +300,7 @@ export default function CreatePromoCodePage() {
 
               {formData.discountType === "PERCENTAGE" && (
                 <div className="space-y-2">
-                  <Label>{t.admin?.promoCodes?.form?.maxDiscount || "Maximum Discount (MAD) - Optional"}</Label>
+                  <Label>{t.admin?.promoCodes?.form?.maxDiscount || "Maximum Discount (€) - Optional"}</Label>
                   <Input
                     type="number"
                     value={formData.maxDiscount}
@@ -315,7 +315,7 @@ export default function CreatePromoCodePage() {
               )}
 
               <div className="space-y-2">
-                <Label>{t.admin?.promoCodes?.form?.minPurchase || "Minimum Purchase (MAD) - Optional"}</Label>
+                <Label>{t.admin?.promoCodes?.form?.minPurchase || "Minimum Purchase (€) - Optional"}</Label>
                 <Input
                   type="number"
                   value={formData.minPurchase}
